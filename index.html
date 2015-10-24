@@ -3,84 +3,322 @@
 <title>ThreatConnect Javascript SDK</title>
 
 <script src="./libs/jquery-1.11.3.js" type="text/javascript"></script>
+
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+
 <script src="./libs/core.js" type="text/javascript"></script>
 <script src="./libs/sha256.js" type="text/javascript"></script>
 <script src="./libs/hmac.js" type="text/javascript"></script>
 <script src="./libs/enc-base64.js" type="text/javascript"></script>
+<script src="./libs/uuid.js" type="text/javascript"></script>
 <script src="./threatconnect.js" type="text/javascript"></script>
+
+<!--
+<link rel="stylesheet" href="./css/pure-min.css">
+-->
 
 </head>
 
 <body>
-    <button id="get">GET</button>
-    <button id="post">POST</button>
+    
+    <form>
+        <div class="row">
+            <div class="col-xs-2 form-group">
+                <label for="">Resource Type</label>
+                
+                <select id="resourceType" class="form-control input-sm">
+                    <option>Adversaries</option>
+                    <option>Indicators</option>
+                </select>
+                
+                <button id="retrieve" type="submit" class="btn btn-default">Retrieve</button>
+                <button id="commit" type="submit" class="btn btn-default">Commit</button>
+            </div>
+        </div>
+    </form>
+    
+    <ul class="nav nav-tabs">
+        <li class="active"><a data-toggle="tab" href="#table">Data Table</a></li>
+        <li><a data-toggle="tab" href="#raw">Raw Data</a></li>
+    </ul>
+
+    <div class="tab-content">
+        
+        <div id="table" class="tab-pane fade in active">
+            <div class="table-responsive">
+                <div id="data_table"></div>
+            </div>
+        </div>
+        
+        <div id="raw" class="tab-pane fade">
+            <pre id="content"></pre>
+        </div>
+    </div>
+    
+    <!--
+    <h2>Indicators</h2>
+    <button id="get-indicators" class="">GET</button>
+    <button id="post-indicators" class="">POST</button>
 
     <br/>
     
-    <div id="content"></div>
+    <h2>Adversaries</h2>
+    <button id="get-adversaries" class="">GET</button>
+    <button id="post-adversaries" class="">POST</button>
+    -->
+    
 </body>
 
 <script>
-    apiSettings = {
-        apiId: '75648495203246550474',
-        apiSec: '(q~*].gkMT}!y{$o@4lt>U{GX39:_2uXX-ZXyH(kL4dw4Ei&s!Ls!g1|!AXS2}mi',
-        apiUrl: 'https://ti.sumx.us/api'
-    };
-    
-    ro = new RequestObject(apiSettings);
-    
-    getRandom = {
-        ip: function() {
-            return [
-                Math.floor(Math.random() * 255) + 1,
-                Math.floor(Math.random() * 255) + 1,
-                Math.floor(Math.random() * 255) + 1,
-                Math.floor(Math.random() * 255) + 1
-            ].join('.');
-        },
-        
-        rating: function() {
-            return Math.floor(Math.random() * 5) + 1;
-        },
-        
-        confidence: function() {
-            return Math.floor(Math.random() * 100) + 1;
-        }
-    };
-    
-    $('#get').on('click', function() {
-        ro.setOwner('test org')
-            .setActivityLog(true)
-            .setRequestUri('v2/indicators')
-            .setRequestMethod("GET")
-            .setPagination(true)
-            .setOwnerAllowed(true)
-            .setResultLimit(500)
-            .apiRequest({
-                complete: function(data) {
-                    $('#content').text(JSON.stringify(data, null, 4));
-                }
-            });
-    });
 
-    $('#post').on('click', function() {
-        ro.setOwner('test org')
-            .setActivityLog(false)
-            .setRequestMethod("POST")
-            .setBody({
-                'ip': getRandom.ip(),
-                'rating': getRandom.rating(),
-                'confidence': getRandom.confidence(),
-            })
-            .setRequestUri('v2/indicators/addresses')
-            .setPagination(false)
-            .setOwnerAllowed(false)
-            .apiRequest({
-                complete: function(data) {
-                    $('#content').text(JSON.stringify(data, null, 4));
+    //
+    // Random
+    //
+    function getRandom() {
+        return {
+            attribute: {Description: 'Description ' + Math.floor(Math.random() * 100) + 1},
+            confidence: Math.floor(Math.random() * 100) + 1,
+            ip: [
+                    Math.floor(Math.random() * 255) + 1,
+                    Math.floor(Math.random() * 255) + 1,
+                    Math.floor(Math.random() * 255) + 1,
+                    Math.floor(Math.random() * 255) + 1
+                ].join('.'),
+            rating: Math.floor(Math.random() * 5) + 1,
+            tag: 'tag' + Math.floor(Math.random() * 100) + 1
+        };
+    }
+    
+    //
+    // Table
+    //
+    function dataTable(table_data) {
+        
+        var h, i, item, rowData, tableHeaderRow, tableRow,
+            headers = Object.keys(table_data[0]),
+            tableHeader = $('<thead></thead>').addClass(''),
+            tableBody = $('<tbody></tbody>').addClass('');
+            
+        if ($('#data_table').find('table').length === 0) {
+            tableHeaderRow = $('<tr></tr>').addClass('');
+            for (h in headers) {
+                tableHeaderRow.append($('<th></th>').addClass('').text(headers[h]));
+            }
+            tableHeader.append(tableHeaderRow);
+            table.append(tableHeader);
+        }
+        
+        for (rowData in table_data) {
+            tableRow = $('<tr></tr>').addClass('');
+            for (item in table_data[rowData]) {
+                if (item === 'indicators') {
+                    var data = '';
+                    for (i in table_data[rowData][item]) {
+                        data = data + ' ' + i + ' ' + table_data[rowData][item][i];
+                    }
+                } else {
+                    data = table_data[rowData][item];
                 }
-            });
+                // tableRow.append($('<td></td>').addClass('').text(table_data[rowData][item]));
+                tableRow.append($('<td></td>').addClass('').text(data));
+            }
+            tableBody.append(tableRow);
+            table.append(tableBody);
+        }
+        $('#data_table').append(table);
+    }
+    
+    //
+    // ThreatConnect
+    //
+    var apiSettings = {
+        apiId: '80139273637620589570',
+        apiSec: 'TCpl5xUATf6Hw$kP8KUajwX?0H8BmqeqnimIB7q95df8Eay?%LkLsEQ0eFT1nXQw',
+        apiUrl: 'https://ti.sumx.us/api'
+    },
+    tc = new ThreatConnect(apiSettings),
+    ro = new RequestObject();
+        
+    //
+    // Retrieve
+    //
+    $("#retrieve").click(function(){
+        $('#data_table').empty();
+        table = $('<table></table>').addClass('table table-striped');
+        
+        if ($("#resourceType").val() == 'Adversaries') {
+            tc.adversaries()
+                .owner('SumX')
+                .resultLimit(2)
+                .pagination(function(data) {
+                    dataTable(data);
+                })
+                .done(function(data) {
+                    $('#content').text(JSON.stringify(data, null, 4));
+                })
+                .retrieve();
+        } else if ($("#resourceType").val() == 'Indicators') {
+            tc.indicator()
+                .owner('SumX')
+                .resultLimit(2)
+                .pagination(function(data) {
+                    dataTable(data);
+                })
+                .done(function(data) {
+                    // process all the data
+                    $('#content').text(JSON.stringify(data, null, 4));
+                })
+                .retrieve();
+            }
+        return false;
     });
+    
+    /*
+     * Commit
+     */
+    $("#commit").click(function(){
+        if ($("#resourceType").val() == 'Adversaries') {
+        } else if ($("#resourceType").val() == 'Indicators') {
+            var random = getRandom(),
+                attribute = random.attribute,
+                indicator = random.ip,
+                confidence = random.confidence,
+                rating = random.rating,
+                tag = random.tag;
+                
+            tc.indicator()
+                .owner('SumX')
+                .done(function(data) {
+                    console.log('done');
+                    $('#content').text(JSON.stringify(data, null, 4));
+                })
+                .indicator(indicator)
+                .type(TYPE.ADDRESS)
+                // .rating(rating)
+                // .confidence(confidence)
+                // .tags([tag])
+                // .attributes([attribute])
+                .add()
+                .commit();
+        }
+    });
+        
+        
+        // tc.indicator()
+        //     // required
+        //     .indicator('www.google.com')
+        //     .owner('SumX')
+        //     .type(TYPE.HOST)
+        //     // optional
+        //     .attributes([{Source: 'Blah'}, {Description: 'test description'}])
+        //     .confidence(getRandom.confidence())
+        //     .rating(getRandom.rating())
+        //     .tags(['test1', 'test2'])
+        //     // specificOptional
+        //     .dnsActive(false)
+        //     .whoisActive(false)
+        //     .done(function(data) {
+        //         console.log('done');
+        //         $('#content').text(JSON.stringify(data, null, 4));
+        //     })
+        //     .commit();
+            
+        // test = tc.indicator()
+        //     .owner('SumX')
+        //     .done(function(data) {
+        //         console.log('done');
+        //         $('#content').text(JSON.stringify(data, null, 4));
+        //     });
+        // for (i=1;i<=10;i++) {
+        //     test.indicator(getRandom.ip())
+        //     .type(TYPE.ADDRESS)
+        //     .rating(getRandom.rating())
+        //     .confidence(getRandom.confidence())
+        //     .tags(['blah', 'test2'])
+        //     .add();
+        // }
+        // test.commit();
+            
+            // .retrieve({
+            //     indicator: indicator,
+            //     type: TYPE.ADDRESS});
+                
+        // test1 = tc.indicator()
+        //     .owner('SumX')
+        //     .done(function(data) {
+        //         console.log('done');
+        //         $('#content').text(JSON.stringify(data, null, 4));
+        //     });
+        // for (i=1;i<=5;i++) {
+        //     test1.indicator(getRandom.ip())
+        //     .type(TYPE.ADDRESS)
+        //     .rating(getRandom.rating())
+        //     .confidence(getRandom.confidence())
+        //     .tags(['blah', 'test2'])
+        //     .add();
+        // }
+        // test1.commit();
+            
+        // var test2 = tc.setIndicator().add()
+        //     // .indicator(getRandom.ip())
+        //     // .type(TYPE.ADDRESS)
+            
+        //     .indicator('www.google.com')
+        //     .type(TYPE.HOST)
+            
+        //     .dnsActive(false)
+        //     .whoisActive(false)
+            
+        //     .owner('SumX')
+        //     .rating(getRandom.rating())
+        //     .confidence(getRandom.confidence())
+        //     .add()
+        //     .done(function(data) {
+        //         console.log('done');
+        //         $('#content').text(JSON.stringify(data, null, 4));
+        //     })
+            
+        //     .commit();
+            
+        // var myIndicaor = tc.buildIndicator()
+        //     .indicator('www.google.com')
+        //     .type(TYPE.HOST)
+        //     .dnsActive(false)
+        //     .whoisActive(false)
+        //     .owner('SumX')
+        //     .rating(getRandom.rating())
+        //     .confidence(getRandom.confidence());
+            
+        // var myIndicator = {
+        //     'ip': '1.1.1.1',
+        //     'Type': 'Address',
+        // }
+
+        // test.type(TYPE.ADDRESS).commit()
+        
+        // if (TYPE.ADDRESS) {
+        //     if this.dnsActive { error }
+        //     if this.whoisActive { error }
+        // }
+            
+        // ro.setOwner('SumX')
+        //     .setActivityLog(false)
+        //     .setRequestMethod("POST")
+        //     .setBody({
+        //         'ip': getRandom.ip(),
+        //         'rating': getRandom.rating(),
+        //         'confidence': getRandom.confidence(),
+        //     })
+        //     .setRequestUri('v2/indicators/batch')
+        //     .setPagination(false)
+        //     .setOwnerAllowed(false);
+        //     
+        // tc.apiRequest(ro, indicatorCallback)
     
 </script>
 </html>
