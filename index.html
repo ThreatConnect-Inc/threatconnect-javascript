@@ -2,13 +2,15 @@
 <head>
 <title>ThreatConnect Javascript SDK</title>
 
+<!--
 <script src="./libs/jquery-1.11.3.js" type="text/javascript"></script>
+<script type="text/javascript" src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+-->
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
 
-<!-- Latest compiled and minified CSS -->
+<!-- Bootstrap -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-<!-- Optional theme -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
-<!-- Latest compiled and minified JavaScript -->
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 
 <script src="./libs/core.js" type="text/javascript"></script>
@@ -16,99 +18,297 @@
 <script src="./libs/hmac.js" type="text/javascript"></script>
 <script src="./libs/enc-base64.js" type="text/javascript"></script>
 <script src="./libs/uuid.js" type="text/javascript"></script>
-<script src="./threatconnect.js" type="text/javascript"></script>
 
-<!--
-<link rel="stylesheet" href="./css/pure-min.css">
--->
+<script src="./threatconnect.js" type="text/javascript"></script>
 
 </head>
 
 <body>
-    
-    <form>
-        <div class="row">
-            <div class="col-xs-2 form-group">
-                <label for="">Resource Type</label>
-                
-                <select id="resourceType" class="form-control input-sm">
-                    <option>Adversaries</option>
-                    <option>Indicators</option>
-                </select>
-                
-                <button id="retrieve" type="submit" class="btn btn-default">Retrieve</button>
-                <button id="commit" type="submit" class="btn btn-default">Commit</button>
-            </div>
-        </div>
-    </form>
-    
-    <ul class="nav nav-tabs">
-        <li class="active"><a data-toggle="tab" href="#table">Data Table</a></li>
-        <li><a data-toggle="tab" href="#raw">Raw Data</a></li>
-    </ul>
 
+    <nav class="navbar navbar-default navbar-static-top">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#">TC JavaScript Tester</a>
+            </div>
+            <div>
+                <ul class="nav navbar-nav">
+                    <li class="active">
+                        <a data-toggle="tab" href="#Home">Home</a>
+                    </li>
+                    <li><a data-toggle="tab" href="#Adversaries">Adversaries</a></li>
+                    <li><a data-toggle="tab" href="#Documents">Documents</a></li>
+                    <li><a data-toggle="tab" href="#Incidents">Incidents</a></li> 
+                    <li><a data-toggle="tab" href="#Indicators">Indicators</a></li> 
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
     <div class="tab-content">
+        <div class="tab-pane active" id="Home">
+            ThreatConnect JavaScript SDK Tester
+        </div>
         
-        <div id="table" class="tab-pane fade in active">
-            <div class="table-responsive">
-                <div id="data_table"></div>
+        <div class="tab-pane" id="Adversaries">
+            <button type="button" class="btn btn-info btn-sm pull-right" data-toggle="modal" data-target="#adversary_modal">Add Adverary</button>
+            <ul class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#adversary_table">Data Table</a></li>
+                <li><a data-toggle="tab" href="#adversary_raw">Raw Data</a></li>
+            </ul>
+     
+            <div class="tab-content">
+                <div id="adversary_table" class="tab-pane fade in active">
+                    <div class="table-responsive">
+                        <div id="adversary_data_table"></div>
+                    </div>
+                </div>
+                
+                <div id="adversary_raw" class="tab-pane fade">
+                    <pre id="adversary_content"></pre>
+                </div>
             </div>
         </div>
         
-        <div id="raw" class="tab-pane fade">
-            <pre id="content"></pre>
+        <div class="tab-pane" id="Documents">
+            <button type="button" class="btn btn-info btn-sm pull-right" data-toggle="modal" data-target="#document_modal">Add Document</button>
+            <ul class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#document_table">Data Table</a></li>
+                <li><a data-toggle="tab" href="#document_raw">Raw Data</a></li>
+            </ul>
+     
+            <div class="tab-content">
+                <div id="document_table" class="tab-pane fade in active">
+                    <div class="table-responsive">
+                        <div id="document_data_table"></div>
+                    </div>
+                </div>
+                
+                <div id="document_raw" class="tab-pane fade">
+                    <pre id="document_content"></pre>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-pane" id="Incidents">
+            <button type="button" class="btn btn-info btn-sm pull-right" data-toggle="modal" data-target="#incident_modal">Add Incident</button>
+            <ul class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#incident_table">Data Table</a></li>
+                <li><a data-toggle="tab" href="#incident_raw">Raw Data</a></li>
+            </ul>
+     
+            <div class="tab-content">
+                <div id="incident_table" class="tab-pane fade in active">
+                    <div class="table-responsive">
+                        <div id="incident_data_table"></div>
+                    </div>
+                </div>
+                
+                <div id="incident_raw" class="tab-pane fade">
+                    <pre id="incident_content"></pre>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-pane" id="Indicators">
+            <button type="button" class="btn btn-info btn-sm pull-right" data-toggle="modal" data-target="#indicator_modal">Add Indicator</button>
+            <ul class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#indicator_table">Data Table</a></li>
+                <li><a data-toggle="tab" href="#indicator_raw">Raw Data</a></li>
+            </ul>
+     
+            <div class="tab-content">
+                <div id="indicator_table" class="tab-pane fade in active">
+                    <div class="table-responsive">
+                        <div id="indicator_data_table"></div>
+                    </div>
+                </div>
+                
+                <div id="indicator_raw" class="tab-pane fade">
+                    <pre id="indicator_content"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    
+    <div id="adversary_modal" class="modal fade" role="dialog">
+        <div class="modal-dialog modal-lg">
+    
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Add Adversary</h4>
+                </div>
+                <div class="modal-body">
+                    <form role="form">
+                        <div class="form-group">
+                            <label for="adversary_name">Adversary Name</label>
+                            <input type="input" class="form-control" id="adversary_name">
+                        </div>
+                        <button id="adversary_commit" type="submit" class="btn btn-default">Submit</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+    
         </div>
     </div>
     
-    <!--
-    <h2>Indicators</h2>
-    <button id="get-indicators" class="">GET</button>
-    <button id="post-indicators" class="">POST</button>
-
-    <br/>
+    <div id="document_modal" class="modal fade" role="dialog">
+        <div class="modal-dialog modal-lg">
     
-    <h2>Adversaries</h2>
-    <button id="get-adversaries" class="">GET</button>
-    <button id="post-adversaries" class="">POST</button>
-    -->
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Add Document</h4>
+                </div>
+                <div class="modal-body">
+                    <form role="form">
+                        <div class="form-group">
+                            <label for="document_name">Document Name</label>
+                            <input type="input" class="form-control" id="document_name">
+                        </div>
+                        <div class="form-group">
+                            <label for="file_name">File Name</label>
+                            <input type="input" class="form-control" id="file_name">
+                        </div>
+                        <button id="document_commit" type="submit" class="btn btn-default">Submit</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+    
+        </div>
+    </div>
+    
+    <div id="incident_modal" class="modal fade" role="dialog">
+        <div class="modal-dialog modal-lg">
+    
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Add Incident</h4>
+                </div>
+                <div class="modal-body">
+                    <form role="form">
+                        <div class="form-group">
+                            <label for="incident_name">Incident Name</label>
+                            <input type="input" class="form-control" id="incident_name">
+                        </div>
+                        <button id="incident_commit" type="submit" class="btn btn-default">Submit</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+    
+        </div>
+    </div>
+    
+    <div id="indicator_modal" class="modal fade" role="dialog">
+        <div class="modal-dialog modal-lg">
+    
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Add Indicator</h4>
+                </div>
+                <div class="modal-body">
+                    <form role="form">
+                        <div class="form-group">
+                            <label for="indicator_value">Indicator</label>
+                            <input type="input" class="form-control" id="indicator_value">
+                        </div>
+                        <div class="form-group">
+                            <label for="indicator_type">Indicator Type</label>
+                            <select id="indicator_type" class="form-control">
+                                <option>ADDRESS</option>
+                                <option>EMAIL_ADDRESS</option>
+                                <option>FILE</option>
+                                <option>HOST</option>
+                                <option>URL</option>
+                            </select>
+                        </div>
+                        <button id="indicator_commit" type="submit" class="btn btn-default">Submit</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+    
+        </div>
+    </div>
     
 </body>
 
 <script>
 
+    var c = console,
+        owner = 'SumX';
     //
     // Random
     //
-    function getRandom() {
-        return {
-            attribute: {Description: 'Description ' + Math.floor(Math.random() * 100) + 1},
-            confidence: Math.floor(Math.random() * 100) + 1,
-            ip: [
-                    Math.floor(Math.random() * 255) + 1,
-                    Math.floor(Math.random() * 255) + 1,
-                    Math.floor(Math.random() * 255) + 1,
-                    Math.floor(Math.random() * 255) + 1
-                ].join('.'),
-            rating: Math.floor(Math.random() * 5) + 1,
-            tag: 'tag' + Math.floor(Math.random() * 100) + 1
-        };
+    function getAttributes() {
+        var max, attributes;
+        max = Math.floor(Math.random() * 5) + 1;
+        attributes = [];
+        for (var i=1;i<=max;i++) {
+            attributes.push({Description: 'Description ' + Math.floor(Math.random() * 100) + 1});
+        }
+        return attributes;
     }
+    function getConfidence() {return Math.floor(Math.random() * 100) + 1;}
+    function getIp() {
+        return [
+            Math.floor(Math.random() * 255) + 1,
+            Math.floor(Math.random() * 255) + 1,
+            Math.floor(Math.random() * 255) + 1,
+            Math.floor(Math.random() * 255) + 1
+            ].join('.');
+    }
+    function getRating() {return Math.floor(Math.random() * 5) + 1;}
+    function getTags() {
+        var max, tags;
+        max = Math.floor(Math.random() * 5) + 1;
+        tags = [];
+        for (var i=1;i<=max;i++) {
+            tags.push('Tag_' + Math.floor(Math.random() * 100) + 1);
+        }
+        return tags;
+    }
+    
     
     //
     // Table
     //
-    function dataTable(table_data) {
+    function dataTable(table_data, rType) {
         
-        var h, i, item, rowData, tableHeaderRow, tableRow,
+        var button, delete_td, h, i, id, item, rowData, tableHeaderRow, tableRow,
             headers = Object.keys(table_data[0]),
             tableHeader = $('<thead></thead>').addClass(''),
-            tableBody = $('<tbody></tbody>').addClass('');
+            tableBody = $('<tbody></tbody>').addClass(''),
+            data_table = $('#' + rType + '_data_table');
             
-        if ($('#data_table').find('table').length === 0) {
+        if (data_table.find('table').length === 0) {
             tableHeaderRow = $('<tr></tr>').addClass('');
             for (h in headers) {
                 tableHeaderRow.append($('<th></th>').addClass('').text(headers[h]));
             }
+            if (rType === "document") {
+                tableHeaderRow.append($('<th></th>').addClass('').text('Upload'));
+            }
+            tableHeaderRow.append($('<th></th>').addClass('').text('Delete'));
             tableHeader.append(tableHeaderRow);
             table.append(tableHeader);
         }
@@ -116,21 +316,76 @@
         for (rowData in table_data) {
             tableRow = $('<tr></tr>').addClass('');
             for (item in table_data[rowData]) {
-                if (item === 'indicators') {
+                if (item === 'id') {
+                // id for groups
+                    id = table_data[rowData][item];
+                    tableRow.append($('<td></td>').addClass('').text(id));
+                    tableRow.attr('id', 'Row' + id);
+                } else if (item === 'webLink') {
+                    href = '<a target="_blank" href="' + table_data[rowData][item] + '">WebLink</a>';
+                    tableRow.append($('<td></td>').addClass('').append(href));
+                } else if (item === 'indicators') {
+                    // indicators
                     var data = '';
                     for (i in table_data[rowData][item]) {
                         data = data + ' ' + i + ' ' + table_data[rowData][item][i];
                     }
+                    tableRow.append($('<td></td>').addClass('').text(data));
                 } else {
                     data = table_data[rowData][item];
+                    tableRow.append($('<td></td>').addClass('').text(data));
                 }
-                // tableRow.append($('<td></td>').addClass('').text(table_data[rowData][item]));
-                tableRow.append($('<td></td>').addClass('').text(data));
             }
+            
+            if (rType === "document") {
+                
+                var upload = document.createElement('input');
+                upload.type = 'file';
+                upload.id = 'fileUpload' + id;
+                upload.setAttribute('class', 'hide');
+                upload.setAttribute('data-id', id);
+                upload.onchange = uploadItem;
+                
+                
+                button = document.createElement('button');
+                var buttonText = document.createTextNode('Upload');
+                button.appendChild(buttonText);
+                button.setAttribute('class', 'btn btn-primary');
+                button.id = id;
+                button.type = 'button';
+                button.onclick = selectItem;
+                
+                var upload_td = $('<td></td>')
+                    .addClass('')
+                    .append(upload)
+                    .append(button);
+                tableRow.append(upload_td);
+            }
+            // button = $('<button></button')
+            //     .addClass('btn btn-danger')
+            //     .attr('type', 'button')
+            //     .text('Delete')
+            //     .attr('id', 'deleteItem')
+            //     .data('id', id);
+                
+            button = document.createElement('button');
+            buttonText = document.createTextNode('Delete');
+            button.appendChild(buttonText);
+            button.setAttribute('class', 'btn btn-danger');
+            button.setAttribute('data-type', rType);
+            button.id = id;
+            button.type = 'button';
+            button.onclick = deleteItem;
+            
+            delete_td = $('<td></td>').addClass('').append(button);
+            tableRow.append(delete_td);
             tableBody.append(tableRow);
             table.append(tableBody);
         }
-        $('#data_table').append(table);
+        data_table.append(table);
+        // $('.btn .btn-danger').on('click',  function () {
+        //     alert('test');
+        // });
     }
     
     //
@@ -143,70 +398,269 @@
     },
     tc = new ThreatConnect(apiSettings),
     ro = new RequestObject();
-        
+    
     //
     // Retrieve
     //
-    $("#retrieve").click(function(){
-        $('#data_table').empty();
-        table = $('<table></table>').addClass('table table-striped');
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        var type;
+        table = $('<table></table>').addClass('table table-hover table-striped table-bordered');
         
-        if ($("#resourceType").val() == 'Adversaries') {
+        console.log('toggle tab', $(this).attr('href'));
+        
+        if ($(this).attr('href') === '#Adversaries') {
+            type = 'adversary';
+            $('#' + type + '_data_table').empty();
             tc.adversaries()
-                .owner('SumX')
+                .owner(owner)
                 .resultLimit(2)
                 .pagination(function(data) {
-                    dataTable(data);
+                    if (data.length > 0) {
+                        dataTable(data, type);
+                    } else {
+                        dataTable([{results: 'No results found'}], type);
+                    }
                 })
                 .done(function(data) {
-                    $('#content').text(JSON.stringify(data, null, 4));
+                    $('#' + type + '_content').text(JSON.stringify(data, null, 4));
                 })
                 .retrieve();
-        } else if ($("#resourceType").val() == 'Indicators') {
-            tc.indicator()
-                .owner('SumX')
+        } else if ($(this).attr('href') === '#Documents') {
+            type = 'document';
+            $('#' + type + '_data_table').empty();
+            tc.documents()
+                .owner(owner)
                 .resultLimit(2)
                 .pagination(function(data) {
-                    dataTable(data);
+                    c.log('data', data);
+                    if (data.length > 0) {
+                        dataTable(data, type);
+                    } else {
+                        dataTable([{results: 'No results found'}], type);
+                    }
+                })
+                .done(function(data) {
+                    $('#' + type + '_content').text(JSON.stringify(data, null, 4));
+                })
+                .retrieve();
+        } else if ($(this).attr('href') === '#Incidents') {
+            type = 'incident';
+            $('#' + type + '_data_table').empty();
+            tc.incidents()
+                .owner(owner)
+                .resultLimit(2)
+                .pagination(function(data) {
+                    c.log('data', data);
+                    if (data.length > 0) {
+                        dataTable(data, type);
+                    } else {
+                        dataTable([{results: 'No results found'}], type);
+                    }
+                })
+                .done(function(data) {
+                    $('#' + type + '_content').text(JSON.stringify(data, null, 4));
+                })
+                .retrieve();
+        } else if ($(this).attr('href') === '#Indicators') {
+            type = 'indicator';
+            $('#' + type + '_data_table').empty();
+            tc.indicator()
+                .owner(owner)
+                .resultLimit(20)
+                .pagination(function(data) {
+                    dataTable(data, type);
                 })
                 .done(function(data) {
                     // process all the data
-                    $('#content').text(JSON.stringify(data, null, 4));
+                    $('#' + type + '_content').text(JSON.stringify(data, null, 4));
                 })
                 .retrieve();
-            }
+        }
         return false;
     });
     
-    /*
-     * Commit
-     */
-    $("#commit").click(function(){
-        if ($("#resourceType").val() == 'Adversaries') {
-        } else if ($("#resourceType").val() == 'Indicators') {
-            var random = getRandom(),
-                attribute = random.attribute,
-                indicator = random.ip,
-                confidence = random.confidence,
-                rating = random.rating,
-                tag = random.tag;
-                
-            tc.indicator()
-                .owner('SumX')
-                .done(function(data) {
-                    console.log('done');
-                    $('#content').text(JSON.stringify(data, null, 4));
-                })
-                .indicator(indicator)
-                .type(TYPE.ADDRESS)
-                // .rating(rating)
-                // .confidence(confidence)
-                // .tags([tag])
-                // .attributes([attribute])
-                .add()
-                .commit();
-        }
+    //
+    // Commit
+    //
+    
+    $('#adversary_commit').click(function(e){
+        e.stopPropagation();
+        c.log('adversary_commit', this);
+        var name = $('#adversary_name').val();
+        $('#adversary_modal').modal('hide');
+        var adversaries = tc.adversaries()
+            .owner(owner)
+            .done(function(data) {
+                console.log('done');
+                $('#content').text(JSON.stringify(data, null, 4));
+            })
+            .name(name)
+            .commit();
+            
+            c.log('adversaries', adversaries);
+            
+        $('a[href="#Home"]').tab('show');
+        $('a[href="#Adversaries"]').tab('show');
+        c.log('testing', testing);
     });
+    
+    $('#document_commit').click(function(e){
+        c.log('document_commit', this);
+        var name = $('#document_name').val();
+        var fileName = $('#file_name').val();
+        $('#document_modal').modal('hide');
+        var documents = tc.documents()
+            .owner(owner)
+            .done(function(data) {
+                console.log('done');
+                $('#content').text(JSON.stringify(data, null, 4));
+            })
+            .name(name)
+            .fileName(fileName)
+            .commit();
+            
+            // $('#Documents').removeClass('active');
+            $('a[href="#Home"]').tab('show');
+            $('a[href="#Documents"]').tab('show');
+            c.log('documents', documents);
+    });
+    
+    $('#incident_commit').click(function(e){
+        c.log('incident_commit', this);
+        var name = $('#incident_name').val();
+        $('#incident_modal').modal('hide');
+        var incidents = tc.incidents()
+            .owner(owner)
+            .done(function(data) {
+                console.log('done');
+                $('#content').text(JSON.stringify(data, null, 4));
+            })
+            .name(name)
+            .commit();
+            
+            $('a[href="#Home"]').tab('show');
+            $('a[href="#Incidents"]').tab('show');
+            c.log('incidents', incidents);
+    });
+    
+    $('#indicator_commit').click(function(e){
+        c.log('indicator_commit', this);
+        var indicator = $('#indicator_value').val(),
+            indicator_type = $('#indicator_type').val();
+        c.log('indicator', indicator);
+        c.log('indicator_type', indicator_type);
+        $('#indicator_modal').modal('hide');
+        var indicators = tc.indicator()
+        c.log('indicators', indicators);
+        indicators
+            .owner(owner)
+            .pagination(function(data) {
+                c.log('pagination - nothing to do.')
+            })
+            .done(function(data) {
+                console.log('done');
+                // $('#content').text(JSON.stringify(data, null, 4));
+            })
+            // .indicator(indicator)
+            // .type(TYPE[indicator_type])
+            .indicator('1.2.3.8')
+            .type(TYPE.ADDRESS)
+            .add()
+            .commit();
+            // for (var i=1;i<=5;i++) {
+            //     indicators.indicator(getIp())
+            //     .type(TYPE.ADDRESS)
+            //     .rating(getRating())
+            //     .confidence(getConfidence())
+            //     .tags(getTags())
+            //     .attributes(getAttributes())
+            //     .add();
+            // }
+            // indicators.commit();
+            
+            // var batchData = indicators.getData();
+            // dataTable(batchData, 'indicators');
+            // $('#content').text(JSON.stringify(batchData, null, 4));
+            
+            $('a[href="#Home"]').tab('show');
+            $('a[href="#Indicators"]').tab('show');
+    });
+    
+    // $(document).click(function(e){
+    //     c.log('document click', e);
+    //     c.log('adversary_commit', $('#adversary_commit'));
+    // });
+    
+    //
+    // Delete
+    //
+    
+    function deleteItem(e) {
+        c.group('deleteItem');
+        var _this = this;
+        
+        if ($(this).attr('data-type') === "adversary") {
+            tc.adversaries()
+                .owner(owner)
+                .done(function(data) {
+                    if (data.status === 'Success') {
+                        $('#Row' + _this.id).remove();
+                    }
+                })
+                .id(this.id)
+                .delete();
+        } else if ($(this).attr('data-type') === "document") {
+            tc.documents()
+                .owner(owner)
+                .done(function(data) {
+                    if (data.status === 'Success') {
+                        $('#Row' + _this.id).remove();
+                    }
+                })
+                .id(this.id)
+                .delete();
+        } else if ($(this).attr('data-type') === "incident") {
+            tc.incidents()
+                .owner(owner)
+                .done(function(data) {
+                    if (data.status === 'Success') {
+                        $('#Row' + _this.id).remove();
+                    }
+                })
+                .id(this.id)
+                .delete();
+        }
+        c.groupEnd();
+    }
+    
+    function selectItem(e) {
+        c.group('selectItem');
+        e.preventDefault();
+        c.log('click fileUpload');
+        $('#fileUpload' + this.id).click();
+        c.groupEnd();
+    }
+    
+    function uploadItem(e) {
+        c.group('selectItem');
+        var id = $(this).attr('data-id'),
+            file = $('#fileUpload' + id)[0].files[0],
+            fr = new FileReader();
+            
+        fr.readAsText(file);
+        fr.onload = function(data) {
+            c.log('fr.result', fr.result);
+            tc.upload()
+                .owner(owner)
+                .body(fr.result)
+                .id(id)
+                .commit();
+        };
+        
+        c.groupEnd();
+    }
+    
+    
         
         
         // tc.indicator()
