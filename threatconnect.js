@@ -11,31 +11,6 @@
  limitations under the License.
  =============================================================================
 */
-/*
-function Threatconnect() {
-
-    this.adversaries = function() {
-        return new Adversaries(this);
-    }
-}
-
-
-function Groups (threatconnect) {
-    this.threatconnect
-}
-
-function Adversaries(threatconnect) {
-    Groups.call(this, threatconnect);
-
-    this.doStuff = function() {
-        threatconnect.sendRequest(adsasf);
-    }
-}
-
-Adversaries.prototype = Object.create(Groups.prototype);
-
-new Adversaries()
-*/
 
 /* global CryptoJS */
 
@@ -395,6 +370,10 @@ function ThreatConnect(params) {
     
     this.incidents = function() {
         return new Incidents(this);
+    };
+    
+    this.indicators = function() {
+        return new Indicators(this);
     };
 }
 
@@ -1036,157 +1015,6 @@ Incidents.prototype = Object.create(Groups.prototype);
 //     return this;
 // };
 
-/*
- * Upload
- */
- 
-ThreatConnect.prototype.upload = function() {
-    c.group('upload');
-    
-    var ro = new RequestObject(),
-        settings = {
-            api: {
-                activityLog: false,             // false|true
-                method: 'GET',
-                requestUri: 'v2/groups/documents',
-                resultLimit: 500
-            },
-            callbacks: {
-                done: undefined,
-                fail: undefined,
-                pagination: undefined,
-            },
-        },
-        rData = {
-            optionalData: {},
-            deleteData: {},
-            requiredData: {},
-            specificData: {},
-        };
- 
-    //
-    // Settings API
-    //
-    this.owner = function(data) {
-        settings.api.owner = data;
-        return this;
-    };
- 
-    //
-    // Settings Callbacks
-    //
-    this.done = function(data) {
-        if (typeof data === 'function') {
-            settings.callbacks.done = data;
-        } else {
-            c.error('Callback "done()" must be a function.');
-        }
-        return this;
-    };
-    
-    this.error = function(data) {
-        if (typeof data === 'function') {
-            settings.callbacks.error = data;
-        } else {
-            c.error('Callback "error()" must be a function.');
-        }
-        return this;
-    };
-    
-    this.pagination = function(data) {
-        if (typeof data === 'function') {
-            settings.callbacks.pagination = data;
-        } else {
-            c.error('Callback "pagination()" must be a function.');
-        }
-        return this;
-    };
- 
-    //
-    // Group Data - Required
-    //
-    
-    this.body = function(data) {
-        rData.requiredData.body = data;
-        return this;
-    };
-    
-    this.id = function(data) {
-        rData.requiredData.id = data;
-        return this;
-    };
-    
-    //
-    // Group Process
-    //
-    this.commit = function() {
-        // c.log('commit');
-        var body;
-        
-        // validate required fields
-        if (rData.requiredData.body && settings.api.owner) {
-            var uri = settings.api.requestUri + '/' + rData.requiredData.id + '/upload'
-            
-            /* create job */ 
-            ro.owner(settings.api.owner)
-                .body(rData.requiredData.body)
-                .contentType('application/octet-stream')
-                .done(settings.callbacks.done)
-                .normalization(normalize.default)
-                .requestUri(uri)
-                .requestMethod('POST');
-            c.log('body', rData.requiredData.body);
-            this.apiRequest(ro);
-            
-        } else {
-            console.error('Commit Failure: group name and owner are required.');
-        } 
-    };
-    
-    //
-    // Delete Group
-    //
-    this.delete = function() {
-        var uri = settings.api.requestUri + '/' + rData.deleteData.id;
-        ro.owner(settings.api.owner)
-            .activityLog(settings.api.activityLog)
-            .done(settings.callbacks.done)
-            .pagination(settings.callbacks.pagination)
-            .requestUri(uri)
-            .requestMethod('DELETE')
-            .resultLimit(settings.api.resultLimit);
-            // .type(settings.data.type);
-        c.log('ro', ro);
-     
-        this.apiRequest(ro);
-    };
- 
-    //
-    // Retrieve Group
-    //
-    this.retrieve = function() {
-        ro.owner(settings.api.owner)
-            .activityLog(settings.api.activityLog)
-            .done(settings.callbacks.done)
-            .normalization(normalize.documents)
-            .pagination(settings.callbacks.pagination)
-            .requestUri(settings.api.requestUri)
-            .requestMethod(settings.api.method)
-            .resultLimit(settings.api.resultLimit);
-            // .type(settings.data.type);
-        c.log('ro', ro);
-     
-        this.apiRequest(ro);
-    };
-    
-    this.getData = function(params) {
-        return rData.requiredData;
-    };
- 
-    c.groupEnd();
-    return this;
-};
-
 
 // /*
 //  * Incident
@@ -1381,11 +1209,14 @@ ThreatConnect.prototype.upload = function() {
 //     return this;
 // };
 
-/*
- * Indicators
- */
-ThreatConnect.prototype.indicator = function() {
+//
+// Indicators
+//
+    
+// ThreatConnect.prototype.indicator = function() {
+function Indicators(threatconnect) {
     c.group('add_indicator');
+    Groups.call(this, threatconnect);
     
     var batchBody = [],
         settings = {
@@ -1753,6 +1584,158 @@ ThreatConnect.prototype.indicator = function() {
     return this;
 };
 
+/*
+ * Upload
+ */
+ 
+ThreatConnect.prototype.upload = function() {
+    c.group('upload');
+    
+    var ro = new RequestObject(),
+        settings = {
+            api: {
+                activityLog: false,             // false|true
+                method: 'GET',
+                requestUri: 'v2/groups/documents',
+                resultLimit: 500
+            },
+            callbacks: {
+                done: undefined,
+                fail: undefined,
+                pagination: undefined,
+            },
+        },
+        rData = {
+            optionalData: {},
+            deleteData: {},
+            requiredData: {},
+            specificData: {},
+        };
+ 
+    //
+    // Settings API
+    //
+    this.owner = function(data) {
+        settings.api.owner = data;
+        return this;
+    };
+ 
+    //
+    // Settings Callbacks
+    //
+    this.done = function(data) {
+        if (typeof data === 'function') {
+            settings.callbacks.done = data;
+        } else {
+            c.error('Callback "done()" must be a function.');
+        }
+        return this;
+    };
+    
+    this.error = function(data) {
+        if (typeof data === 'function') {
+            settings.callbacks.error = data;
+        } else {
+            c.error('Callback "error()" must be a function.');
+        }
+        return this;
+    };
+    
+    this.pagination = function(data) {
+        if (typeof data === 'function') {
+            settings.callbacks.pagination = data;
+        } else {
+            c.error('Callback "pagination()" must be a function.');
+        }
+        return this;
+    };
+ 
+    //
+    // Group Data - Required
+    //
+    
+    this.body = function(data) {
+        rData.requiredData.body = data;
+        return this;
+    };
+    
+    this.id = function(data) {
+        rData.requiredData.id = data;
+        return this;
+    };
+    
+    //
+    // Group Process
+    //
+    this.commit = function() {
+        // c.log('commit');
+        var body;
+        
+        // validate required fields
+        if (rData.requiredData.body && settings.api.owner) {
+            var uri = settings.api.requestUri + '/' + rData.requiredData.id + '/upload'
+            
+            /* create job */ 
+            ro.owner(settings.api.owner)
+                .body(rData.requiredData.body)
+                .contentType('application/octet-stream')
+                .done(settings.callbacks.done)
+                .normalization(normalize.default)
+                .requestUri(uri)
+                .requestMethod('POST');
+            c.log('body', rData.requiredData.body);
+            this.apiRequest(ro);
+            
+        } else {
+            console.error('Commit Failure: group name and owner are required.');
+        } 
+    };
+    
+    //
+    // Delete Group
+    //
+    this.delete = function() {
+        var uri = settings.api.requestUri + '/' + rData.deleteData.id;
+        ro.owner(settings.api.owner)
+            .activityLog(settings.api.activityLog)
+            .done(settings.callbacks.done)
+            .pagination(settings.callbacks.pagination)
+            .requestUri(uri)
+            .requestMethod('DELETE')
+            .resultLimit(settings.api.resultLimit);
+            // .type(settings.data.type);
+        c.log('ro', ro);
+     
+        this.apiRequest(ro);
+    };
+ 
+    //
+    // Retrieve Group
+    //
+    this.retrieve = function() {
+        ro.owner(settings.api.owner)
+            .activityLog(settings.api.activityLog)
+            .done(settings.callbacks.done)
+            .normalization(normalize.documents)
+            .pagination(settings.callbacks.pagination)
+            .requestUri(settings.api.requestUri)
+            .requestMethod(settings.api.method)
+            .resultLimit(settings.api.resultLimit);
+            // .type(settings.data.type);
+        c.log('ro', ro);
+     
+        this.apiRequest(ro);
+    };
+    
+    this.getData = function(params) {
+        return rData.requiredData;
+    };
+ 
+    c.groupEnd();
+    return this;
+};
+
+
 
 /*
  * Normalizers
@@ -1858,6 +1841,7 @@ var normalize = {
         return response;
     }
 };
+Indicators.prototype = Object.create(ThreatConnect.prototype);
 
 /*
 */
