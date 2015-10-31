@@ -209,7 +209,7 @@ function ThreatConnect(params) {
     
     this.apiId = params.apiId;
     this.apiSec = params.apiSec;
-    this.apiToken = params.token;
+    this.apiToken = params.apiToken;
     this.apiUrl = (params.apiUrl ? params.apiUrl : 'https://api.threatconnect.com');
     // secondary restriction if browser does not limit concurrent api requests
     this.concurrentCalls = (params.concurrentCalls ? params.concurrentCalls : 10);
