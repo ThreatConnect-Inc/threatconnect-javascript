@@ -5,19 +5,24 @@
 <!--
 <script src="./libs/jquery-1.11.3.js" type="text/javascript"></script>
 <script type="text/javascript" src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+<link rel="stylesheet" href="./css/bootstrap-table.min.css">
+<script src="./libs/bootstrap-table.min.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.9.1/locale/bootstrap-table-zh-CN.min.js"></script>
+<script src="./libs/uuid.js" type="text/javascript"></script>
 -->
 <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
 
 <!-- Bootstrap -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.9.1/bootstrap-table.min.css">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.9.1/bootstrap-table.min.js"></script>
 
 <script src="./libs/core.js" type="text/javascript"></script>
 <script src="./libs/sha256.js" type="text/javascript"></script>
 <script src="./libs/hmac.js" type="text/javascript"></script>
 <script src="./libs/enc-base64.js" type="text/javascript"></script>
-<!--script src="./libs/uuid.js" type="text/javascript"></script-->
 
 <script src="./threatconnect.js" type="text/javascript"></script>
 
@@ -35,96 +40,256 @@
                     <li class="active">
                         <a data-toggle="tab" href="#Home">Home</a>
                     </li>
-                    <li><a data-toggle="tab" href="#Adversaries">Adversaries</a></li>
-                    <li><a data-toggle="tab" href="#Documents">Documents</a></li>
-                    <li><a data-toggle="tab" href="#Incidents">Incidents</a></li> 
-                    <li><a data-toggle="tab" href="#Indicators">Indicators</a></li> 
+                    <li><a data-toggle="tab" href="#adversary-pane">Adversaries</a></li>
+                    <li><a data-toggle="tab" href="#document-pane">Documents</a></li>
+                    <li><a data-toggle="tab" href="#incident-pane">Incidents</a></li> 
+                    <li><a data-toggle="tab" href="#indicator-pane">Indicators</a></li> 
                 </ul>
             </div>
         </div>
     </nav>
+    
+    <div id="alert-status"></div>
     
     <div class="tab-content">
         <div class="tab-pane active" id="Home">
             ThreatConnect JavaScript SDK Tester
         </div>
         
-        <div class="tab-pane" id="Adversaries">
-            <button type="button" class="btn btn-info btn-sm pull-right" data-toggle="modal" data-target="#adversary_modal">Add Adverary</button>
-            <ul class="nav nav-tabs">
-                <li class="active"><a data-toggle="tab" href="#adversary_table">Data Table</a></li>
-                <li><a data-toggle="tab" href="#adversary_raw">Raw Data</a></li>
-            </ul>
-     
-            <div class="tab-content">
-                <div id="adversary_table" class="tab-pane fade in active">
-                    <div class="table-responsive">
-                        <div id="adversary_data_table"></div>
+        <div class="tab-pane" id="adversary-pane">
+            <div class="panel panel-default">
+                <div class="panel-body">
+        
+                    <ul class="nav nav-tabs">
+                        <li class="active"><a data-toggle="tab" href="#adversary-table-tab">Data Table</a></li>
+                        <li><a data-toggle="tab" href="#adversary-raw">Raw Data</a></li>
+                    </ul>
+                    <div class="tab-content">
+                        
+                        <div id="adversary-table-tab" class="tab-pane fade in active">
+                            <table id="adversary-table"
+                                   data-cache="false"
+                                   data-height="543"
+                                   data-search="true"
+                                   data-striped="true"
+                                   data-select-item-name="toolbar1"
+                                   data-toggle="table"
+                                   data-toolbar="#adversary-toolbar"
+                                   data-pagination="true"
+                                   data-show-columns="true"
+                                   data-show-refresh="false"
+                                   data-show-toggle="true"
+                                   data-sort-name="id"
+                                   data-sort-order="desc">
+                                <thead>
+                                    <tr>
+                                        <th data-field="state" data-checkbox="true">Item ID</th>
+                                        <th data-field="id" data-align="right" data-sortable="true">ID</th>
+                                        <th data-field="name" data-align="center" data-sortable="true">Name</th>
+                                        <th data-field="ownerName" data-align="center">Owner</th>
+                                        <th data-field="dateAdded" data-align="center">Date Added</th>
+                                        <th data-field="webLink" data-align="center">Web Link</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+        
+                        <div id="adversary-toolbar" class="btn-group pull-right">
+                            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#adversary-modal">Add</button>
+                            <button type="button" class="btn btn-danger" id="adversary-delete">Delete</button>
+                            <button type="button" class="btn btn-default" id="adversary-clear">Clear</button>
+                            <button type="button" class="btn btn-default" id="adversary-refresh">Refresh</button>
+                            <!--
+                            <button type="button" class="btn btn-default">Attributes</button>
+                            <button type="button" class="btn btn-default">Tags</button>
+                            -->
+                        </div>
+        
+                        <div id="adversary-raw" class="tab-pane fade">
+                            <pre id="adversary-content"></pre>
+                        </div>
+                        
                     </div>
-                </div>
-                
-                <div id="adversary_raw" class="tab-pane fade">
-                    <pre id="adversary_content"></pre>
                 </div>
             </div>
         </div>
         
-        <div class="tab-pane" id="Documents">
-            <button type="button" class="btn btn-info btn-sm pull-right" data-toggle="modal" data-target="#document_modal">Add Document</button>
-            <ul class="nav nav-tabs">
-                <li class="active"><a data-toggle="tab" href="#document_table">Data Table</a></li>
-                <li><a data-toggle="tab" href="#document_raw">Raw Data</a></li>
-            </ul>
-     
-            <div class="tab-content">
-                <div id="document_table" class="tab-pane fade in active">
-                    <div class="table-responsive">
-                        <div id="document_data_table"></div>
+        <div class="tab-pane" id="document-pane">
+            <div class="panel panel-default">
+                <div class="panel-body">
+        
+                    <ul class="nav nav-tabs">
+                        <li class="active"><a data-toggle="tab" href="#document-table-tab">Data Table</a></li>
+                        <li><a data-toggle="tab" href="#document-raw">Raw Data</a></li>
+                    </ul>
+                    <div class="tab-content">
+                        
+                        <div id="document-table-tab" class="tab-pane fade in active">
+                            <table id="document-table"
+                                   data-cache="false"
+                                   data-height="543"
+                                   data-search="true"
+                                   data-striped="true"
+                                   data-select-item-name="toolbar1"
+                                   data-toggle="table"
+                                   data-toolbar="#document-toolbar"
+                                   data-pagination="true"
+                                   data-show-columns="true"
+                                   data-show-refresh="false"
+                                   data-show-toggle="true"
+                                   data-sort-name="id"
+                                   data-sort-order="desc">
+                                <thead>
+                                    <tr>
+                                        <th data-field="state" data-checkbox="true">Item ID</th>
+                                        <th data-field="id" data-align="right" data-sortable="true">ID</th>
+                                        <th data-field="name" data-align="center" data-sortable="true">Name</th>
+                                        <th data-field="ownerName" data-align="center">Owner</th>
+                                        <th data-field="dateAdded" data-align="center">Date Added</th>
+                                        <th data-field="webLink" data-align="center">Web Link</th>
+                                    </tr>
+                                </thead>
+                                <input type="file" class="hide" id="document-file"></input>
+                            </table>
+                        </div>
+        
+                        <div id="document-toolbar" class="btn-group pull-right">
+                            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#document-modal">Add</button>
+                            <button type="button" class="btn btn-danger" id="document-delete">Delete</button>
+                            <button type="button" class="btn btn-default" id="document-clear">Clear</button>
+                            <button type="button" class="btn btn-primary" id="document-upload">Upload</button>
+                            <button type="button" class="btn btn-default" id="document-refresh">Refresh</button>
+                            <!--
+                            <button type="button" class="btn btn-default">Attributes</button>
+                            <button type="button" class="btn btn-default">Tags</button>
+                            -->
+                        </div>
+        
+                        <div id="document-raw" class="tab-pane fade">
+                            <pre id="document-content"></pre>
+                        </div>
+                        
                     </div>
-                </div>
-                
-                <div id="document_raw" class="tab-pane fade">
-                    <pre id="document_content"></pre>
                 </div>
             </div>
         </div>
         
-        <div class="tab-pane" id="Incidents">
-            <button type="button" class="btn btn-info btn-sm pull-right" data-toggle="modal" data-target="#incident_modal">Add Incident</button>
-            <ul class="nav nav-tabs">
-                <li class="active"><a data-toggle="tab" href="#incident_table">Data Table</a></li>
-                <li><a data-toggle="tab" href="#incident_raw">Raw Data</a></li>
-            </ul>
-     
-            <div class="tab-content">
-                <div id="incident_table" class="tab-pane fade in active">
-                    <div class="table-responsive">
-                        <div id="incident_data_table"></div>
+        <div class="tab-pane" id="incident-pane">
+            <div class="panel panel-default">
+                <div class="panel-body">
+        
+                    <ul class="nav nav-tabs">
+                        <li class="active"><a data-toggle="tab" href="#incident-table-tab">Data Table</a></li>
+                        <li><a data-toggle="tab" href="#incident-raw">Raw Data</a></li>
+                    </ul>
+                    <div class="tab-content">
+                        
+                        <div id="incident-table-tab" class="tab-pane fade in active">
+                            <table id="incident-table"
+                                   data-cache="false"
+                                   data-height="543"
+                                   data-search="true"
+                                   data-striped="true"
+                                   data-select-item-name="toolbar1"
+                                   data-toggle="table"
+                                   data-toolbar="#incident-toolbar"
+                                   data-pagination="true"
+                                   data-show-columns="true"
+                                   data-show-refresh="false"
+                                   data-show-toggle="true"
+                                   data-sort-name="id"
+                                   data-sort-order="desc">
+                                <thead>
+                                    <tr>
+                                        <th data-field="state" data-checkbox="true">Item ID</th>
+                                        <th data-field="id" data-align="right" data-sortable="true">ID</th>
+                                        <th data-field="name" data-align="center" data-sortable="true">Name</th>
+                                        <th data-field="ownerName" data-align="center">Owner</th>
+                                        <th data-field="dateAdded" data-align="center">Date Added</th>
+                                        <th data-field="webLink" data-align="center">Web Link</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+        
+                        <div id="incident-toolbar" class="btn-group pull-right">
+                            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#incident-modal">Add</button>
+                            <button type="button" class="btn btn-danger" id="incident-delete">Delete</button>
+                            <button type="button" class="btn btn-default" id="incident-clear">Clear</button>
+                            <button type="button" class="btn btn-default" id="incident-refresh">Refresh</button>
+                            <!--
+                            <button type="button" class="btn btn-default">Attributes</button>
+                            <button type="button" class="btn btn-default">Tags</button>
+                            -->
+                        </div>
+        
+                        <div id="incident-raw" class="tab-pane fade">
+                            <pre id="incident-content"></pre>
+                        </div>
+                        
                     </div>
-                </div>
-                
-                <div id="incident_raw" class="tab-pane fade">
-                    <pre id="incident_content"></pre>
                 </div>
             </div>
         </div>
         
-        <div class="tab-pane" id="Indicators">
-            <button type="button" class="btn btn-info btn-sm pull-right" data-toggle="modal" data-target="#indicator_modal">Add Indicator</button>
-            <ul class="nav nav-tabs">
-                <li class="active"><a data-toggle="tab" href="#indicator_table">Data Table</a></li>
-                <li><a data-toggle="tab" href="#indicator_raw">Raw Data</a></li>
-            </ul>
-     
-            <div class="tab-content">
-                <div id="indicator_table" class="tab-pane fade in active">
-                    <div class="table-responsive">
-                        <div id="indicator_data_table"></div>
+        <div class="tab-pane" id="indicator-pane">
+            <div class="panel panel-default">
+                <div class="panel-body">
+        
+                    <ul class="nav nav-tabs">
+                        <li class="active"><a data-toggle="tab" href="#indicator-table-tab">Data Table</a></li>
+                        <li><a data-toggle="tab" href="#indicator-raw">Raw Data</a></li>
+                    </ul>
+                    <div class="tab-content">
+                        
+                        <div id="indicator-table-tab" class="tab-pane fade in active">
+                            <table id="indicator-table"
+                                   data-cache="false"
+                                   data-height="543"
+                                   data-search="true"
+                                   data-striped="true"
+                                   data-select-item-name="toolbar1"
+                                   data-toggle="table"
+                                   data-toolbar="#indicator-toolbar"
+                                   data-pagination="true"
+                                   data-show-columns="true"
+                                   data-show-refresh="false"
+                                   data-show-toggle="true"
+                                   data-sort-name="id"
+                                   data-sort-order="desc">
+                                <thead>
+                                    <tr>
+                                        <th data-field="state" data-checkbox="true">Item ID</th>
+                                        <th data-field="id" data-align="right" data-sortable="true">ID</th>
+                                        <th data-field="indicators" data-align="center" data-sortable="true">Indicators</th>
+                                        <th data-field="rating" data-align="center" data-sortable="true">Rating</th>
+                                        <th data-field="confidence" data-align="center" data-sortable="true">Confidence</th>
+                                        <th data-field="type" data-align="center" data-sortable="true">Type</th>
+                                        <th data-field="ownerName" data-align="center">Owner</th>
+                                        <th data-field="dateAdded" data-align="center">Date Added</th>
+                                        <th data-field="lastModified" data-align="center">Last Modified</th>
+                                        <th data-field="webLink" data-align="center">Web Link</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+        
+                        <div id="indicator-toolbar" class="btn-group pull-right">
+                            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#indicator-modal">Add</button>
+                            <button type="button" class="btn btn-danger" id="indicator-delete">Delete</button>
+                            <button type="button" class="btn btn-default" id="indicator-clear">Clear</button>
+                            <button type="button" class="btn btn-default" id="indicator-refresh">Refresh</button>
+                            <!--
+                            <button type="button" class="btn btn-default">Attributes</button>
+                            <button type="button" class="btn btn-default">Tags</button>
+                            -->
+                        </div>
+        
+                        <div id="indicator-raw" class="tab-pane fade">
+                            <pre id="indicator-content"></pre>
+                        </div>
+                        
                     </div>
-                </div>
-                
-                <div id="indicator_raw" class="tab-pane fade">
-                    <pre id="indicator_content"></pre>
                 </div>
             </div>
         </div>
@@ -132,7 +297,7 @@
 
     <!-- Modals -->
     
-    <div id="adversary_modal" class="modal fade" role="dialog">
+    <div id="adversary-modal" class="modal fade" role="dialog">
         <div class="modal-dialog modal-lg">
     
             <!-- Modal content-->
@@ -144,10 +309,10 @@
                 <div class="modal-body">
                     <form role="form">
                         <div class="form-group">
-                            <label for="adversary_name">Adversary Name</label>
-                            <input type="input" class="form-control" id="adversary_name">
+                            <label for="adversary-name">Adversary Name</label>
+                            <input type="input" class="form-control" id="adversary-name">
                         </div>
-                        <button id="adversary_commit" type="submit" class="btn btn-default">Submit</button>
+                        <button id="adversary-commit" type="submit" class="btn btn-default">Submit</button>
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -158,7 +323,7 @@
         </div>
     </div>
     
-    <div id="document_modal" class="modal fade" role="dialog">
+    <div id="document-modal" class="modal fade" role="dialog">
         <div class="modal-dialog modal-lg">
     
             <!-- Modal content-->
@@ -170,14 +335,14 @@
                 <div class="modal-body">
                     <form role="form">
                         <div class="form-group">
-                            <label for="document_name">Document Name</label>
-                            <input type="input" class="form-control" id="document_name">
+                            <label for="document-name">Document Name</label>
+                            <input type="input" class="form-control" id="document-name">
                         </div>
                         <div class="form-group">
-                            <label for="file_name">File Name</label>
-                            <input type="input" class="form-control" id="file_name">
+                            <label for="file-name">File Name</label>
+                            <input type="input" class="form-control" id="file-name">
                         </div>
-                        <button id="document_commit" type="submit" class="btn btn-default">Submit</button>
+                        <button id="document-commit" type="submit" class="btn btn-default">Submit</button>
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -188,7 +353,7 @@
         </div>
     </div>
     
-    <div id="incident_modal" class="modal fade" role="dialog">
+    <div id="incident-modal" class="modal fade" role="dialog">
         <div class="modal-dialog modal-lg">
     
             <!-- Modal content-->
@@ -200,10 +365,10 @@
                 <div class="modal-body">
                     <form role="form">
                         <div class="form-group">
-                            <label for="incident_name">Incident Name</label>
-                            <input type="input" class="form-control" id="incident_name">
+                            <label for="incident-name">Incident Name</label>
+                            <input type="input" class="form-control" id="incident-name">
                         </div>
-                        <button id="incident_commit" type="submit" class="btn btn-default">Submit</button>
+                        <button id="incident-commit" type="submit" class="btn btn-default">Submit</button>
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -214,7 +379,7 @@
         </div>
     </div>
     
-    <div id="indicator_modal" class="modal fade" role="dialog">
+    <div id="indicator-modal" class="modal fade" role="dialog">
         <div class="modal-dialog modal-lg">
     
             <!-- Modal content-->
@@ -226,12 +391,12 @@
                 <div class="modal-body">
                     <form role="form">
                         <div class="form-group">
-                            <label for="indicator_value">Indicator</label>
-                            <input type="input" class="form-control" id="indicator_value">
+                            <label for="indicator-value">Indicator</label>
+                            <input type="input" class="form-control" id="indicator-value">
                         </div>
                         <div class="form-group">
-                            <label for="indicator_type">Indicator Type</label>
-                            <select id="indicator_type" class="form-control">
+                            <label for="indicator-type">Indicator Type</label>
+                            <select id="indicator-type" class="form-control">
                                 <option>ADDRESS</option>
                                 <option>EMAIL_ADDRESS</option>
                                 <option>FILE</option>
@@ -239,7 +404,7 @@
                                 <option>URL</option>
                             </select>
                         </div>
-                        <button id="indicator_commit" type="submit" class="btn btn-default">Submit</button>
+                        <button id="indicator-commit" type="submit" class="btn btn-default">Submit</button>
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -253,538 +418,416 @@
 </body>
 
 <script>
+    /* global getParameterByName, RequestObject, ThreatConnect */
 
-    var c = console,
-        owner = 'System';
-    //
-    // Random
-    //
-    function getAttributes() {
-        var max, attributes;
-        max = Math.floor(Math.random() * 5) + 1;
-        attributes = [];
-        for (var i=1;i<=max;i++) {
-            attributes.push({Description: 'Description ' + Math.floor(Math.random() * 100) + 1});
-        }
-        return attributes;
-    }
-    function getConfidence() {return Math.floor(Math.random() * 100) + 1;}
-    function getIp() {
-        return [
-            Math.floor(Math.random() * 255) + 1,
-            Math.floor(Math.random() * 255) + 1,
-            Math.floor(Math.random() * 255) + 1,
-            Math.floor(Math.random() * 255) + 1
-            ].join('.');
-    }
-    function getRating() {return Math.floor(Math.random() * 5) + 1;}
-    function getTags() {
-        var max, tags;
-        max = Math.floor(Math.random() * 5) + 1;
-        tags = [];
-        for (var i=1;i<=max;i++) {
-            tags.push('Tag_' + Math.floor(Math.random() * 100) + 1);
-        }
-        return tags;
-    }
-    
-    
-    //
-    // Table
-    //
-    function dataTable(table_data, rType) {
-        
-        var button, delete_td, h, i, id, item, rowData, tableHeaderRow, tableRow,
-            headers = Object.keys(table_data[0]),
-            tableHeader = $('<thead></thead>').addClass(''),
-            tableBody = $('<tbody></tbody>').addClass(''),
-            data_table = $('#' + rType + '_data_table');
-            
-        if (data_table.find('table').length === 0) {
-            tableHeaderRow = $('<tr></tr>').addClass('');
-            for (h in headers) {
-                tableHeaderRow.append($('<th></th>').addClass('').text(headers[h]));
-            }
-            if (rType === "document") {
-                tableHeaderRow.append($('<th></th>').addClass('').text('Upload'));
-            }
-            tableHeaderRow.append($('<th></th>').addClass('').text('Delete'));
-            tableHeader.append(tableHeaderRow);
-            table.append(tableHeader);
+    var apiSettings,
+        c = console;
+        // spaces mode if spaceElementId defined
+        var tcSpaceElementId = getParameterByName('tcSpaceElementId');
+        if ( tcSpaceElementId ) {
+            apiSettings = {
+                apiToken: getParameterByName('tcToken'),
+                apiUrl: getParameterByName('tcApiPath')
+            };
+        } else {
+            apiSettings = {
+                apiId: '80139273637620589570',
+                apiSec: 'TCpl5xUATf6Hw$kP8KUajwX?0H8BmqeqnimIB7q95df8Eay?%LkLsEQ0eFT1nXQw',
+                apiUrl: 'https://ti.sumx.us/api'
+            };
         }
         
-        for (rowData in table_data) {
-            tableRow = $('<tr></tr>').addClass('');
-            for (item in table_data[rowData]) {
-                if (item === 'id') {
-                // id for groups
-                    id = table_data[rowData][item];
-                    tableRow.append($('<td></td>').addClass('').text(id));
-                    tableRow.attr('id', 'Row' + id);
-                } else if (item === 'webLink') {
-                    href = '<a target="_blank" href="' + table_data[rowData][item] + '">WebLink</a>';
-                    tableRow.append($('<td></td>').addClass('').append(href));
-                } else if (item === 'indicators') {
-                    // indicators
-                    var data = '';
-                    for (i in table_data[rowData][item]) {
-                        data = data + ' ' + i + ' ' + table_data[rowData][item][i];
-                    }
-                    tableRow.append($('<td></td>').addClass('').text(data));
-                } else {
-                    data = table_data[rowData][item];
-                    tableRow.append($('<td></td>').addClass('').text(data));
-                }
-            }
-            
-            if (rType === "document") {
-                
-                var upload = document.createElement('input');
-                upload.type = 'file';
-                upload.id = 'fileUpload' + id;
-                upload.setAttribute('class', 'hide');
-                upload.setAttribute('data-id', id);
-                upload.onchange = uploadItem;
-                
-                
-                button = document.createElement('button');
-                var buttonText = document.createTextNode('Upload');
-                button.appendChild(buttonText);
-                button.setAttribute('class', 'btn btn-primary');
-                button.id = id;
-                button.type = 'button';
-                button.onclick = selectItem;
-                
-                var upload_td = $('<td></td>')
-                    .addClass('')
-                    .append(upload)
-                    .append(button);
-                tableRow.append(upload_td);
-            }
-            // button = $('<button></button')
-            //     .addClass('btn btn-danger')
-            //     .attr('type', 'button')
-            //     .text('Delete')
-            //     .attr('id', 'deleteItem')
-            //     .data('id', id);
-                
-            button = document.createElement('button');
-            buttonText = document.createTextNode('Delete');
-            button.appendChild(buttonText);
-            button.setAttribute('class', 'btn btn-danger');
-            button.setAttribute('data-type', rType);
-            button.id = id;
-            button.type = 'button';
-            button.onclick = deleteItem;
-            
-            delete_td = $('<td></td>').addClass('').append(button);
-            tableRow.append(delete_td);
-            tableBody.append(tableRow);
-            table.append(tableBody);
-        }
-        data_table.append(table);
-        // $('.btn .btn-danger').on('click',  function () {
-        //     alert('test');
-        // });
-    }
+    var tc = new ThreatConnect(apiSettings),
+        owner = 'SumX',
+        ro = new RequestObject();
     
     //
-    // ThreatConnect
+    // Click Actions
     //
-    var apiSettings = {
-        apiId: '80139273637620589570',
-        apiSec: 'TCpl5xUATf6Hw$kP8KUajwX?0H8BmqeqnimIB7q95df8Eay?%LkLsEQ0eFT1nXQw',
-        apiUrl: 'https://ti.sumx.us/api'
-    };
-
-    // spaces mode if spaceElementId defined
-    var tcSpaceElementId = getParameterByName('tcSpaceElementId');
-    if ( tcSpaceElementId ) {
-        apiSettings.apiToken = getParameterByName('tcToken');
-        apiSettings.apiUrl = getParameterByName('tcApiPath');
-        apiSettings.apiId = null;
-        apiSettings.apiSec = null;
-        //c.log('apiToken='+apiSettings.apiToken);
-        //c.log('apiUrl='+apiSettings.apiUrl);
-    }
-
-    var tc = new ThreatConnect(apiSettings);
-    var ro = new RequestObject();
     
-    //
-    // Retrieve
-    //
     $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-        var type;
-        table = $('<table></table>').addClass('table table-hover table-striped table-bordered');
-        
-        console.log('toggle tab', $(this).attr('href'));
-        
-        if ($(this).attr('href') === '#Adversaries') {
-            type = 'adversary';
-            $('#' + type + '_data_table').empty();
-            tc.adversaries()
-                .owner(owner)
-                .resultLimit(2)
-                .pagination(function(data) {
-                    if (data.length > 0) {
-                        dataTable(data, type);
-                    } else {
-                        dataTable([{results: 'No results found'}], type);
-                    }
-                })
-                .done(function(data) {
-                    $('#' + type + '_content').text(JSON.stringify(data, null, 4));
-                })
-                .retrieve();
-        } else if ($(this).attr('href') === '#Documents') {
-            type = 'document';
-            $('#' + type + '_data_table').empty();
-            tc.documents()
-                .owner(owner)
-                .resultLimit(2)
-                .pagination(function(data) {
-                    c.log('data', data);
-                    if (data.length > 0) {
-                        dataTable(data, type);
-                    } else {
-                        dataTable([{results: 'No results found'}], type);
-                    }
-                })
-                .done(function(data) {
-                    $('#' + type + '_content').text(JSON.stringify(data, null, 4));
-                })
-                .retrieve();
-        } else if ($(this).attr('href') === '#Incidents') {
-            type = 'incident';
-            $('#' + type + '_data_table').empty();
-            tc.incidents()
-                .owner(owner)
-                .resultLimit(2)
-                .pagination(function(data) {
-                    c.log('data', data);
-                    if (data.length > 0) {
-                        dataTable(data, type);
-                    } else {
-                        dataTable([{results: 'No results found'}], type);
-                    }
-                })
-                .done(function(data) {
-                    $('#' + type + '_content').text(JSON.stringify(data, null, 4));
-                })
-                .retrieve();
-        } else if ($(this).attr('href') === '#Indicators') {
-            type = 'indicator';
-            $('#' + type + '_data_table').empty();
-            tc.indicator()
-                .owner(owner)
-                .resultLimit(20)
-                .pagination(function(data) {
-                    dataTable(data, type);
-                })
-                .done(function(data) {
-                    // process all the data
-                    $('#' + type + '_content').text(JSON.stringify(data, null, 4));
-                })
-                .retrieve();
+        if ($(this).attr('href') === '#Home') {
+            // do nothing for now
+        } else if ($(this).attr('href') === '#adversary-pane') {
+            retrieve_adversaries();
+        } else if ($(this).attr('href') === '#document-pane') {
+            retrieve_documents();
+        } else if ($(this).attr('href') === '#incident-pane') {
+            retrieve_incidents();
+        } else if ($(this).attr('href') === '#indicator-pane') {
+            retrieve_indicators();
         }
         return false;
+    });
+    
+    // adversary
+    $('#adversary-clear').click(function(e) {
+        c.log('clearing adversary table');
+        $('#adversary-table').bootstrapTable('removeAll');
+    });
+    
+    $('#adversary-commit').click(function(e){
+        c.log('commiting adversary');
+        // e.stopPropagation();
+        commit_adversary();
+        return false;
+    });
+    
+    $('#adversary-delete').click(function(e){
+        c.log('deleteing adversaries');
+        delete_adversary();
+    });
+    
+    $('#adversary-refresh').click(function(e){
+        c.log('refreshing adversaries');
+        $('#adversary-table').bootstrapTable('removeAll');
+        retrieve_adversaries();
+    });
+    
+    // document
+    $('#document-clear').click(function(e){
+        c.log('clearing document table');
+        $('#document-table').bootstrapTable('removeAll');
+    });
+    
+    $('#document-commit').click(function(e){
+        c.log('commiting document');
+        commit_document();
+        return false;
+    });
+    
+    $('#document-delete').click(function(e){
+        c.log('deleteing documents');
+        delete_document();
+    });
+    
+    $('#document-refresh').click(function(e){
+        c.log('refreshing documents');
+        $('#document-table').bootstrapTable('removeAll');
+        retrieve_documents();
+    });
+    
+    // incident
+    $('#incident-clear').click(function(e){
+        c.log('clearing incident table');
+        $('#incident-table').bootstrapTable('removeAll');
+    });
+    
+    $('#incident-commit').click(function(e){
+        c.log('commiting incidents');
+        commit_incident();
+        return false;
+    });
+    
+    $('#incident-delete').click(function(e){
+        c.log('deleteing incidents');
+        delete_incident();
+    });
+    
+    $('#incident-refresh').click(function(e){
+        c.log('refreshing incidents');
+        $('#incident-table').bootstrapTable('removeAll');
+        retrieve_incidents();
+    });
+    
+    // indicator
+    $('#indicator-clear').click(function(e){
+        c.log('clearing indicator table');
+        $('#indicator-table').bootstrapTable('removeAll');
+    });
+    
+    $('#indicator-commit').click(function(e){
+        c.log('commiting indicators');
+        commit_indicator();
+        return false;
+    });
+    
+    $('#indicator-delete').click(function(e){
+        c.log('deleteing indicators');
+        delete_indicator();
+    });
+    
+    $('#indicator-refresh').click(function(e){
+        c.log('refreshing indicators');
+        $('#indicator-table').bootstrapTable('removeAll');
+        retrieve_indicators();
     });
     
     //
     // Commit
     //
-    
-    $('#adversary_commit').click(function(e){
-        e.stopPropagation();
-        c.log('adversary_commit', this);
-        var name = $('#adversary_name').val();
-        $('#adversary_modal').modal('hide');
-        var adversaries = tc.adversaries()
+    var commit_adversary = function() {
+        var name = $('#adversary-name').val();
+        
+        tc.adversaries()
             .owner(owner)
             .done(function(data) {
-                console.log('done');
-                $('#content').text(JSON.stringify(data, null, 4));
+                var message =  'Adversary ' + name + ' was successfully committed.';
+                statusAlert('success', message);
             })
             .name(name)
             .commit();
-            
-            c.log('adversaries', adversaries);
-            
-        $('a[href="#Home"]').tab('show');
-        $('a[href="#Adversaries"]').tab('show');
-        c.log('testing', testing);
-    });
+        $('#adversary-modal').modal('hide');
+    };
     
-    $('#document_commit').click(function(e){
-        c.log('document_commit', this);
-        var name = $('#document_name').val();
-        var fileName = $('#file_name').val();
-        $('#document_modal').modal('hide');
-        var documents = tc.documents()
+    var commit_document = function() {
+        var name = $('#document-name').val(),
+            fileName = $('#file-name').val();
+        
+        tc.documents()
             .owner(owner)
             .done(function(data) {
-                console.log('done');
-                $('#content').text(JSON.stringify(data, null, 4));
+                var message =  'Document ' + name + ' was successfully committed.';
+                statusAlert('success', message);
             })
             .name(name)
             .fileName(fileName)
             .commit();
-            
-            // $('#Documents').removeClass('active');
-            $('a[href="#Home"]').tab('show');
-            $('a[href="#Documents"]').tab('show');
-            c.log('documents', documents);
-    });
+        $('#document-modal').modal('hide');
+    };
     
-    $('#incident_commit').click(function(e){
-        c.log('incident_commit', this);
-        var name = $('#incident_name').val();
-        $('#incident_modal').modal('hide');
-        var incidents = tc.incidents()
+    var commit_incident = function() {
+        var name = $('#incident-name').val();
+        
+        tc.incidents()
             .owner(owner)
             .done(function(data) {
-                console.log('done');
-                $('#content').text(JSON.stringify(data, null, 4));
+                var message =  'Incident ' + name + ' was successfully committed.';
+                statusAlert('success', message);
             })
             .name(name)
             .commit();
-            
-            $('a[href="#Home"]').tab('show');
-            $('a[href="#Incidents"]').tab('show');
-            c.log('incidents', incidents);
-    });
+        $('#incident-modal').modal('hide');
+    };
     
-    $('#indicator_commit').click(function(e){
-        c.log('indicator_commit', this);
-        var indicator = $('#indicator_value').val(),
-            indicator_type = $('#indicator_type').val();
-        c.log('indicator', indicator);
-        c.log('indicator_type', indicator_type);
-        $('#indicator_modal').modal('hide');
-        var indicators = tc.indicator()
-        c.log('indicators', indicators);
-        indicators
+    var commit_indicator = function() {
+        var indicator = $('#indicator-value').val(),
+            indicator_type = $('#indicator-type').val();
+            
+        tc.indicator()
             .owner(owner)
-            .pagination(function(data) {
-                c.log('pagination - nothing to do.')
-            })
             .done(function(data) {
-                console.log('done');
-                // $('#content').text(JSON.stringify(data, null, 4));
+                var message =  'Indicator ' + name + ' was successfully committed.';
+                statusAlert('success', message);
             })
-            // .indicator(indicator)
-            // .type(TYPE[indicator_type])
+            // bcs
             .indicator('1.2.3.8')
             .type(TYPE.ADDRESS)
             .add()
             .commit();
-            // for (var i=1;i<=5;i++) {
-            //     indicators.indicator(getIp())
-            //     .type(TYPE.ADDRESS)
-            //     .rating(getRating())
-            //     .confidence(getConfidence())
-            //     .tags(getTags())
-            //     .attributes(getAttributes())
-            //     .add();
-            // }
-            // indicators.commit();
-            
-            // var batchData = indicators.getData();
-            // dataTable(batchData, 'indicators');
-            // $('#content').text(JSON.stringify(batchData, null, 4));
-            
-            $('a[href="#Home"]').tab('show');
-            $('a[href="#Indicators"]').tab('show');
-    });
-    
-    // $(document).click(function(e){
-    //     c.log('document click', e);
-    //     c.log('adversary_commit', $('#adversary_commit'));
-    // });
+        $('#indicator-modal').modal('hide');
+    };
     
     //
     // Delete
     //
-    
-    function deleteItem(e) {
-        c.group('deleteItem');
-        var _this = this;
-        
-        if ($(this).attr('data-type') === "adversary") {
+    var delete_adversary = function() {
+        var adversary_table = $('#adversary-table'),
+            selection,
+            selections = adversary_table.bootstrapTable('getSelections');
+            
+        for (selection in selections) {
+            selection = selections[selection];
             tc.adversaries()
                 .owner(owner)
                 .done(function(data) {
+                    var message;
                     if (data.status === 'Success') {
-                        $('#Row' + _this.id).remove();
+                        adversary_table.bootstrapTable('remove', {
+                            field: 'id',
+                            values: [selection.id]
+                        });
+                        message =  'Adversary ' + selection.id + ' was successfully deleted.';
+                        statusAlert('success', message);
+                    } else {
+                        message =  'Adversary ' + selection.id + ' failed to deleted.';
+                        statusAlert('danger', message);
                     }
                 })
-                .id(this.id)
+                .id(selection.id)
                 .delete();
-        } else if ($(this).attr('data-type') === "document") {
+        }
+    };
+    
+    var delete_document = function() {
+        var document_table = $('#document-table'),
+            selection,
+            selections =  document_table.bootstrapTable('getSelections');
+            
+        for (selection in selections) {
+            selection = selections[selection];
             tc.documents()
                 .owner(owner)
                 .done(function(data) {
+                    var message;
                     if (data.status === 'Success') {
-                        $('#Row' + _this.id).remove();
+                        document_table.bootstrapTable('remove', {
+                            field: 'id',
+                            values: [selection.id]
+                        });
+                        message =  'Document ' + selection.id + ' was successfully deleted.';
+                        statusAlert('success', message);
+                    } else {
+                        message =  'Document ' + selection.id + ' failed to deleted.';
+                        statusAlert('danger', message);
                     }
                 })
-                .id(this.id)
+                .id(selection.id)
                 .delete();
-        } else if ($(this).attr('data-type') === "incident") {
+        }
+    };
+    
+    var delete_incident = function() {
+        var incident_table = $('#incident-table'),
+            selection,
+            selections =  incident_table.bootstrapTable('getSelections');
+            
+        for (selection in selections) {
+            selection = selections[selection];
             tc.incidents()
                 .owner(owner)
                 .done(function(data) {
+                    var message;
                     if (data.status === 'Success') {
-                        $('#Row' + _this.id).remove();
+                        incident_table.bootstrapTable('remove', {
+                            field: 'id',
+                            values: [selection.id]
+                        });
+                        message =  'Incident ' + selection.id + ' was successfully deleted.';
+                        statusAlert('success', message);
+                    } else {
+                        message =  'Incident ' + selection.id + ' failed to deleted.';
+                        statusAlert('danger', message);
                     }
                 })
-                .id(this.id)
+                .id(selection.id)
                 .delete();
         }
-        c.groupEnd();
-    }
+    };
     
-    function selectItem(e) {
-        c.group('selectItem');
-        e.preventDefault();
-        c.log('click fileUpload');
-        $('#fileUpload' + this.id).click();
-        c.groupEnd();
-    }
-    
-    function uploadItem(e) {
-        c.group('selectItem');
-        var id = $(this).attr('data-id'),
-            file = $('#fileUpload' + id)[0].files[0],
-            fr = new FileReader();
-            
-        fr.readAsText(file);
-        fr.onload = function(data) {
-            c.log('fr.result', fr.result);
-            tc.upload()
+    var delete_indicator = function() {
+    };
+        
+    //
+    // Retrieve
+    //
+    var retrieve_adversaries = function() {
+        c.log('retrieve adversaries');
+        tc.adversaries()
                 .owner(owner)
-                .body(fr.result)
-                .id(id)
-                .commit();
-        };
+                .resultLimit(2)
+                .pagination(function(data) {
+                    if (data.length > 0) {
+                        $('#adversary-table').bootstrapTable('append', data);
+                    }
+                })
+                .done(function(data) {
+                    $('#adversary-content').text(JSON.stringify(data, null, 4));
+                })
+                .retrieve();
+    };
+    
+    var retrieve_documents = function() {
+        c.log('retrieve documents');
+            tc.documents()
+                .owner(owner)
+                .resultLimit(2)
+                .pagination(function(data) {
+                    if (data.length > 0) {
+                        $('#document-table').bootstrapTable('append', data);
+                    }
+                })
+                .done(function(data) {
+                    $('#document-content').text(JSON.stringify(data, null, 4));
+                })
+                .retrieve();
+    };
+    
+    var retrieve_incidents = function() {
+        c.log('retrieve incidents');
+            tc.incidents()
+                .owner(owner)
+                .resultLimit(2)
+                .pagination(function(data) {
+                    c.log('data', data);
+                    if (data.length > 0) {
+                        $('#incident-table').bootstrapTable('append', data);
+                    }
+                })
+                .done(function(data) {
+                    $('#incident-content').text(JSON.stringify(data, null, 4));
+                })
+                .retrieve();
+    };
+    
+    var retrieve_indicators = function() {
+        c.log('retrieve incidents');
+            tc.indicator()
+                .owner(owner)
+                .resultLimit(20)
+                .pagination(function(data) {
+                    if (data.length > 0) {
+                        $('#indicator-table').bootstrapTable('append', data);
+                    }
+                })
+                .done(function(data) {
+                    $('#indicator-content').text(JSON.stringify(data, null, 4));
+                })
+                .retrieve();
+    };
+    
+    //
+    // Upload
+    //
+    $('#document-upload').click(function(e) {
+        c.group('document-upload');
+        var document_table = $('#document-table'),
+            file_input = $('#document-file'),
+            selections =  document_table.bootstrapTable('getSelections');
+            
+            c.log('file_input', file_input);
+        
+        if (selections.length == 0) {
+            c.warn('at least one document must be selected.');
+            return;
+        } else if (selections.length > 1) {
+            c.warn('only one upload at a time is supported.');
+            document_table.bootstrapTable('uncheckAll');
+            return;
+        }
+            
+        file_input.click();
+        file_input.on('change', function(){
+            var file = file_input[0].files[0],
+                selection = selections[0],
+                id = selection.id,
+                fr = new FileReader();
+                
+            fr.readAsText(file);
+            fr.onload = function(data) {
+                c.log('fr.result', fr.result);
+                tc.upload()
+                    .owner(owner)
+                    .body(fr.result)
+                    .id(id)
+                    .commit();
+            };
+        });
         
         c.groupEnd();
-    }
+    });
     
+    $('.modal').on('hidden.bs.modal', function(){
+        $(this).find('form')[0].reset();
+    });
     
-        
-        
-        // tc.indicator()
-        //     // required
-        //     .indicator('www.google.com')
-        //     .owner('SumX')
-        //     .type(TYPE.HOST)
-        //     // optional
-        //     .attributes([{Source: 'Blah'}, {Description: 'test description'}])
-        //     .confidence(getRandom.confidence())
-        //     .rating(getRandom.rating())
-        //     .tags(['test1', 'test2'])
-        //     // specificOptional
-        //     .dnsActive(false)
-        //     .whoisActive(false)
-        //     .done(function(data) {
-        //         console.log('done');
-        //         $('#content').text(JSON.stringify(data, null, 4));
-        //     })
-        //     .commit();
-            
-        // test = tc.indicator()
-        //     .owner('SumX')
-        //     .done(function(data) {
-        //         console.log('done');
-        //         $('#content').text(JSON.stringify(data, null, 4));
-        //     });
-        // for (i=1;i<=10;i++) {
-        //     test.indicator(getRandom.ip())
-        //     .type(TYPE.ADDRESS)
-        //     .rating(getRandom.rating())
-        //     .confidence(getRandom.confidence())
-        //     .tags(['blah', 'test2'])
-        //     .add();
-        // }
-        // test.commit();
-            
-            // .retrieve({
-            //     indicator: indicator,
-            //     type: TYPE.ADDRESS});
-                
-        // test1 = tc.indicator()
-        //     .owner('SumX')
-        //     .done(function(data) {
-        //         console.log('done');
-        //         $('#content').text(JSON.stringify(data, null, 4));
-        //     });
-        // for (i=1;i<=5;i++) {
-        //     test1.indicator(getRandom.ip())
-        //     .type(TYPE.ADDRESS)
-        //     .rating(getRandom.rating())
-        //     .confidence(getRandom.confidence())
-        //     .tags(['blah', 'test2'])
-        //     .add();
-        // }
-        // test1.commit();
-            
-        // var test2 = tc.setIndicator().add()
-        //     // .indicator(getRandom.ip())
-        //     // .type(TYPE.ADDRESS)
-            
-        //     .indicator('www.google.com')
-        //     .type(TYPE.HOST)
-            
-        //     .dnsActive(false)
-        //     .whoisActive(false)
-            
-        //     .owner('SumX')
-        //     .rating(getRandom.rating())
-        //     .confidence(getRandom.confidence())
-        //     .add()
-        //     .done(function(data) {
-        //         console.log('done');
-        //         $('#content').text(JSON.stringify(data, null, 4));
-        //     })
-            
-        //     .commit();
-            
-        // var myIndicaor = tc.buildIndicator()
-        //     .indicator('www.google.com')
-        //     .type(TYPE.HOST)
-        //     .dnsActive(false)
-        //     .whoisActive(false)
-        //     .owner('SumX')
-        //     .rating(getRandom.rating())
-        //     .confidence(getRandom.confidence());
-            
-        // var myIndicator = {
-        //     'ip': '1.1.1.1',
-        //     'Type': 'Address',
-        // }
-
-        // test.type(TYPE.ADDRESS).commit()
-        
-        // if (TYPE.ADDRESS) {
-        //     if this.dnsActive { error }
-        //     if this.whoisActive { error }
-        // }
-            
-        // ro.setOwner('SumX')
-        //     .setActivityLog(false)
-        //     .setRequestMethod("POST")
-        //     .setBody({
-        //         'ip': getRandom.ip(),
-        //         'rating': getRandom.rating(),
-        //         'confidence': getRandom.confidence(),
-        //     })
-        //     .setRequestUri('v2/indicators/batch')
-        //     .setPagination(false)
-        //     .setOwnerAllowed(false);
-        //     
-        // tc.apiRequest(ro, indicatorCallback)
+    var statusAlert = function(type, message) {
+        var alertDiv = $('<div></div>')
+            .addClass('alert alert-' + type)
+            .attr('data-dismiss', 'alert')
+            .text(message);
+        $('#alert-status').append(alertDiv);
+    };
     
 </script>
 </html>
