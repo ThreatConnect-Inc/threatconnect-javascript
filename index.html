@@ -38,10 +38,11 @@
             <div>
                 <ul class="nav navbar-nav">
                     <li class="active">
-                        <a data-toggle="tab" href="#Home">Home</a>
+                        <a data-toggle="tab" href="#api-pane">API Request</a>
                     </li>
                     <li><a data-toggle="tab" href="#adversary-pane">Adversaries</a></li>
                     <li><a data-toggle="tab" href="#document-pane">Documents</a></li>
+                    <li><a data-toggle="tab" href="#email-pane">Emails</a></li>
                     <li><a data-toggle="tab" href="#incident-pane">Incidents</a></li> 
                     <li><a data-toggle="tab" href="#indicator-pane">Indicators</a></li> 
                 </ul>
@@ -52,8 +53,44 @@
     <div id="alert-status"></div>
     
     <div class="tab-content">
-        <div class="tab-pane active" id="Home">
-            ThreatConnect JavaScript SDK Tester
+        
+        <div class="tab-pane active" id="api-pane">
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <h3>API URI</h3>
+                    <div class="input-group">
+                        <input type="input" class="form-control" id="api-uri">
+                        <div class="input-group-btn">
+                            <button type="button"
+                                    class="btn btn-default dropdown-toggle"
+                                    data-toggle="dropdown"
+                                    aria-haspopup="true"
+                                    aria-expanded="false">
+                                Action<span class="caret"></span>
+                            </button>
+                            <ul id="api-method" class="dropdown-menu">
+                                <li><a href="#">GET</a></li>
+                                <li><a href="#">POST</a></li>
+                                <li><a href="#">PUT</a></li>
+                                <!--
+                                <li role="separator" class="divider"></li>
+                                -->
+                                <li><a href="#">DELETE</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <h3>Post/Put Body</h3>
+                    <div class="form-group">
+                        <textarea class="form-control" rows="5" id="api-body"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-primary">
+                <div class="panel-body">
+                    <h3>Results:</h3>
+                    <pre id="api-content"></pre>
+                </div>
+            </div>
         </div>
         
         <div class="tab-pane" id="adversary-pane">
@@ -174,6 +211,65 @@
             </div>
         </div>
         
+        <div class="tab-pane" id="email-pane">
+            <div class="panel panel-default">
+                <div class="panel-body">
+        
+                    <ul class="nav nav-tabs">
+                        <li class="active"><a data-toggle="tab" href="#email-table-tab">Data Table</a></li>
+                        <li><a data-toggle="tab" href="#email-raw">Raw Data</a></li>
+                    </ul>
+                    <div class="tab-content">
+                        
+                        <div id="email-table-tab" class="tab-pane fade in active">
+                            <table id="email-table"
+                                   data-cache="false"
+                                   data-height="543"
+                                   data-search="true"
+                                   data-striped="true"
+                                   data-select-item-name="toolbar1"
+                                   data-toggle="table"
+                                   data-toolbar="#email-toolbar"
+                                   data-pagination="true"
+                                   data-show-columns="true"
+                                   data-show-refresh="false"
+                                   data-show-toggle="true"
+                                   data-sort-name="id"
+                                   data-sort-order="desc">
+                                <thead>
+                                    <tr>
+                                        <th data-field="state" data-checkbox="true">Item ID</th>
+                                        <th data-field="id" data-align="right" data-sortable="true">ID</th>
+                                        <th data-field="name" data-align="center" data-sortable="true">Name</th>
+                                        <th data-field="ownerName" data-align="center">Owner</th>
+                                        <th data-field="dateAdded" data-align="center">Date Added</th>
+                                        <th data-field="webLink" data-align="center">Web Link</th>
+                                    </tr>
+                                </thead>
+                                <input type="file" class="hide" id="email-file"></input>
+                            </table>
+                        </div>
+        
+                        <div id="email-toolbar" class="btn-group pull-right">
+                            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#email-modal">Add</button>
+                            <button type="button" class="btn btn-danger" id="email-delete">Delete</button>
+                            <button type="button" class="btn btn-default" id="email-clear">Clear</button>
+                            <button type="button" class="btn btn-default" id="email-refresh">Refresh</button>
+                            <!--
+                            <button type="button" class="btn btn-default">Attributes</button>
+                            <button type="button" class="btn btn-default">Tags</button>
+                            -->
+                        </div>
+        
+                        <div id="email-raw" class="tab-pane fade">
+                            <pre id="email-content"></pre>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <div class="tab-pane" id="incident-pane">
             <div class="panel panel-default">
                 <div class="panel-body">
@@ -268,7 +364,7 @@
                                         <th data-field="ownerName" data-align="center">Owner</th>
                                         <th data-field="dateAdded" data-align="center">Date Added</th>
                                         <th data-field="lastModified" data-align="center">Last Modified</th>
-                                        <th data-field="webLink" data-align="center">Web Link</th>
+                                        <th data-field="webLink" data-align="center" data-visible="false">Web Link</th>
                                     </tr>
                                 </thead>
                             </table>
@@ -293,6 +389,7 @@
                 </div>
             </div>
         </div>
+        
     </div>
 
     <!-- Modals -->
@@ -342,7 +439,61 @@
                             <label for="file-name">File Name</label>
                             <input type="input" class="form-control" id="file-name">
                         </div>
+                        <div class="form-group">
+                            <label for="file-size">File Size</label>
+                            <input type="input" class="form-control" id="file-size">
+                        </div>
                         <button id="document-commit" type="submit" class="btn btn-default">Submit</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+    
+        </div>
+    </div>
+    
+    <div id="email-modal" class="modal fade" role="dialog">
+        <div class="modal-dialog modal-lg">
+    
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Add Email</h4>
+                </div>
+                <div class="modal-body">
+                    <form role="form">
+                        <div class="form-group">
+                            <label for="email-name">Email Name</label>
+                            <input type="input" class="form-control" id="email-name">
+                        </div>
+                        <div class="form-group">
+                            <label for="email-body">Body</label>
+                            <input type="input" class="form-control" id="email-body">
+                        </div>
+                        <div class="form-group">
+                            <label for="email-from">From Address</label>
+                            <input type="input" class="form-control" id="email-from">
+                        </div>
+                        <div class="form-group">
+                            <label for="email-header">Header</label>
+                            <input type="input" class="form-control" id="email-header">
+                        </div>
+                        <div class="form-group">
+                            <label for="email-score">Score</label>
+                            <input type="input" class="form-control" id="email-score">
+                        </div>
+                        <div class="form-group">
+                            <label for="email-subject">Subject</label>
+                            <input type="input" class="form-control" id="email-subject">
+                        </div>
+                        <div class="form-group">
+                            <label for="email-to">To</label>
+                            <input type="input" class="form-control" id="email-to">
+                        </div>
+                        <button id="email-commit" type="submit" class="btn btn-default">Submit</button>
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -418,7 +569,7 @@
 </body>
 
 <script>
-    /* global getParameterByName, RequestObject, ThreatConnect */
+    /* global getParameterByName, getParameterFromUri, RequestObject, ThreatConnect, TYPE */
 
     var apiSettings,
         c = console;
@@ -438,8 +589,7 @@
         }
         
     var tc = new ThreatConnect(apiSettings),
-        owner = 'SumX',
-        ro = new RequestObject();
+        owner = 'SumX';
     
     //
     // Click Actions
@@ -452,6 +602,8 @@
             retrieve_adversaries();
         } else if ($(this).attr('href') === '#document-pane') {
             retrieve_documents();
+        } else if ($(this).attr('href') === '#email-pane') {
+            retrieve_emails();
         } else if ($(this).attr('href') === '#incident-pane') {
             retrieve_incidents();
         } else if ($(this).attr('href') === '#indicator-pane') {
@@ -507,6 +659,29 @@
         retrieve_documents();
     });
     
+    // email
+    $('#email-clear').click(function(e){
+        c.log('clearing email table');
+        $('#email-table').bootstrapTable('removeAll');
+    });
+    
+    $('#email-commit').click(function(e){
+        c.log('commiting email');
+        commit_email();
+        return false;
+    });
+    
+    $('#email-delete').click(function(e){
+        c.log('deleteing emails');
+        delete_email();
+    });
+    
+    $('#email-refresh').click(function(e){
+        c.log('refreshing emails');
+        $('#email-table').bootstrapTable('removeAll');
+        retrieve_emails();
+    });
+    
     // incident
     $('#incident-clear').click(function(e){
         c.log('clearing incident table');
@@ -557,13 +732,25 @@
     // Commit
     //
     var commit_adversary = function() {
-        var name = $('#adversary-name').val();
+        var message,
+            name = $('#adversary-name').val();
         
         tc.adversaries()
             .owner(owner)
-            .done(function(data) {
-                var message =  'Adversary ' + name + ' was successfully committed.';
-                statusAlert('success', message);
+            .done(function(response) {
+                if (response.status === "Success") {
+                    message =  'Adversary ' + name + ' was successfully committed.';
+                    statusAlert('success', message);
+                }
+            })
+            .error(function(response) {
+                var message =  'Adversary failed to committed. (' + response.error + ').';
+                statusAlert('danger', message);
+            })
+            .pagination(function(response) {
+                if (response.data.length > 0) {
+                    $('#adversary-table').bootstrapTable('append', response.data);
+                }
             })
             .name(name)
             .commit();
@@ -571,29 +758,94 @@
     };
     
     var commit_document = function() {
-        var name = $('#document-name').val(),
-            fileName = $('#file-name').val();
+        var message,
+            name = $('#document-name').val(),
+            fileName = $('#file-name').val(),
+            fileSize = $('#file-size').val();
         
         tc.documents()
             .owner(owner)
-            .done(function(data) {
-                var message =  'Document ' + name + ' was successfully committed.';
-                statusAlert('success', message);
+            .done(function(response) {
+                if (response.status === "Success") {
+                    message =  'Document ' + name + ' was successfully committed.';
+                    statusAlert('success', message);
+                }
+            })
+            .error(function(response) {
+                message =  'Document failed to committed. (' + response.error + ').';
+                statusAlert('danger', message);
+            })
+            .pagination(function(response) {
+                if (response.data.length > 0) {
+                    $('#document-table').bootstrapTable('append', response.data);
+                }
             })
             .name(name)
             .fileName(fileName)
+            .fileSize(fileSize)
             .commit();
         $('#document-modal').modal('hide');
     };
     
+    var commit_email = function() {
+        var message,
+            name = $('#email-name').val(),
+            emailBody = $('#email-body').val(),
+            emailFrom = $('#email-from').val(),
+            emailHeader = $('#email-header').val(),
+            emailScore = $('#email-score').val(),
+            emailSubject = $('#email-subject').val(),
+            emailTo = $('#email-to').val();
+        
+        tc.emails()
+            .owner(owner)
+            .done(function(response) {
+                if (response.status === "Success") {
+                    message =  'Email ' + name + ' was successfully committed.';
+                    statusAlert('success', message);
+                }
+            })
+            .error(function(response) {
+                message =  'Email failed to committed. (' + response.error + ').';
+                statusAlert('danger', message);
+            })
+            .pagination(function(response) {
+                c.log('pagination append', response.data)
+                if (response.data.length > 0) {
+                    $('#email-table').bootstrapTable('append', response.data);
+                }
+            })
+            .name(name)
+            .emailBody(emailBody)
+            .emailFrom(emailFrom)
+            .emailHeader(emailHeader)
+            .emailScore(emailScore)
+            .emailSubject(emailSubject)
+            .emailTo(emailTo)
+            .commit();
+        $('#email-modal').modal('hide');
+    };
+    
     var commit_incident = function() {
-        var name = $('#incident-name').val();
+        var message, 
+            name = $('#incident-name').val();
         
         tc.incidents()
             .owner(owner)
-            .done(function(data) {
-                var message =  'Incident ' + name + ' was successfully committed.';
-                statusAlert('success', message);
+            .done(function(response) {
+                if (response.status === "Success") {
+                    message =  'Incident ' + name + ' was successfully committed.';
+                    statusAlert('success', message);
+                }
+            })
+            .error(function(response) {
+                var message =  'Incident failed to committed. (' + response.error + ').';
+                statusAlert('danger', message);
+            })
+            .pagination(function(response) {
+                if (response.data.length > 0) {
+                    $('#incident-table').bootstrapTable('append', response.data);
+                }
             })
             .name(name)
             .commit();
@@ -601,18 +853,30 @@
     };
     
     var commit_indicator = function() {
-        var indicator = $('#indicator-value').val(),
-            indicator_type = $('#indicator-type').val();
+        var message,
+            indicator = $('#indicator-value').val(),
+            indicatorType = $('#indicator-type').val();
             
         tc.indicators()
             .owner(owner)
-            .done(function(data) {
-                var message =  'Indicator ' + name + ' was successfully committed.';
-                statusAlert('success', message);
+            .done(function(response) {
+                if (response.status === "Success") {
+                    message =  'Indicator ' + indicator + ' was successfully committed.';
+                    statusAlert('success', message);
+                    $('#indicator-table').bootstrapTable('removeAll');
+                    retrieve_indicators();
+                }
+            })
+            .error(function(response) {
+                c.log('error');
+                message =  'Indicator failed to committed. (' + response.error + ').';
+                statusAlert('danger', message);
             })
             // bcs
-            .indicator('1.2.3.8')
-            .type(TYPE.ADDRESS)
+            .indicator(indicator)
+            .type(TYPE[indicatorType])
+            // .indicator('1.2.3.8')
+            // .type(TYPE.ADDRESS)
             .add()
             .commit();
         $('#indicator-modal').modal('hide');
@@ -622,7 +886,8 @@
     // Delete
     //
     var delete_adversary = function() {
-        var adversary_table = $('#adversary-table'),
+        var message,
+            adversary_table = $('#adversary-table'),
             selection,
             selections = adversary_table.bootstrapTable('getSelections');
             
@@ -630,19 +895,22 @@
             selection = selections[selection];
             tc.adversaries()
                 .owner(owner)
-                .done(function(data) {
-                    var message;
-                    if (data.status === 'Success') {
+                .done(function(response) {
+                    if (response.status === 'Success') {
                         adversary_table.bootstrapTable('remove', {
                             field: 'id',
-                            values: [selection.id]
+                            values: [response.id]
                         });
-                        message =  'Adversary ' + selection.id + ' was successfully deleted.';
+                        message =  'Adversary ' + response.id + ' was successfully deleted.';
                         statusAlert('success', message);
                     } else {
-                        message =  'Adversary ' + selection.id + ' failed to deleted.';
+                        message =  'Adversary ' + response.id + ' failed to deleted.';
                         statusAlert('danger', message);
                     }
+                })
+                .error(function(response) {
+                    message =  'Adversary ID ' + response.id + ' failed to delete. (' + response.error + ').';
+                    statusAlert('danger', message);
                 })
                 .id(selection.id)
                 .delete();
@@ -650,7 +918,8 @@
     };
     
     var delete_document = function() {
-        var document_table = $('#document-table'),
+        var message,
+            document_table = $('#document-table'),
             selection,
             selections =  document_table.bootstrapTable('getSelections');
             
@@ -658,19 +927,54 @@
             selection = selections[selection];
             tc.documents()
                 .owner(owner)
-                .done(function(data) {
-                    var message;
-                    if (data.status === 'Success') {
+                .done(function(response) {
+                    if (response.status === 'Success') {
                         document_table.bootstrapTable('remove', {
                             field: 'id',
-                            values: [selection.id]
+                            values: [response.id]
                         });
-                        message =  'Document ' + selection.id + ' was successfully deleted.';
+                        message =  'Document ' + response.id + ' was successfully deleted.';
                         statusAlert('success', message);
                     } else {
-                        message =  'Document ' + selection.id + ' failed to deleted.';
+                        message =  'Document ' + response.id + ' failed to deleted.';
                         statusAlert('danger', message);
                     }
+                })
+                .error(function(response) {
+                    message =  'Indicator ID ' + response.id + ' failed to delete. (' + response.error + ').';
+                    statusAlert('danger', message);
+                })
+                .id(selection.id)
+                .delete();
+        }
+    };
+    
+    var delete_email = function() {
+        var message,
+            email_table = $('#email-table'),
+            selection,
+            selections =  email_table.bootstrapTable('getSelections');
+            
+        for (selection in selections) {
+            selection = selections[selection];
+            tc.emails()
+                .owner(owner)
+                .done(function(response) {
+                    if (response.status === 'Success') {
+                        email_table.bootstrapTable('remove', {
+                            field: 'id',
+                            values: [response.id]
+                        });
+                        message =  'Email ' + response.id + ' was successfully deleted.';
+                        statusAlert('success', message);
+                    } else {
+                        message =  'Email ' + response.id + ' failed to deleted.';
+                        statusAlert('danger', message);
+                    }
+                })
+                .error(function(response) {
+                    message =  'Email ID ' + response.id + ' failed to delete. (' + response.error + ').';
+                    statusAlert('danger', message);
                 })
                 .id(selection.id)
                 .delete();
@@ -678,7 +982,8 @@
     };
     
     var delete_incident = function() {
-        var incident_table = $('#incident-table'),
+        var message,
+            incident_table = $('#incident-table'),
             selection,
             selections =  incident_table.bootstrapTable('getSelections');
             
@@ -686,19 +991,22 @@
             selection = selections[selection];
             tc.incidents()
                 .owner(owner)
-                .done(function(data) {
-                    var message;
-                    if (data.status === 'Success') {
+                .done(function(response) {
+                    if (response.status === 'Success') {
                         incident_table.bootstrapTable('remove', {
                             field: 'id',
-                            values: [selection.id]
+                            values: [response.id]
                         });
-                        message =  'Incident ' + selection.id + ' was successfully deleted.';
+                        message =  'Incident ' + response.id + ' was successfully deleted.';
                         statusAlert('success', message);
                     } else {
-                        message =  'Incident ' + selection.id + ' failed to deleted.';
+                        message =  'Incident ' + response.id + ' failed to deleted.';
                         statusAlert('danger', message);
                     }
+                })
+                .error(function(response) {
+                    var message =  'Incident ID ' + response.id + ' failed to delete. (' + response.error + ').';
+                    statusAlert('danger', message);
                 })
                 .id(selection.id)
                 .delete();
@@ -716,13 +1024,17 @@
         tc.adversaries()
                 .owner(owner)
                 .resultLimit(2)
-                .pagination(function(data) {
-                    if (data.length > 0) {
-                        $('#adversary-table').bootstrapTable('append', data);
+                .pagination(function(response) {
+                    if (response.data.length > 0) {
+                        $('#adversary-table').bootstrapTable('append', response.data);
                     }
                 })
-                .done(function(data) {
-                    $('#adversary-content').text(JSON.stringify(data, null, 4));
+                .done(function(response) {
+                    $('#adversary-content').text(JSON.stringify(response, null, 4));
+                })
+                .error(function(response) {
+                    var message =  'Adversary Retrieval failed. (' + response + ').';
+                    statusAlert('danger', message);
                 })
                 .retrieve();
     };
@@ -732,13 +1044,37 @@
             tc.documents()
                 .owner(owner)
                 .resultLimit(2)
-                .pagination(function(data) {
-                    if (data.length > 0) {
-                        $('#document-table').bootstrapTable('append', data);
+                .pagination(function(response) {
+                    if (response.data.length > 0) {
+                        $('#document-table').bootstrapTable('append', response.data);
                     }
                 })
-                .done(function(data) {
-                    $('#document-content').text(JSON.stringify(data, null, 4));
+                .done(function(response) {
+                    $('#document-content').text(JSON.stringify(response, null, 4));
+                })
+                .error(function(response) {
+                    var message =  'Document Retrieval failed. (' + response + ').';
+                    statusAlert('danger', message);
+                })
+                .retrieve();
+    };
+    
+    var retrieve_emails = function() {
+        c.log('retrieve emails');
+            tc.emails()
+                .owner(owner)
+                .resultLimit(2)
+                .pagination(function(response) {
+                    if (response.data.length > 0) {
+                        $('#email-table').bootstrapTable('append', response.data);
+                    }
+                })
+                .done(function(response) {
+                    $('#email-content').text(JSON.stringify(response, null, 4));
+                })
+                .error(function(response) {
+                    var message =  'Email Retrieval failed. (' + response + ').';
+                    statusAlert('danger', message);
                 })
                 .retrieve();
     };
@@ -748,30 +1084,38 @@
             tc.incidents()
                 .owner(owner)
                 .resultLimit(2)
-                .pagination(function(data) {
-                    c.log('data', data);
-                    if (data.length > 0) {
-                        $('#incident-table').bootstrapTable('append', data);
+                .pagination(function(response) {
+                    c.log('response', response);
+                    if (response.data.length > 0) {
+                        $('#incident-table').bootstrapTable('append', response.data);
                     }
                 })
-                .done(function(data) {
-                    $('#incident-content').text(JSON.stringify(data, null, 4));
+                .done(function(response) {
+                    $('#incident-content').text(JSON.stringify(response, null, 4));
+                })
+                .error(function(response) {
+                    var message =  'Incident Retrieval failed. (' + response + ').';
+                    statusAlert('danger', message);
                 })
                 .retrieve();
     };
     
     var retrieve_indicators = function() {
-        c.log('retrieve incidents');
+        c.log('retrieve indicator');
             tc.indicators()
                 .owner(owner)
                 .resultLimit(20)
-                .pagination(function(data) {
-                    if (data.length > 0) {
-                        $('#indicator-table').bootstrapTable('append', data);
+                .pagination(function(response) {
+                    if (response.data.length > 0) {
+                        $('#indicator-table').bootstrapTable('append', response.data);
                     }
                 })
-                .done(function(data) {
-                    $('#indicator-content').text(JSON.stringify(data, null, 4));
+                .done(function(response) {
+                    $('#indicator-content').text(JSON.stringify(response, null, 4));
+                })
+                .error(function(response) {
+                    var message =  'Indicator Retrieval failed. (' + response + ').';
+                    statusAlert('danger', message);
                 })
                 .retrieve();
     };
@@ -810,6 +1154,13 @@
                     .owner(owner)
                     .body(fr.result)
                     .id(id)
+                    .done(function(response) {
+                        statusAlert('success', 'Upload successful.');
+                    })
+                    .error(function(response) {
+                        var message =  'Upload failed. (' + response.error + ').';
+                        statusAlert('danger', message);
+                    })
                     .commit();
             };
         });
@@ -817,6 +1168,61 @@
         c.groupEnd();
     });
     
+    $('#api-method a').click( function () {
+        var apiUri = $('#api-uri').val(),
+            body = $('#api-body').val(),
+            method = $(this).text(),
+            ro = new RequestObject(),
+            formActivityLog = getParameterFromUri('activityLog', apiUri),
+            formOwner = getParameterFromUri('owner', apiUri),
+            formResultLimit = getParameterFromUri('resultLimit', apiUri),
+            formResultStart = getParameterFromUri('resultStart', apiUri),
+            uri = apiUri.split("?")[0].replace('/', '');
+            
+        c.log('formOwner', formOwner);
+        
+            
+        var activityLog = formActivityLog || false,
+            roOwner = formOwner || owner,
+            resultLimit = formResultLimit || 500,
+            resultStart = formResultStart || 0;
+            
+        /*
+        */
+        c.log('URI', apiUri);
+        c.log('Method', $(this).text());
+        c.log('activityLog', activityLog);
+        c.log('owner', roOwner);
+        
+        ro.owner(roOwner)
+            .activityLog(activityLog)
+            .done(function(response) {
+                c.log('api response', response);
+                $('#api-content').text(JSON.stringify(response, null, 4));
+            })
+            .error(function(response) {
+                $('#api-content').text(JSON.stringify(response, null, 4));
+            })
+            // .pagination(this.settings.callbacks.pagination)
+            .requestUri(uri)
+            .requestMethod(method)
+            .resultLimit(resultLimit)
+            .resultStart(resultStart);
+            
+        if (method === 'POST' || method === 'PUT') {
+            
+            if (body.length > 0) {
+                ro.body(JSON.parse(body));
+            } else {
+                $('#api-content').text(JSON.stringify({error: 'Body must not be empty.'}, null, 4));
+            }
+        }
+        c.log('ro', ro);
+        
+        tc.apiRequest(ro);
+    });
+    
+    // reset for all modal forms
     $('.modal').on('hidden.bs.modal', function(){
         $(this).find('form')[0].reset();
     });

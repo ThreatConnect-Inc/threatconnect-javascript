@@ -64,6 +64,24 @@ function indicatorHelper(prefix) {
     };
     return iTypes[prefix];
 }
+    
+function getParameterByName(name) {
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+        
+    return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+    
+function getParameterFromUri(name, uri) {
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(uri);
+        
+    return results === null ? undefined : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
 
 //
 // Request Object
@@ -72,25 +90,32 @@ function RequestObject(params) {
     c.group('RequestObject');
 
     // this.id = uuid.v4();
-    this._async = true;
-    this._body = null;
-    this._contentType = 'application/json; charset=UTF-8';
-    this._done = undefined;
-    this._headers = {};
-    this._limit = 50;
-    this._normalizer = normalize.default;
-    this._owner = null;
-    this._pagination = undefined;
-    this._pathUrl = null;
-    this._payload = {};
-    this._remaining = 0;
-    this._requestMethod = 'GET';
-    this._requestUri = null;
-    this._resultCount = 0;
-    this._resultLimit = 200;
-    this._resultList = [];
-    this._resultStart = 0;
-    this._type = undefined;
+    this._async = true,
+    this._contentType = 'application/json; charset=UTF-8',
+    this._done = undefined,
+    this._error = undefined,
+    this._headers = {},
+    this._helper = false,
+    this._limit = 1000000,
+    this._normalizer = normalize.default,
+    this._owner = undefined,
+    this._pagination = undefined,
+    this._pathUrl = undefined,
+    this._payload = {},
+    this._remaining = 0,
+    this._requestUri = undefined,
+    this._resultCount = 0,
+    this._resultLimit = 200,
+    this._resultStart = 0,
+    this._type = undefined,
+    this.response = {
+        body: undefined,
+        data: [],
+        error: undefined,
+        id: undefined,
+        requestMethod: 'GET',
+        status: undefined,
+    };
 
     this.payload = function(key, val) {
         this._payload[key] = val;
@@ -103,7 +128,9 @@ function RequestObject(params) {
     };
     
     this.activityLog = function(bool) {
-        this.payload('createActivityLog', bool.toString());
+        if (typeof data === 'boolean') {
+            this.payload('createActivityLog', bool.toString());
+        }
         return this;
     };
     
@@ -117,7 +144,10 @@ function RequestObject(params) {
     };
     
     this.body = function(data) {
-        this._body = JSON.stringify(data);
+        this.response.body = JSON.stringify(data);
+        if (data.id) {
+            this.response.id = data.id;
+        }
         return this;
     };
     
@@ -128,6 +158,29 @@ function RequestObject(params) {
     
     this.done = function(data) {
         this._done = data;
+        return this;
+    };
+    
+    this.error = function(data) {
+        this._error = data;
+        return this;
+    };
+    
+    this.helper = function(data) {
+        this._helper = data;
+        return this;
+    };
+    
+    this.id = function(data) {
+        this.response.id = data;
+        return this;
+    };
+    
+    this.limit = function(data) {
+        this.limit = parseInt(data, 10);
+        if (this.limit < 500 && this.limit > this._resultLimit) {
+            this._resultLimit = this.limit;
+        }
         return this;
     };
     
@@ -163,7 +216,7 @@ function RequestObject(params) {
     };
     
     this.requestMethod = function(method) {
-        this._requestMethod = method;
+        this.response.requestMethod = method;
         return this;
     };
     
@@ -173,8 +226,17 @@ function RequestObject(params) {
     };
     
     this.resultLimit = function(data) {
-        this.payload('resultLimit', data);
-        this._resultLimit = data;
+        if (parseInt(data, 10) <= 500) {
+            if (this.limit < 500 && this.limit > parseInt(data, 10)) {
+                this.payload('resultLimit', this._limi);
+                this._resultLimit = this._limit;
+            } else {
+                this.payload('resultLimit', parseInt(data, 10));
+                this._resultLimit = parseInt(data, 10);
+            }
+        } else {
+            c.warn('The maximum value for resultLimit is 500.');
+        }
         return this;
     };
     
@@ -191,12 +253,6 @@ function RequestObject(params) {
     
     c.groupEnd();
     return this;
-}
-    
-function getParameterByName(name) {
-    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"), results = regex.exec(location.search);
-        return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
 }
 
 function ThreatConnect(params) {
@@ -216,7 +272,7 @@ function ThreatConnect(params) {
         };
         
         var timestamp = this._getTimestamp(),
-            signature = [ro._pathUrl, ro._requestMethod, timestamp].join(':'),
+            signature = [ro._pathUrl, ro.response.requestMethod, timestamp].join(':'),
             hmacSignature = CryptoJS.HmacSHA256(signature, this.apiSec),
             authorization = 'TC ' + this.apiId + ':' + CryptoJS.enc.Base64.stringify(hmacSignature);
     
@@ -255,60 +311,82 @@ function ThreatConnect(params) {
         // first api call will always be synchronous to get resultCount
         var defaults = {
             aysnc: false,
-            url: ro._requestMethod === 'GET' ? [this.apiUrl, ro._requestUri].join('/') : url.href,
-            data: ro._requestMethod === 'GET' ? ro._payload : ro._body,
+            url: ro.response.requestMethod === 'GET' ? [this.apiUrl, ro._requestUri].join('/') : url.href,
+            data: ro.response.requestMethod === 'GET' ? ro._payload : ro.response.body,
             headers: ro._headers,
             crossDomain: false,
-            method: ro._requestMethod,
+            method: ro.response.requestMethod,
             contentType: ro._contentType,
-            
         };
-        // c.log('url.href', url.href);
+        c.log('url.href', url.href);
+        c.log('defaults', defaults);
         
         c.groupEnd();
         // make first api call
-        return $.ajax(defaults).always(function (response) {
-            // c.log('response', response);
-            // c.log('method', ro._requestMethod);
-            
-            if (ro._pagination) {
-                // callback for paginated results
-                ro._pagination(ro._normalizer(ro, response));
-            }
-            
-            // check for pagination support
-            if (response.data) {
-                if (response.data.resultCount) {
-                    ro.resultCount(response.data.resultCount)
-                        .resultStart(ro._resultStart + ro._resultLimit)
-                        .remaining(ro._resultCount - ro._resultLimit);
-                        
-                    // c.log('ro.resultCount', ro.resultCount);
-                    // c.log('ro._remaining', ro._remaining);
-                    
-                    _this.apiRequestPagination(ro);
-                } else {
-                    // callback for done
-                    ro._done(ro._resultList);
+        return $.ajax(defaults)
+            // .always(function (response) {
+            .done(function (response) {
+                c.log('response', response);
+                var upload_pattern = /upload/;
+                
+                if (ro._helper === false) {
+                    ro._done(response);
+                    return;
                 }
-            } else if (ro._requestMethod === 'DELETE') {
-                ro._done(response);
-            }
-        });
+                
+                // set status code
+                ro.response.status = response.status;
+                
+                if (response.status == 'Success' && ro._pagination) {
+                    // callback for paginated results
+                    ro._pagination(ro._normalizer(ro, response));
+                } else {
+                    ro._normalizer(ro, response);
+                }
+                
+                // check for pagination support
+                if (response.data) {
+                    if (response.data.resultCount) {
+                        ro.resultCount(response.data.resultCount)
+                            .resultStart(ro._resultStart + ro._resultLimit)
+                            .remaining(ro._resultCount - ro._resultLimit);
+                            
+                        // c.log('ro.resultCount', ro.resultCount);
+                        // c.log('ro._remaining', ro._remaining);
+                        
+                        _this.apiRequestPagination(ro);
+                    } else {
+                        // callback for done
+                        c.log('done apiRequest')
+                        ro._done(ro.response);
+                    }
+                } else if (upload_pattern.test(ro._requestUri)) {
+                    ro._done(ro.response);
+                } else if (ro.response.requestMethod === 'DELETE') {
+                    ro._done(ro.response);
+                }
+            })
+            .fail(function (response) {
+                c.log('fail response');
+                ro.response.error = response.responseText;
+                
+                ro._error(ro.response);
+            });
     };
     
     this.apiRequestPagination = function(ro) {
         var _this = this;
         c.group('apiRequestPagination');
-        
+                
         // stop processing if limit is reached
-        if (ro._resultList.length >= ro._limit && ro._remaining <= 0) return;
+        if (ro.response.data.length >= ro._limit && ro._remaining <= 0) return;
         
         var ajaxRequests = [];
         for (var i=1;i<=this.concurrentCalls;i++) {
             c.log('ro._remaining', ro._remaining);
             
             if (ro._remaining <= 0) {
+                c.log('take a break');
                 break;
             }
             
@@ -327,15 +405,15 @@ function ThreatConnect(params) {
             // first api call will always be synchronous to get resultCount
             var defaults = {
                 aysnc: ro.async,
-                url: ro._requestMethod === 'GET' ? [this.apiUrl, ro._requestUri].join('/') : url.href,
-                data: ro._requestMethod === 'GET' ? ro._payload : ro._body,
+                url: ro.response.requestMethod === 'GET' ? [this.apiUrl, ro._requestUri].join('/') : url.href,
+                data: ro.response.requestMethod === 'GET' ? ro._payload : ro.response.body,
                 headers: ro._headers,
                 crossDomain: false,
-                method: ro._requestMethod,
+                method: ro.response.requestMethod,
                 contentType: ro._contentType,
             };
                 
-            ajaxRequests.push($.ajax(defaults).always(function(response) {
+            ajaxRequests.push($.ajax(defaults).done(function(response) {
                 // callback for paginated results
                 if (typeof ro._pagination === 'function') {
                     ro._pagination(ro._normalizer(ro, response));
@@ -354,7 +432,8 @@ function ThreatConnect(params) {
             if (ro._remaining > 0) {
                 _this.apiRequestPagination(ro);
             } else {
-                ro._done(ro._resultList);
+                c.log('money');
+                ro._done(ro.response);
             }
         });
         c.groupEnd();
@@ -366,6 +445,10 @@ function ThreatConnect(params) {
     
     this.documents = function() {
         return new Documents(this);
+    };
+    
+    this.emails = function() {
+        return new Emails(this);
     };
     
     this.incidents = function() {
@@ -393,7 +476,7 @@ function Groups(threatconnect) {
         },
         callbacks: {
             done: undefined,
-            fail: undefined,
+            error: undefined,
             pagination: undefined,
         },
     },
@@ -515,14 +598,19 @@ function Groups(threatconnect) {
                 .activityLog(this.settings.api.activityLog)
                 .body(body)
                 .done(this.settings.callbacks.done)
+                .error(this.settings.callbacks.error)
+                .helper(true)
+                .pagination(this.settings.callbacks.pagination)
                 .normalization(this.settings.api.cNormalizer)
                 .requestUri(this.settings.api.requestUri)
                 .requestMethod('POST');
-            // c.log('this.settings.batch', JSON.stringify(this.settings.batch, null, 4));
+            c.log('body', JSON.stringify(body, null, 4));
             this.apiRequest(ro);
             
         } else {
-            console.error('Commit Failure: group name and owner are required.');
+            var errorMessage = 'Commit Failure: group name and owner are required.';
+            console.error(errorMessage);
+            this.settings.callbacks.error({error: errorMessage});
         } 
     };
     
@@ -534,12 +622,14 @@ function Groups(threatconnect) {
         ro.owner(this.settings.api.owner)
             .activityLog(this.settings.api.activityLog)
             .done(this.settings.callbacks.done)
-            .pagination(this.settings.callbacks.pagination)
+            .error(this.settings.callbacks.error)
+            .helper(true)
+            .id(this.rData.deleteData.id)
             .requestUri(uri)
             .requestMethod('DELETE')
             .resultLimit(this.settings.api.resultLimit);
             // .type(this.settings.data.type);
-        c.log('ro', ro);
+        c.log('body', ro);
      
         this.apiRequest(ro);
     };
@@ -547,10 +637,17 @@ function Groups(threatconnect) {
     //
     // Retrieve Group
     //
-    this.retrieve = function() {
+    this.retrieve = function(params) {
+        if (params) {
+            if (params.id) {
+                this.settings.api.requestUri = this.settings.api.requestUri + '/' + params.id; 
+            }
+        }
         ro.owner(this.settings.api.owner)
             .activityLog(this.settings.api.activityLog)
             .done(this.settings.callbacks.done)
+            .error(this.settings.callbacks.error)
+            .helper(true)
             .normalization(this.settings.api.rNormalizer)
             .pagination(this.settings.callbacks.pagination)
             .requestUri(this.settings.api.requestUri)
@@ -577,7 +674,7 @@ function Adversaries(threatconnect) {
     Groups.call(this, threatconnect);
     
     this.settings.api.requestUri = 'v2/groups/adversaries';
-    this.settings.api.cNormalizer = normalize.default;
+    this.settings.api.cNormalizer = normalize.adversaries;
     this.settings.api.rNormalizer = normalize.adversaries;
 }
 Adversaries.prototype = Object.create(Groups.prototype);
@@ -589,7 +686,7 @@ function Documents(threatconnect) {
     Groups.call(this, threatconnect);
     
     this.settings.api.requestUri = 'v2/groups/documents';
-    this.settings.api.cNormalizer = normalize.default;
+    this.settings.api.cNormalizer = normalize.documents;
     this.settings.api.rNormalizer = normalize.documents;
     
     // Group Data - Required
@@ -613,607 +710,75 @@ function Incidents(threatconnect) {
     Groups.call(this, threatconnect);
     
     this.settings.api.requestUri = 'v2/groups/incidents';
-    this.settings.api.cNormalizer = normalize.default;
+    this.settings.api.cNormalizer = normalize.incidents;
     this.settings.api.rNormalizer = normalize.incidents;
 }
 Incidents.prototype = Object.create(Groups.prototype);
 
+//
+// Emails
+//
+function Emails(threatconnect) {
+    Groups.call(this, threatconnect);
+    
+    this.settings.api.requestUri = 'v2/groups/emails';
+    this.settings.api.cNormalizer = normalize.emails;
+    this.settings.api.rNormalizer = normalize.emails;
+    
+    // Group Data - Optional
+    this.emailBody = function(data) {
+        if (data.length > 0) {
+           this.rData.optionalData.body = data;
+        }
+        return this;
+    };
+    
+    // Group Data - Optional
+    this.emailFrom = function(data) {
+        if (data.length > 0) {
+            this.rData.optionalData.from = data;
+        }
+        return this;
+    };
+    
+    // Group Data - Optional
+    this.emailHeader = function(data) {
+        if (data.length > 0) {
+            this.rData.optionalData.header = data;
+        }
+        return this;
+    };
+    
+    // Group Data - Optional
+    this.emailScore = function(data) {
+        if (data.length > 0) {
+            this.rData.optionalData.score = data;
+        }
+        return this;
+    };
+    
+    // Group Data - Optional
+    this.emailSubject = function(data) {
+        if (data.length > 0) {
+            this.rData.optionalData.subject = data;
+        }
+        return this;
+    };
+    
+    // Group Data - Optional
+    this.emailTo = function(data) {
+        if (data.length > 0) {
+            this.rData.optionalData.to = data;
+        }
+        return this;
+    };
+}
+Emails.prototype = Object.create(Groups.prototype);
 
-
-
-// ThreatConnect.prototype.adversaries1 = function() {
-//     c.group('adversaries');
-    
-//     var ro = new RequestObject(),
-//         settings = {
-//             api: {
-//                 activityLog: false,             // false|true
-//                 method: 'GET',
-//                 requestUri: 'v2/groups/adversaries',
-//                 resultLimit: 500
-//             },
-//             callbacks: {
-//                 done: undefined,
-//                 fail: undefined,
-//                 pagination: undefined,
-//             },
-//         },
-//         rData = {
-//             optionalData: {},
-//             deleteData: {},
-//             requiredData: {},
-//             specificData: {},
-//         };
- 
-//     //
-//     // Settings API
-//     //
-//     this.activityLog = function(data) {
-//         // c.log('activityLog', data);
-//         if (typeof data === 'boolean') {
-//             settings.api.activityLog = data;
-//         } else {
-//             c.error('activityLog must be a boolean.');
-//         }
-//         return this;
-//     };
-    
-//     this.resultLimit = function(data) {
-//         if (0 > data <= 500) {
-//             settings.api.resultLimit = data;
-//         } else {
-//             console.warn('Invalid Result Count (' + data + ').');
-//         }
-//         return this;
-//     };
- 
-//     this.owner = function(data) {
-//         settings.api.owner = data;
-//         return this;
-//     };
- 
-//     //
-//     // Settings Callbacks
-//     //
-//     this.done = function(data) {
-//         if (typeof data === 'function') {
-//             settings.callbacks.done = data;
-//         } else {
-//             c.error('Callback "done()" must be a function.');
-//         }
-//         return this;
-//     };
-    
-//     this.error = function(data) {
-//         if (typeof data === 'function') {
-//             settings.callbacks.error = data;
-//         } else {
-//             c.error('Callback "error()" must be a function.');
-//         }
-//         return this;
-//     };
-    
-//     this.pagination = function(data) {
-//         if (typeof data === 'function') {
-//             settings.callbacks.pagination = data;
-//         } else {
-//             c.error('Callback "pagination()" must be a function.');
-//         }
-//         return this;
-//     };
- 
-//     //
-//     // Group Data - Required
-//     //
-//     this.id = function(data) {
-//         rData.deleteData.id = data;
-//         return this;
-//     };
-    
-//     this.name = function(data) {
-//         rData.requiredData.name = data;
-//         return this;
-//     };
-
-//     //
-//     // Group Data - Optional
-//     //
-//     this.attributes = function(data) {
-//         if (!rData.optionalData.attributes) {rData.optionalData.attributes = []}
-//         if (typeof data === 'object' && data.length != 0) {
-//             rData.optionalData.attributes = $.merge(rData.optionalData.attributes, data);
-//         } else {
-//             c.error('Tags must be an array.');
-//         }
-//         return this;
-//     };
-    
-//     this.tags = function(data) {
-//         if (rData.optionalData.tags) {rData.optionalData.tags = []}
-//         var tag;
-//         if (typeof data === 'object' && data.length != 0) {
-//             for (tag in data) {
-//                 rData.optionalData.tags.push({name: data[tag]});
-//             }
-//         } else {
-//             c.error('Tags must be an array.');
-//         }
-//         return this;
-//     };
-    
-//     //
-//     // Group Process
-//     //
-//     this.commit = function() {
-//         // c.log('commit');
-        
-//         // validate required fields
-//         if (rData.requiredData.name && settings.api.owner) {
-            
-//             /* create job */ 
-//             ro.owner(settings.api.owner)
-//                 .activityLog(settings.api.activityLog)
-//                 .body(rData.requiredData)
-//                 .done(settings.callbacks.done)
-//                 .normalization(normalize.default)
-//                 .requestUri(settings.api.requestUri)
-//                 .requestMethod('POST');
-//             // c.log('settings.batch', JSON.stringify(settings.batch, null, 4));
-//             this.apiRequest(ro);
-            
-//         } else {
-//             console.error('Commit Failure: group name and owner are required.');
-//         } 
-//     };
-    
-//     //
-//     // Delete Group
-//     //
-//     this.delete = function() {
-//         var uri = settings.api.requestUri + '/' + rData.deleteData.id;
-//         ro.owner(settings.api.owner)
-//             .activityLog(settings.api.activityLog)
-//             .done(settings.callbacks.done)
-//             .pagination(settings.callbacks.pagination)
-//             .requestUri(uri)
-//             .requestMethod('DELETE')
-//             .resultLimit(settings.api.resultLimit);
-//             // .type(settings.data.type);
-//         c.log('ro', ro);
-     
-//         this.apiRequest(ro);
-//     };
- 
-//     //
-//     // Retrieve Group
-//     //
-//     this.retrieve = function() {
-//         ro.owner(settings.api.owner)
-//             .activityLog(settings.api.activityLog)
-//             .done(settings.callbacks.done)
-//             .normalization(normalize.adversaries)
-//             .pagination(settings.callbacks.pagination)
-//             .requestUri(settings.api.requestUri)
-//             .requestMethod(settings.api.method)
-//             .resultLimit(settings.api.resultLimit);
-//             // .type(settings.data.type);
-//         c.log('ro', ro);
-     
-//         this.apiRequest(ro);
-//     };
-    
-//     this.getData = function(params) {
-//         return rData.requiredData;
-//     };
- 
-//     c.groupEnd();
-//     return this;
-// };
-
-// ThreatConnect.prototype.documents1 = function() {
-//     c.group('incidents');
-    
-//     var ro = new RequestObject(),
-//         settings = {
-//             api: {
-//                 activityLog: false,             // false|true
-//                 method: 'GET',
-//                 requestUri: 'v2/groups/documents',
-//                 resultLimit: 500
-//             },
-//             callbacks: {
-//                 done: undefined,
-//                 fail: undefined,
-//                 pagination: undefined,
-//             },
-//         },
-//         rData = {
-//             optionalData: {},
-//             deleteData: {},
-//             requiredData: {},
-//             specificData: {},
-//         };
- 
-//     //
-//     // Settings API
-//     //
-//     this.activityLog = function(data) {
-//         // c.log('activityLog', data);
-//         if (typeof data === 'boolean') {
-//             settings.api.activityLog = data;
-//         } else {
-//             c.error('activityLog must be a boolean.');
-//         }
-//         return this;
-//     };
-    
-//     this.resultLimit = function(data) {
-//         if (0 > data <= 500) {
-//             settings.api.resultLimit = data;
-//         } else {
-//             console.warn('Invalid Result Count (' + data + ').');
-//         }
-//         return this;
-//     };
- 
-//     this.owner = function(data) {
-//         settings.api.owner = data;
-//         return this;
-//     };
- 
-//     //
-//     // Settings Callbacks
-//     //
-//     this.done = function(data) {
-//         if (typeof data === 'function') {
-//             settings.callbacks.done = data;
-//         } else {
-//             c.error('Callback "done()" must be a function.');
-//         }
-//         return this;
-//     };
-    
-//     this.error = function(data) {
-//         if (typeof data === 'function') {
-//             settings.callbacks.error = data;
-//         } else {
-//             c.error('Callback "error()" must be a function.');
-//         }
-//         return this;
-//     };
-    
-//     this.pagination = function(data) {
-//         if (typeof data === 'function') {
-//             settings.callbacks.pagination = data;
-//         } else {
-//             c.error('Callback "pagination()" must be a function.');
-//         }
-//         return this;
-//     };
- 
-//     //
-//     // Group Data - Required
-//     //
-//     this.fileName = function(data) {
-//         rData.requiredData.fileName = data;
-//         return this;
-//     };
-    
-//     this.id = function(data) {
-//         rData.deleteData.id = data;
-//         return this;
-//     };
-    
-//     this.name = function(data) {
-//         rData.requiredData.name = data;
-//         return this;
-//     };
-
-//     //
-//     // Group Data - Optional
-//     //
-    
-//     this.fileSize = function(data) {
-//         rData.optionalData.fileSize = data;
-//         return this;
-//     };
-    
-//     this.attributes = function(data) {
-//         if (!rData.optionalData.attributes) {rData.optionalData.attributes = []}
-//         if (typeof data === 'object' && data.length != 0) {
-//             rData.optionalData.attributes = $.merge(rData.optionalData.attributes, data);
-//         } else {
-//             c.error('Tags must be an array.');
-//         }
-//         return this;
-//     };
-    
-//     this.tags = function(data) {
-//         if (rData.optionalData.tags) {rData.optionalData.tags = []}
-//         var tag;
-//         if (typeof data === 'object' && data.length != 0) {
-//             for (tag in data) {
-//                 rData.optionalData.tags.push({name: data[tag]});
-//             }
-//         } else {
-//             c.error('Tags must be an array.');
-//         }
-//         return this;
-//     };
-    
-//     //
-//     // Group Process
-//     //
-//     this.commit = function() {
-//         // c.log('commit');
-//         var body;
-        
-//         // validate required fields
-//         if (rData.requiredData.name && settings.api.owner) {
-//             body = $.extend(rData.requiredData, rData.optionalData);
-            
-//             // specificBody = rData.specificData[iData.requiredData.type],
-//             //     body = $.extend(body, specificBody);
-            
-//             /* create job */ 
-//             ro.owner(settings.api.owner)
-//                 .activityLog(settings.api.activityLog)
-//                 .body(body)
-//                 .done(settings.callbacks.done)
-//                 .normalization(normalize.default)
-//                 .requestUri(settings.api.requestUri)
-//                 .requestMethod('POST');
-//             c.log('body', JSON.stringify(body, null, 4));
-//             this.apiRequest(ro);
-            
-//         } else {
-//             console.error('Commit Failure: group name and owner are required.');
-//         } 
-//     };
-    
-//     //
-//     // Delete Group
-//     //
-//     this.delete = function() {
-//         var uri = settings.api.requestUri + '/' + rData.deleteData.id;
-//         ro.owner(settings.api.owner)
-//             .activityLog(settings.api.activityLog)
-//             .done(settings.callbacks.done)
-//             .pagination(settings.callbacks.pagination)
-//             .requestUri(uri)
-//             .requestMethod('DELETE')
-//             .resultLimit(settings.api.resultLimit);
-//             // .type(settings.data.type);
-//         c.log('ro', ro);
-     
-//         this.apiRequest(ro);
-//     };
- 
-//     //
-//     // Retrieve Group
-//     //
-//     this.retrieve = function() {
-//         ro.owner(settings.api.owner)
-//             .activityLog(settings.api.activityLog)
-//             .done(settings.callbacks.done)
-//             .normalization(normalize.documents)
-//             .pagination(settings.callbacks.pagination)
-//             .requestUri(settings.api.requestUri)
-//             .requestMethod(settings.api.method)
-//             .resultLimit(settings.api.resultLimit);
-//             // .type(settings.data.type);
-//         c.log('ro', ro);
-     
-//         this.apiRequest(ro);
-//     };
-    
-//     this.getData = function(params) {
-//         return rData.requiredData;
-//     };
- 
-//     c.groupEnd();
-//     return this;
-// };
-
-
-// /*
-//  * Incident
-//  */
-
-// ThreatConnect.prototype.incidents = function() {
-//     c.group('incidents');
-    
-//     var ro = new RequestObject(),
-//         settings = {
-//             api: {
-//                 activityLog: false,             // false|true
-//                 method: 'GET',
-//                 requestUri: 'v2/groups/incidents',
-//                 resultLimit: 500
-//             },
-//             callbacks: {
-//                 done: undefined,
-//                 fail: undefined,
-//                 pagination: undefined,
-//             },
-//         },
-//         rData = {
-//             optionalData: {},
-//             deleteData: {},
-//             requiredData: {},
-//             specificData: {},
-//         };
- 
-//     //
-//     // Settings API
-//     //
-//     this.activityLog = function(data) {
-//         // c.log('activityLog', data);
-//         if (typeof data === 'boolean') {
-//             settings.api.activityLog = data;
-//         } else {
-//             c.error('activityLog must be a boolean.');
-//         }
-//         return this;
-//     };
-    
-//     this.resultLimit = function(data) {
-//         if (0 > data <= 500) {
-//             settings.api.resultLimit = data;
-//         } else {
-//             console.warn('Invalid Result Count (' + data + ').');
-//         }
-//         return this;
-//     };
- 
-//     this.owner = function(data) {
-//         settings.api.owner = data;
-//         return this;
-//     };
- 
-//     //
-//     // Settings Callbacks
-//     //
-//     this.done = function(data) {
-//         if (typeof data === 'function') {
-//             settings.callbacks.done = data;
-//         } else {
-//             c.error('Callback "done()" must be a function.');
-//         }
-//         return this;
-//     };
-    
-//     this.error = function(data) {
-//         if (typeof data === 'function') {
-//             settings.callbacks.error = data;
-//         } else {
-//             c.error('Callback "error()" must be a function.');
-//         }
-//         return this;
-//     };
-    
-//     this.pagination = function(data) {
-//         if (typeof data === 'function') {
-//             settings.callbacks.pagination = data;
-//         } else {
-//             c.error('Callback "pagination()" must be a function.');
-//         }
-//         return this;
-//     };
- 
-//     //
-//     // Group Data - Required
-//     //
-//     this.id = function(data) {
-//         rData.deleteData.id = data;
-//         return this;
-//     };
-    
-//     this.name = function(data) {
-//         rData.requiredData.name = data;
-//         return this;
-//     };
-
-//     //
-//     // Group Data - Optional
-//     //
-//     this.attributes = function(data) {
-//         if (!rData.optionalData.attributes) {rData.optionalData.attributes = []}
-//         if (typeof data === 'object' && data.length != 0) {
-//             rData.optionalData.attributes = $.merge(rData.optionalData.attributes, data);
-//         } else {
-//             c.error('Tags must be an array.');
-//         }
-//         return this;
-//     };
-    
-//     this.tags = function(data) {
-//         if (rData.optionalData.tags) {rData.optionalData.tags = []}
-//         var tag;
-//         if (typeof data === 'object' && data.length != 0) {
-//             for (tag in data) {
-//                 rData.optionalData.tags.push({name: data[tag]});
-//             }
-//         } else {
-//             c.error('Tags must be an array.');
-//         }
-//         return this;
-//     };
-    
-//     //
-//     // Group Process
-//     //
-//     this.commit = function() {
-//         // c.log('commit');
-        
-//         // validate required fields
-//         if (rData.requiredData.name && settings.api.owner) {
-            
-//             /* create job */ 
-//             ro.owner(settings.api.owner)
-//                 .activityLog(settings.api.activityLog)
-//                 .body(rData.requiredData)
-//                 .done(settings.callbacks.done)
-//                 .normalization(normalize.default)
-//                 .requestUri(settings.api.requestUri)
-//                 .requestMethod('POST');
-//             // c.log('settings.batch', JSON.stringify(settings.batch, null, 4));
-//             this.apiRequest(ro);
-            
-//         } else {
-//             console.error('Commit Failure: group name and owner are required.');
-//         } 
-//     };
-    
-//     //
-//     // Delete Group
-//     //
-//     this.delete = function() {
-//         var uri = settings.api.requestUri + '/' + rData.deleteData.id;
-//         ro.owner(settings.api.owner)
-//             .activityLog(settings.api.activityLog)
-//             .done(settings.callbacks.done)
-//             .pagination(settings.callbacks.pagination)
-//             .requestUri(uri)
-//             .requestMethod('DELETE')
-//             .resultLimit(settings.api.resultLimit);
-//             // .type(settings.data.type);
-//         c.log('ro', ro);
-     
-//         this.apiRequest(ro);
-//     };
- 
-//     //
-//     // Retrieve Group
-//     //
-//     this.retrieve = function() {
-//         ro.owner(settings.api.owner)
-//             .activityLog(settings.api.activityLog)
-//             .done(settings.callbacks.done)
-//             .normalization(normalize.incidents)
-//             .pagination(settings.callbacks.pagination)
-//             .requestUri(settings.api.requestUri)
-//             .requestMethod(settings.api.method)
-//             .resultLimit(settings.api.resultLimit);
-//             // .type(settings.data.type);
-//         c.log('ro', ro);
-     
-//         this.apiRequest(ro);
-//     };
-    
-//     this.getData = function(params) {
-//         return rData.requiredData;
-//     };
- 
-//     c.groupEnd();
-//     return this;
-// };
 
 //
 // Indicators
 //
-    
-// ThreatConnect.prototype.indicator = function() {
 function Indicators(threatconnect) {
     c.group('add_indicator');
     Groups.call(this, threatconnect);
@@ -1234,7 +799,7 @@ function Indicators(threatconnect) {
             },
             callbacks: {
                 done: undefined,
-                fail: undefined,
+                error: undefined,
                 pagination: undefined,
             },
         },
@@ -1496,7 +1061,8 @@ function Indicators(threatconnect) {
     
     // Indicator Commit to API
     this.commit = function() {
-        var _this = this;
+        var _this = this,
+            message;
         // c.log('commit');
         
         // validate required fields
@@ -1506,28 +1072,35 @@ function Indicators(threatconnect) {
             ro.activityLog(settings.api.activityLog)
                 .body(settings.batch)
                 .done(settings.callbacks.done)
+                .helper(true)
                 .normalization(normalize.default)
                 .requestUri('v2/batch')
                 .requestMethod('POST');
             // c.log('settings.batch', JSON.stringify(settings.batch, null, 4));
-            this.apiRequest(ro).always(function(prom) {
-                ro.activityLog(settings.api.activityLog)
-                    .body(batchBody)
-                    .contentType('application/octet-stream')
-                    .done(settings.callbacks.done)
-                    .normalization(normalize.default)
-                    .requestUri('v2/batch/' + prom.data.batchId)
-                    .requestMethod('POST');
-                c.log('batchBody', JSON.stringify(batchBody, null, 4));
-                c.log('ro', ro);
-                _this.apiRequest(ro);
-                
-                // reset
-                batchBody = [];
-                iData.optionalData = {};
-                iData.requiredData = {};
-                iData.specificData = {};
-            });
+            this.apiRequest(ro)
+                .done(function(prom) {
+                    ro.activityLog(settings.api.activityLog)
+                        .body(batchBody)
+                        .contentType('application/octet-stream')
+                        .done(settings.callbacks.done)
+                        .helper(true)
+                        .normalization(normalize.default)
+                        .requestUri('v2/batch/' + prom.data.batchId)
+                        .requestMethod('POST');
+                    c.log('batchBody', JSON.stringify(batchBody, null, 4));
+                    c.log('ro', ro);
+                    _this.apiRequest(ro);
+                    
+                    // reset
+                    batchBody = [];
+                    iData.optionalData = {};
+                    iData.requiredData = {};
+                    iData.specificData = {};
+                })
+                .fail(function() {
+                    message = {error: 'Failed to configure indicator job.'};
+                    settings.callbacks.error(message);
+                });
             
         } else {
             console.error('Commit Failure: batch owner and indicators are required.');
@@ -1559,6 +1132,7 @@ function Indicators(threatconnect) {
         ro.owner(settings.batch.owner)  // bcs make this consistent batch vs data
             .activityLog(settings.api.activityLog)
             .done(settings.callbacks.done)
+            .helper(true)
             .normalization(normalize.indicators)
             .pagination(settings.callbacks.pagination)
             .requestUri(requestUri)
@@ -1582,12 +1156,12 @@ function Indicators(threatconnect) {
     
     c.groupEnd();
     return this;
-};
+}
+Indicators.prototype = Object.create(ThreatConnect.prototype);
 
-/*
- * Upload
- */
- 
+//
+// Upload
+//
 ThreatConnect.prototype.upload = function() {
     c.group('upload');
     
@@ -1601,7 +1175,7 @@ ThreatConnect.prototype.upload = function() {
             },
             callbacks: {
                 done: undefined,
-                fail: undefined,
+                error: undefined,
                 pagination: undefined,
             },
         },
@@ -1665,21 +1239,23 @@ ThreatConnect.prototype.upload = function() {
     };
     
     //
-    // Group Process
+    // Group Actions
     //
+    
     this.commit = function() {
         // c.log('commit');
-        var body;
         
         // validate required fields
         if (rData.requiredData.body && settings.api.owner) {
-            var uri = settings.api.requestUri + '/' + rData.requiredData.id + '/upload'
+            var uri = settings.api.requestUri + '/' + rData.requiredData.id + '/upload';
             
             /* create job */ 
             ro.owner(settings.api.owner)
                 .body(rData.requiredData.body)
                 .contentType('application/octet-stream')
                 .done(settings.callbacks.done)
+                .error(settings.callbacks.error)
+                .helper(true)
                 .normalization(normalize.default)
                 .requestUri(uri)
                 .requestMethod('POST');
@@ -1687,102 +1263,120 @@ ThreatConnect.prototype.upload = function() {
             this.apiRequest(ro);
             
         } else {
-            console.error('Commit Failure: group name and owner are required.');
+            console.error('Commit Failure: Body is required.');
         } 
     };
     
-    //
-    // Delete Group
-    //
-    this.delete = function() {
-        var uri = settings.api.requestUri + '/' + rData.deleteData.id;
-        ro.owner(settings.api.owner)
-            .activityLog(settings.api.activityLog)
-            .done(settings.callbacks.done)
-            .pagination(settings.callbacks.pagination)
-            .requestUri(uri)
-            .requestMethod('DELETE')
-            .resultLimit(settings.api.resultLimit);
-            // .type(settings.data.type);
-        c.log('ro', ro);
-     
-        this.apiRequest(ro);
-    };
- 
-    //
-    // Retrieve Group
-    //
-    this.retrieve = function() {
-        ro.owner(settings.api.owner)
-            .activityLog(settings.api.activityLog)
-            .done(settings.callbacks.done)
-            .normalization(normalize.documents)
-            .pagination(settings.callbacks.pagination)
-            .requestUri(settings.api.requestUri)
-            .requestMethod(settings.api.method)
-            .resultLimit(settings.api.resultLimit);
-            // .type(settings.data.type);
-        c.log('ro', ro);
-     
-        this.apiRequest(ro);
-    };
-    
-    this.getData = function(params) {
-        return rData.requiredData;
-    };
- 
     c.groupEnd();
     return this;
 };
 
-
-
 /*
  * Normalizers
  */
+ 
 var normalize = {
     adversaries: function(ro, response) { 
         c.group('normalize.adversaries');
+        var adversaries = [],
+            status = response.status;
+        
         if (response) {
-            var adversaries = response.data.adversary;
+            adversaries = response.data.adversary;
+                
+            if (Object.prototype.toString.call( adversaries ) != '[object Array]') {
+                if (adversaries.owner) {
+                    adversaries.ownerName = adversaries.owner.name;
+                    delete adversaries.owner;
+                }
+                adversaries = [adversaries];
+            }
             c.log('adversaries', adversaries);
             
-            ro._resultList = $.merge(ro._resultList, adversaries);
+            ro.response.data = $.merge(ro.response.data, adversaries);
             
             c.groupEnd();
-            return adversaries;
         }
-        return undefined;
+        return {status: status,
+                data: adversaries};
     },
     documents: function(ro, response) { 
         c.group('normalize.documents');
+        var documents = [],
+            status = response.status;
+            
         if (response) {
-            var documents = response.data.document;
+            documents = response.data.document;
+            
+            if (Object.prototype.toString.call( documents ) != '[object Array]') {
+                if (documents.owner) {
+                    documents.ownerName = documents.owner.name;
+                    delete documents.owner;
+                }
+                documents = [documents];
+            }
             c.log('document', document);
             
-            ro._resultList = $.merge(ro._resultList, documents);
+            ro.response.data = $.merge(ro.response.data, documents);
             
             c.groupEnd();
-            return documents;
         }
-        return undefined;
+        return {status: status,
+                data: documents};
+    },
+    emails: function(ro, response) { 
+        c.group('normalize.emails');
+        var emails = [],
+            status = response.status;
+            
+        if (response) {
+            emails = response.data.email;
+            
+            if (Object.prototype.toString.call( emails ) != '[object Array]') {
+                if (emails.owner) {
+                    emails.ownerName = emails.owner.name;
+                    delete emails.owner;
+                }
+                emails = [emails];
+            }
+            c.log('email', emails);
+            
+            ro.response.data = $.merge(ro.response.data, emails);
+            
+            c.groupEnd();
+        }
+        return {status: status,
+                data: emails};
     },
     incidents: function(ro, response) { 
         c.group('normalize.incidents');
+        var incidents = [],
+            status = response.status;
+                
         if (response) {
-            var incidents = response.data.incident;
-            c.log('incidents', incidents);
+            incidents = response.data.incident;
             
-            ro._resultList = $.merge(ro._resultList, incidents);
+            if (Object.prototype.toString.call( incidents ) != '[object Array]') {
+                if (incidents.owner) {
+                    incidents.ownerName = incidents.owner.name;
+                    delete incidents.owner;
+                }
+                incidents = [incidents];
+            }
+            
+            ro.response.data = $.merge(ro.response.data, incidents);
             
             c.groupEnd();
-            return incidents;
         }
-        return undefined;
+        return {status: status,
+                data: incidents};
     },
     indicators: function(ro, response) { 
         c.group('normalize.indicators');
-        var indicatorTypeData;
+        var indicators,
+            indicatorsData,
+            indicatorTypeData,
+            status = response.status;
         
         if (ro._type) {
             // indicatorTypeData = indicatorType(ro._type.charAt(0));
@@ -1795,30 +1389,30 @@ var normalize = {
             response = response.data.indicator;
         }
         
-        var indicatorData = [];
+        indicators = [];
         $.each( response, function( rkey, rvalue ) {
             // c.log('rvalue', rvalue);
             if ('type' in rvalue) {
                 indicatorTypeData = indicatorHelper(rvalue.type.charAt(0).toLowerCase());
             }
             
-            var indicators = {};
+            indicatorsData = {};
             $.each( indicatorTypeData.indicatorFields, function( ikey, ivalue ) {
                 // change summary to proper field value
                 // handle different types of hash
                 
                 // BCS FIX THIS FOR FILE HASHES
                 if ('summary' in rvalue) {
-                    indicators[ivalue] = rvalue['summary'];
+                    indicatorsData[ivalue] = rvalue['summary'];
                 } else {
-                    indicators[ivalue] = rvalue[ivalue];
+                    indicatorsData[ivalue] = rvalue[ivalue];
                 }
                 // indicator: indicator.summary || indicator.ip || indicator.address
             });
             
-            indicatorData.push({
+            indicators.push({
                 id: rvalue.id,
-                indicators: indicators,
+                indicators: indicatorsData,
                 dateAdded: rvalue.dateAdded,
                 lastModified: rvalue.lastModified,
                 ownerName: rvalue.ownerName || rvalue.owner.name,
@@ -1830,18 +1424,21 @@ var normalize = {
                 webLink: rvalue.webLink,
             });
         });
-        ro._resultList = $.merge(ro._resultList, indicatorData);
+        ro.response.data = $.merge(ro.response.data, indicators);
         
         c.groupEnd();
-        return indicatorData;
+        return {data: indicators,
+                status: status};
     },
-    default: function(response) {
+    
+    default: function(ro, response) {
         c.group('normalize.default');
+        c.log('response', response);
+        ro.response.data = $.merge(ro.response.data, response);
         c.groupEnd();
         return response;
     }
 };
-Indicators.prototype = Object.create(ThreatConnect.prototype);
 
 /*
 */
