@@ -9,6 +9,7 @@
 <script src="./libs/bootstrap-table.min.js" type="text/javascript"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.9.1/locale/bootstrap-table-zh-CN.min.js"></script>
 <script src="./libs/uuid.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.9.1/bootstrap-table.min.js"></script>
 -->
 <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
 
@@ -17,7 +18,7 @@
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.9.1/bootstrap-table.min.css">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.9.1/bootstrap-table.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.9.1/bootstrap-table.js"></script>
 
 <script src="./libs/core.js" type="text/javascript"></script>
 <script src="./libs/sha256.js" type="text/javascript"></script>
@@ -30,7 +31,7 @@
 
 <body>
 
-    <nav class="navbar navbar-default navbar-static-top">
+    <nav id="BCS" class="navbar navbar-default navbar-static-top">
         <div class="container-fluid">
             <div class="navbar-header">
                 <a class="navbar-brand" href="#">TC JavaScript Tester</a>
@@ -93,7 +94,7 @@
             </div>
         </div>
         
-        <div class="tab-pane" id="adversary-pane">
+        <div class="tab-pane" id="adversary-pane" data-id="#adversary-table">
             <div class="panel panel-default">
                 <div class="panel-body">
         
@@ -151,7 +152,7 @@
             </div>
         </div>
         
-        <div class="tab-pane" id="document-pane">
+        <div class="tab-pane" id="document-pane" data-id="#document-table">
             <div class="panel panel-default">
                 <div class="panel-body">
         
@@ -211,7 +212,7 @@
             </div>
         </div>
         
-        <div class="tab-pane" id="email-pane">
+        <div class="tab-pane" id="email-pane" data-id="#email-table">
             <div class="panel panel-default">
                 <div class="panel-body">
         
@@ -270,7 +271,7 @@
             </div>
         </div>
         
-        <div class="tab-pane" id="incident-pane">
+        <div class="tab-pane" id="incident-pane" data-id="#incident-table">
             <div class="panel panel-default">
                 <div class="panel-body">
         
@@ -328,7 +329,7 @@
             </div>
         </div>
         
-        <div class="tab-pane" id="indicator-pane">
+        <div class="tab-pane" id="indicator-pane" data-id="#indicator-table">
             <div class="panel panel-default">
                 <div class="panel-body">
         
@@ -594,8 +595,25 @@
     //
     // Click Actions
     //
+    $('a[data-toggle="tab"]').on('hide.bs.tab', function (e) {
+        console.log('e', $($(e.target).attr('href')).data('id'));
+        var prevTab = $(e.target).attr('href'),
+            prevId = $(prevTab).data('id');
+        c.log('prevId', prevId);
+        $(prevId).bootstrapTable('removeAll');
+    });
     
     $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        
+        // var active_tab = $('#BCS').find('.tab-pane.active');
+        // var active_tab = $('.tab-content > .tab-pane.active').data('id');
+        
+        // $('#adversary-table').bootstrapTable('removeAll');
+        // $('#document-table').bootstrapTable('removeAll');
+        // $('#email-table').bootstrapTable('removeAll');
+        // $('#incident-table').bootstrapTable('removeAll');
+        // $('#indicator-table').bootstrapTable('removeAll');
+        
         if ($(this).attr('href') === '#Home') {
             // do nothing for now
         } else if ($(this).attr('href') === '#adversary-pane') {
@@ -1030,7 +1048,13 @@
                     }
                 })
                 .done(function(response) {
+                    c.log('adversary retrieve done');
                     $('#adversary-content').text(JSON.stringify(response, null, 4));
+                    $('#adversary-table').bootstrapTable('refreshOptions', {
+                        sortName: 'id',
+                        sortOrder: 'asc',
+                        data: response.data
+                    });
                 })
                 .error(function(response) {
                     var message =  'Adversary Retrieval failed. (' + response + ').';
@@ -1051,6 +1075,11 @@
                 })
                 .done(function(response) {
                     $('#document-content').text(JSON.stringify(response, null, 4));
+                    $('#document-table').bootstrapTable('refreshOptions', {
+                        sortName: 'id',
+                        sortOrder: 'asc',
+                        data: response.data
+                    });
                 })
                 .error(function(response) {
                     var message =  'Document Retrieval failed. (' + response + ').';
@@ -1071,6 +1100,11 @@
                 })
                 .done(function(response) {
                     $('#email-content').text(JSON.stringify(response, null, 4));
+                    $('#email-table').bootstrapTable('refreshOptions', {
+                        sortName: 'id',
+                        sortOrder: 'asc',
+                        data: response.data
+                    });
                 })
                 .error(function(response) {
                     var message =  'Email Retrieval failed. (' + response + ').';
@@ -1092,6 +1126,11 @@
                 })
                 .done(function(response) {
                     $('#incident-content').text(JSON.stringify(response, null, 4));
+                    $('#incident-table').bootstrapTable('refreshOptions', {
+                        sortName: 'id',
+                        sortOrder: 'asc',
+                        data: response.data
+                    });
                 })
                 .error(function(response) {
                     var message =  'Incident Retrieval failed. (' + response + ').';
@@ -1112,12 +1151,18 @@
                 })
                 .done(function(response) {
                     $('#indicator-content').text(JSON.stringify(response, null, 4));
+                    $('#indicator-table').bootstrapTable('refreshOptions', {
+                        sortName: 'id',
+                        sortOrder: 'asc',
+                        data: response.data
+                    });
                 })
                 .error(function(response) {
                     var message =  'Indicator Retrieval failed. (' + response + ').';
                     statusAlert('danger', message);
                 })
                 .retrieve();
+                // .retrieve({type: TYPE.FILE});
     };
     
     //
@@ -1188,11 +1233,11 @@
             resultStart = formResultStart || 0;
             
         /*
-        */
         c.log('URI', apiUri);
         c.log('Method', $(this).text());
         c.log('activityLog', activityLog);
         c.log('owner', roOwner);
+        */
         
         ro.owner(roOwner)
             .activityLog(activityLog)
@@ -1203,7 +1248,6 @@
             .error(function(response) {
                 $('#api-content').text(JSON.stringify(response, null, 4));
             })
-            // .pagination(this.settings.callbacks.pagination)
             .requestUri(uri)
             .requestMethod(method)
             .resultLimit(resultLimit)

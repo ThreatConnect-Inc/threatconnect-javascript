@@ -286,10 +286,10 @@ function ThreatConnect(params) {
     
     this.apiRequestUrl = function(host, pathname, search) {
         var url = document.createElement('a');
-        // url.href = [
-        //     [host, pathname].join('/'), $.param(search)
-        // ].join('?');
-        url.href =  host + '/' + pathname + '?' + $.param(search);
+        url.href =  host + '/' + pathname;
+        if (Object.keys(search).length) {
+            url.href = url.href + '?' + $.param(search);
+        }
         return url;
     };
     
@@ -386,7 +386,6 @@ function ThreatConnect(params) {
             c.log('ro._remaining', ro._remaining);
             
             if (ro._remaining <= 0) {
-                c.log('take a break');
                 break;
             }
             
@@ -432,7 +431,6 @@ function ThreatConnect(params) {
             if (ro._remaining > 0) {
                 _this.apiRequestPagination(ro);
             } else {
-                c.log('money');
                 ro._done(ro.response);
             }
         });
@@ -783,37 +781,37 @@ function Indicators(threatconnect) {
     c.group('add_indicator');
     Groups.call(this, threatconnect);
     
-    var batchBody = [],
-        settings = {
-            api: {
-                activityLog: false,             // false|true
-                // method: 'POST',
-                // requestUri: 'v2/batch',
-                resultLimit: 500,
-            },
-            batch: {
-                action: 'Create',               // Create|Delete
-                attributeWriteType: 'Append',   // Append|Replace
-                haltOnError: false,             // false|true
-                owner: undefined,
-            },
-            callbacks: {
-                done: undefined,
-                error: undefined,
-                pagination: undefined,
-            },
+    this.batchBody = [],
+    this.settings = {
+        api: {
+            activityLog: false,             // false|true
+            // method: 'POST',
+            // requestUri: 'v2/batch',
+            resultLimit: 500,
         },
-        iData = {
-            optionalData: {},
-            requiredData: {},
-            specificData: {
-                Address: {},
-                EmailAddress: {},
-                File: {},
-                Host: {},
-                URL: {}
-            },
-        };
+        batch: {
+            action: 'Create',               // Create|Delete
+            attributeWriteType: 'Append',   // Append|Replace
+            haltOnError: false,             // false|true
+            owner: undefined,
+        },
+        callbacks: {
+            done: undefined,
+            error: undefined,
+            pagination: undefined,
+        },
+    },
+    this.iData = {
+        optionalData: {},
+        requiredData: {},
+        specificData: {
+            Address: {},
+            EmailAddress: {},
+            File: {},
+            Host: {},
+            URL: {}
+        },
+    };
     var ro = new RequestObject();
     
     //
@@ -822,7 +820,7 @@ function Indicators(threatconnect) {
     this.activityLog = function(data) {
         // c.log('activityLog', data);
         if (typeof data === 'boolean') {
-            settings.api.activityLog = data;
+            this.settings.api.activityLog = data;
         } else {
             c.error('activityLog must be a boolean.');
         }
@@ -831,7 +829,7 @@ function Indicators(threatconnect) {
     
     this.resultLimit = function(data) {
         if (0 > data <= 500) {
-            settings.api.resultLimit = data;
+            this.settings.api.resultLimit = data;
         } else {
             console.warn('Invalid Result Count (' + data + ').');
         }
@@ -844,7 +842,7 @@ function Indicators(threatconnect) {
     this.action = function(data) {
         // c.log('action', data);
         if ($.inArray(data, ['Create', 'Delete']) != -1) {
-            settings.batch.haltOnError = data;
+            this.settings.batch.haltOnError = data;
         } else {
             c.error('Setting action must be of value (Create|Delete).');
         }
@@ -854,7 +852,7 @@ function Indicators(threatconnect) {
     this.attributeWriteType = function(data) {
         // c.log('attributeWriteType', data);
         if ($.inArray(data, ['Append', 'Replace']) != -1) {
-            settings.batch.haltOnError = data;
+            this.settings.batch.haltOnError = data;
         } else {
             c.error('Setting attributeWriteType must be of value (Append|Replace).');
         }
@@ -864,7 +862,7 @@ function Indicators(threatconnect) {
     this.haltOnError = function(data) {
         // c.log('haltOnError', data);
         if (typeof data === 'boolean') {
-            settings.batch.haltOnError = data;
+            this.settings.batch.haltOnError = data;
         } else {
             c.error('Setting haltOnError must be a boolean.');
         }
@@ -874,7 +872,7 @@ function Indicators(threatconnect) {
     this.owner = function(data) {
         // c.log('owner', data);
         if (typeof data === 'string') {
-            settings.batch.owner = data;
+            this.settings.batch.owner = data;
         } else {
             c.error('Setting owner must be a string.');
         }
@@ -886,7 +884,7 @@ function Indicators(threatconnect) {
     //
     this.done = function(data) {
         if (typeof data === 'function') {
-            settings.callbacks.done = data;
+            this.settings.callbacks.done = data;
         } else {
             c.error('Callback "done()" must be a function.');
         }
@@ -895,7 +893,7 @@ function Indicators(threatconnect) {
     
     this.error = function(data) {
         if (typeof data === 'function') {
-            settings.callbacks.error = data;
+            this.settings.callbacks.error = data;
         } else {
             c.error('Callback "error()" must be a function.');
         }
@@ -904,7 +902,7 @@ function Indicators(threatconnect) {
     
     this.pagination = function(data) {
         if (typeof data === 'function') {
-            settings.callbacks.pagination = data;
+            this.settings.callbacks.pagination = data;
         } else {
             c.error('Callback "pagination()" must be a function.');
         }
@@ -916,14 +914,14 @@ function Indicators(threatconnect) {
     //
     this.indicator = function(data) {
         // c.log('indicator', data);
-        iData.requiredData.summary = data;
+        this.iData.requiredData.summary = data;
         return this;
     };
     
     this.type = function(data) {
         // c.log('type', data.type);
         if (data.type && data.uri) {
-            iData.requiredData.type = data.type;
+            this.iData.requiredData.type = data.type;
         }
         return this;
     };
@@ -932,9 +930,9 @@ function Indicators(threatconnect) {
     // Indicator Data - Optional
     //
     this.attribute = function(data) {
-        if (!iData.optionalData.attributes) {iData.optionalData.attributes = []}
+        if (!this.iData.optionalData.attributes) {this.iData.optionalData.attributes = []}
         if (typeof data === 'object' && data.length != 0) {
-            iData.optionalData.attributes.push(data);
+            this.iData.optionalData.attributes.push(data);
         } else {
             c.error('Tags must be an array.');
         }
@@ -942,9 +940,9 @@ function Indicators(threatconnect) {
     };
     
     this.attributes = function(data) {
-        if (!iData.optionalData.attributes) {iData.optionalData.attributes = []}
+        if (!this.iData.optionalData.attributes) {this.iData.optionalData.attributes = []}
         if (typeof data === 'object' && data.length != 0) {
-            iData.optionalData.attributes = $.merge(iData.optionalData.attributes, data);
+            this.iData.optionalData.attributes = $.merge(this.iData.optionalData.attributes, data);
         } else {
             c.error('Tags must be an array.');
         }
@@ -953,7 +951,7 @@ function Indicators(threatconnect) {
     
     this.confidence = function(data) {
         if (!isNaN(data)) {
-            iData.optionalData.confidence = data;
+            this.iData.optionalData.confidence = data;
         } else {
             c.error('Confidence must be an integer.', data);
         }
@@ -962,7 +960,7 @@ function Indicators(threatconnect) {
     
     this.descrition = function(data) {
         if (typeof data === 'string') {
-            iData.optionalData.description = data;
+            this.iData.optionalData.description = data;
         } else {
             c.error('Description must be a string.', data);
         }
@@ -971,7 +969,7 @@ function Indicators(threatconnect) {
     
     this.rating = function(data) {
         if (!isNaN(parseFloat(data))) {
-            iData.optionalData.rating = data;
+            this.iData.optionalData.rating = data;
         } else {
             c.error('Rating must be a Float.', data);
         }
@@ -979,9 +977,9 @@ function Indicators(threatconnect) {
     };
     
     this.tag = function(data) {
-        if (!iData.optionalData.tags) {iData.optionalData.tags = []}
+        if (!this.iData.optionalData.tags) {this.iData.optionalData.tags = []}
         if (typeof data === 'string') {
-            iData.optionalData.tags.push({name: data});
+            this.iData.optionalData.tags.push({name: data});
         } else {
             c.error('Tags must be a string.');
         }
@@ -989,11 +987,11 @@ function Indicators(threatconnect) {
     };
     
     this.tags = function(data) {
-        if (!iData.optionalData.tags) {iData.optionalData.tags = []}
+        if (!this.iData.optionalData.tags) {this.iData.optionalData.tags = []}
         var tag;
         if (typeof data === 'object' && data.length != 0) {
             for (tag in data) {
-                iData.optionalData.tags.push({name: data[tag]});
+                this.iData.optionalData.tags.push({name: data[tag]});
             }
         } else {
             c.error('Tags must be an array.');
@@ -1005,7 +1003,7 @@ function Indicators(threatconnect) {
     // Indicator Data - File Specific
     //
     this.descrition = function(data) {
-        iData.specificData.File.description = data;
+        this.iData.specificData.File.description = data;
         return this;
     };
     
@@ -1014,14 +1012,14 @@ function Indicators(threatconnect) {
     //
     this.dnsActive = function(data) {
         if (typeof data === 'boolean') {
-            iData.specificData.Host.dnsActive = data;
+            this.iData.specificData.Host.dnsActive = data;
         }
         return this;
     };
     
     this.whoisActive = function(data) {
         if (typeof data === 'boolean') {
-            iData.specificData.Host.whoisActive = data;
+            this.iData.specificData.Host.whoisActive = data;
         }
         return this;
     };
@@ -1030,7 +1028,7 @@ function Indicators(threatconnect) {
     // Indicator Data - Url Specific
     //
     this.source = function(data) {
-        iData.specificData.URL.source = data;
+        this.iData.specificData.URL.source = data;
         return this;
     };
     
@@ -1039,20 +1037,20 @@ function Indicators(threatconnect) {
         var body = {},
             specificBody = {};
         
-        if (iData.requiredData.summary && iData.requiredData.type) {
-            // iData.optionalData[settings.type.postField] = settings.indicator;
-            // iData.optionalData['summary'] = settings.indicator;
-            // iData.optionalData['type'] = settings.type.type;
-            body = $.extend(iData.requiredData, iData.optionalData);
+        if (this.iData.requiredData.summary && this.iData.requiredData.type) {
+            // this.iData.optionalData[this.settings.type.postField] = this.settings.indicator;
+            // this.iData.optionalData['summary'] = this.settings.indicator;
+            // this.iData.optionalData['type'] = this.settings.type.type;
+            body = $.extend(this.iData.requiredData, this.iData.optionalData);
             
-            specificBody = iData.specificData[iData.requiredData.type],
+            specificBody = this.iData.specificData[this.iData.requiredData.type],
                 body = $.extend(body, specificBody);
                 
-            batchBody.push(body);
+            this.batchBody.push(body);
             
-            iData.optionalData = {};
-            iData.requiredData = {};
-            iData.specificData = {};
+            this.iData.optionalData = {};
+            this.iData.requiredData = {};
+            this.iData.specificData = {};
         } else {
             console.error('Add Failure: indicator and type are required fields.');
         }
@@ -1066,40 +1064,45 @@ function Indicators(threatconnect) {
         // c.log('commit');
         
         // validate required fields
-        if (settings.batch.owner && batchBody.length != 0) {
+        if (this.settings.batch.owner && this.batchBody.length != 0) {
             
             /* create job */ 
-            ro.activityLog(settings.api.activityLog)
-                .body(settings.batch)
-                .done(settings.callbacks.done)
+            ro.activityLog(this.settings.api.activityLog)
+                .async(false)
+                .body(this.settings.batch)
+                .done(this.settings.callbacks.done)
+                .error(this.settings.callbacks.error)
                 .helper(true)
                 .normalization(normalize.default)
                 .requestUri('v2/batch')
                 .requestMethod('POST');
-            // c.log('settings.batch', JSON.stringify(settings.batch, null, 4));
+            // c.log('this.settings.batch', JSON.stringify(this.settings.batch, null, 4));
+            // c.log('ro', JSON.stringify(ro, null, 4));
+            
             this.apiRequest(ro)
                 .done(function(prom) {
-                    ro.activityLog(settings.api.activityLog)
-                        .body(batchBody)
+                    ro.activityLog(_this.settings.api.activityLog)
+                        .body(_this.batchBody)
                         .contentType('application/octet-stream')
-                        .done(settings.callbacks.done)
+                        .done(_this.settings.callbacks.done)
+                        .error(_this.settings.callbacks.error)
                         .helper(true)
                         .normalization(normalize.default)
                         .requestUri('v2/batch/' + prom.data.batchId)
                         .requestMethod('POST');
-                    c.log('batchBody', JSON.stringify(batchBody, null, 4));
-                    c.log('ro', ro);
+                    c.log('_this.batchBody', JSON.stringify(_this.batchBody, null, 4));
+                    c.log('done ro', ro);
                     _this.apiRequest(ro);
                     
                     // reset
-                    batchBody = [];
-                    iData.optionalData = {};
-                    iData.requiredData = {};
-                    iData.specificData = {};
+                    // _this.batchBody = [];
+                    // _this.iData.optionalData = {};
+                    // _this.iData.requiredData = {};
+                    // _this.iData.specificData = {};
                 })
                 .fail(function() {
                     message = {error: 'Failed to configure indicator job.'};
-                    settings.callbacks.error(message);
+                    _this.settings.callbacks.error(message);
                 });
             
         } else {
@@ -1108,7 +1111,7 @@ function Indicators(threatconnect) {
     };
     
     this.getData = function(params) {
-        return batchBody;
+        return this.batchBody;
     };
     
     this.retrieve = function(params) {
@@ -1129,29 +1132,30 @@ function Indicators(threatconnect) {
             }
         }
      
-        ro.owner(settings.batch.owner)  // bcs make this consistent batch vs data
-            .activityLog(settings.api.activityLog)
-            .done(settings.callbacks.done)
+        ro.owner(this.settings.batch.owner)  // bcs make this consistent batch vs data
+            .activityLog(this.settings.api.activityLog)
+            .done(this.settings.callbacks.done)
+            .error(this.settings.callbacks.error)
             .helper(true)
             .normalization(normalize.indicators)
-            .pagination(settings.callbacks.pagination)
+            .pagination(this.settings.callbacks.pagination)
             .requestUri(requestUri)
             .requestMethod(method)
-            .resultLimit(settings.api.resultLimit)
+            .resultLimit(this.settings.api.resultLimit)
             .type(type);
         c.log('ro', ro);
      
         this.apiRequest(ro);
         
         // reset
-        batchBody = [];
-        iData.optionalData = {};
-        iData.requiredData = {};
-        iData.specificData = {};
+        this.batchBody = [];
+        this.iData.optionalData = {};
+        this.iData.requiredData = {};
+        this.iData.specificData = {};
         
-        settings.callbacks.done = undefined;
-        settings.callbacks.pagination = undefined;
-        settings.callbacks.error = undefined;
+        this.settings.callbacks.done = undefined;
+        this.settings.callbacks.pagination = undefined;
+        this.settings.callbacks.error = undefined;
     };
     
     c.groupEnd();
@@ -1372,6 +1376,68 @@ var normalize = {
                 data: incidents};
     },
     indicators: function(ro, response) { 
+        c.group('normalize.indicators');
+        var indicators,
+            indicatorsData,
+            indicatorTypeData,
+            status = response.status;
+        
+        if (ro._type) {
+            // indicatorTypeData = indicatorType(ro._type.charAt(0));
+            indicatorTypeData = ro._type,
+            response = response.data[ro._type.dataField];
+            if (!response.length) {
+                response = [response];
+            }
+        } else {
+            response = response.data.indicator;
+        }
+        
+        indicators = [];
+        $.each( response, function( rkey, rvalue ) {
+            // c.log('rvalue', rvalue);
+            if ('type' in rvalue) {
+                indicatorTypeData = indicatorHelper(rvalue.type.charAt(0).toLowerCase());
+            }
+            
+            indicatorsData = [];
+            $.each( indicatorTypeData.indicatorFields, function( ikey, ivalue ) {
+                // change summary to proper field value
+                // handle different types of hash
+                
+                if ('summary' in rvalue) {
+                    indicatorsData.push(rvalue['summary']);
+                    return false;
+                } else {
+                    if (rvalue[ivalue]) {
+                        indicatorsData.push(rvalue[ivalue]);
+                    }
+                }
+                // indicator: indicator.summary || indicator.ip || indicator.address
+            });
+            c.log(indicatorsData);
+            
+            indicators.push({
+                id: rvalue.id,
+                indicators: indicatorsData.join(' : '),
+                dateAdded: rvalue.dateAdded,
+                lastModified: rvalue.lastModified,
+                ownerName: rvalue.ownerName || rvalue.owner.name,
+                rating: rvalue.rating,
+                confidence: rvalue.confidence,
+                type: indicatorTypeData.type,
+                threatAssessRating: rvalue.threatAssessRating,
+                threatAssessConfidence: rvalue.threatAssessConfidence,
+                webLink: rvalue.webLink,
+            });
+        });
+        ro.response.data = $.merge(ro.response.data, indicators);
+        
+        c.groupEnd();
+        return {data: indicators,
+                status: status};
+    },
+    indicators2: function(ro, response) { 
         c.group('normalize.indicators');
         var indicators,
             indicatorsData,
