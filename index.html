@@ -46,6 +46,7 @@
                     <li><a data-toggle="tab" href="#email-pane">Emails</a></li>
                     <li><a data-toggle="tab" href="#incident-pane">Incidents</a></li> 
                     <li><a data-toggle="tab" href="#indicator-pane">Indicators</a></li> 
+                    <li><a data-toggle="tab" href="#owner-pane">Owners</a></li> 
                 </ul>
             </div>
         </div>
@@ -391,6 +392,60 @@
             </div>
         </div>
         
+        <div class="tab-pane" id="owner-pane" data-id="#owner-table">
+            <div class="panel panel-default">
+                <div class="panel-body">
+        
+                    <ul class="nav nav-tabs">
+                        <li class="active"><a data-toggle="tab" href="#owner-table-tab">Data Table</a></li>
+                        <li><a data-toggle="tab" href="#owner-raw">Raw Data</a></li>
+                    </ul>
+                    <div class="tab-content">
+                        
+                        <div id="owner-table-tab" class="tab-pane fade in active">
+                            <table id="owner-table"
+                                   data-cache="false"
+                                   data-height="543"
+                                   data-search="true"
+                                   data-striped="true"
+                                   data-select-item-name="toolbar1"
+                                   data-toggle="table"
+                                   data-toolbar="#owner-toolbar"
+                                   data-pagination="true"
+                                   data-show-columns="true"
+                                   data-show-refresh="false"
+                                   data-show-toggle="true"
+                                   data-sort-name="id"
+                                   data-sort-order="desc">
+                                <thead>
+                                    <tr>
+                                        <th data-field="state" data-checkbox="true">Item ID</th>
+                                        <th data-field="id" data-align="right" data-sortable="true">ID</th>
+                                        <th data-field="name" data-align="center" data-sortable="true">Name</th>
+                                        <th data-field="type" data-align="center">Type</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+        
+                        <div id="owner-toolbar" class="btn-group pull-right">
+                            <button type="button" class="btn btn-default" id="owner-clear">Clear</button>
+                            <button type="button" class="btn btn-default" id="owner-refresh">Refresh</button>
+                            <!--
+                            <button type="button" class="btn btn-default">Attributes</button>
+                            <button type="button" class="btn btn-default">Tags</button>
+                            -->
+                        </div>
+        
+                        <div id="owner-raw" class="tab-pane fade">
+                            <pre id="owner-content"></pre>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+        
     </div>
 
     <!-- Modals -->
@@ -626,6 +681,8 @@
             retrieve_incidents();
         } else if ($(this).attr('href') === '#indicator-pane') {
             retrieve_indicators();
+        } else if ($(this).attr('href') === '#owner-pane') {
+            retrieve_owner();
         }
         return false;
     });
@@ -746,6 +803,18 @@
         retrieve_indicators();
     });
     
+    // owner
+    $('#owner-clear').click(function(e){
+        c.log('clearing owner table');
+        $('#owner-table').bootstrapTable('removeAll');
+    });
+    
+    $('#owner-refresh').click(function(e){
+        c.log('refreshing owners');
+        $('#owner-table').bootstrapTable('removeAll');
+        retrieve_owner();
+    });
+    
     //
     // Commit
     //
@@ -828,7 +897,6 @@
                 statusAlert('danger', message);
             })
             .pagination(function(response) {
-                c.log('pagination append', response.data)
                 if (response.data.length > 0) {
                     $('#email-table').bootstrapTable('append', response.data);
                 }
@@ -877,6 +945,9 @@
             
         tc.indicators()
             .owner(owner)
+            .action('Create') // Create|Delete
+            .attributeWriteType('Append')  // Append|Replace
+            .haltOnError(false)
             .done(function(response) {
                 if (response.status === "Success") {
                     message =  'Indicator ' + indicator + ' was successfully committed.';
@@ -1041,7 +1112,7 @@
         c.log('retrieve adversaries');
         tc.adversaries()
                 .owner(owner)
-                .resultLimit(2)
+                .resultLimit(500)
                 .pagination(function(response) {
                     if (response.data.length > 0) {
                         $('#adversary-table').bootstrapTable('append', response.data);
@@ -1067,7 +1138,7 @@
         c.log('retrieve documents');
             tc.documents()
                 .owner(owner)
-                .resultLimit(2)
+                .resultLimit(500)
                 .pagination(function(response) {
                     if (response.data.length > 0) {
                         $('#document-table').bootstrapTable('append', response.data);
@@ -1092,7 +1163,7 @@
         c.log('retrieve emails');
             tc.emails()
                 .owner(owner)
-                .resultLimit(2)
+                .resultLimit(500)
                 .pagination(function(response) {
                     if (response.data.length > 0) {
                         $('#email-table').bootstrapTable('append', response.data);
@@ -1117,7 +1188,7 @@
         c.log('retrieve incidents');
             tc.incidents()
                 .owner(owner)
-                .resultLimit(2)
+                .resultLimit(500)
                 .pagination(function(response) {
                     c.log('response', response);
                     if (response.data.length > 0) {
@@ -1143,7 +1214,7 @@
         c.log('retrieve indicator');
             tc.indicators()
                 .owner(owner)
-                .resultLimit(20)
+                .resultLimit(500)
                 .pagination(function(response) {
                     if (response.data.length > 0) {
                         $('#indicator-table').bootstrapTable('append', response.data);
@@ -1163,6 +1234,25 @@
                 })
                 .retrieve();
                 // .retrieve({type: TYPE.FILE});
+    };
+    
+    var retrieve_owner = function() {
+        c.log('retrieve owners');
+        tc.owners()
+                .done(function(response) {
+                    c.log('owner retrieve done');
+                    $('#owner-content').text(JSON.stringify(response, null, 4));
+                    $('#owner-table').bootstrapTable('refreshOptions', {
+                        sortName: 'id',
+                        sortOrder: 'asc',
+                        data: response.data
+                    });
+                })
+                .error(function(response) {
+                    var message =  'Owner Retrieval failed. (' + response + ').';
+                    statusAlert('danger', message);
+                })
+                .retrieve();
     };
     
     //

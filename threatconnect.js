@@ -456,11 +456,15 @@ function ThreatConnect(params) {
     this.indicators = function() {
         return new Indicators(this);
     };
+    
+    this.owners = function() {
+        return new Owners(this);
+    };
 }
 
-/*
- * Group
- */
+//
+// Group
+//
 
 function Groups(threatconnect) {
     c.group('Group');
@@ -1164,6 +1168,117 @@ function Indicators(threatconnect) {
 Indicators.prototype = Object.create(ThreatConnect.prototype);
 
 //
+// Owners
+//
+
+function Owners(threatconnect) {
+    c.group('Onwers');
+    ThreatConnect.call(this, threatconnect);
+    
+    var ro = new RequestObject();
+    this.settings = {
+        api: {
+            activityLog: false,             // false|true
+            resultLimit: 500
+        },
+        callbacks: {
+            done: undefined,
+            error: undefined,
+            pagination: undefined,
+        },
+    },
+    this.rData = {
+        optionalData: {},
+        // deleteData: {},
+        // requiredData: {},
+        // specificData: {},
+    };
+ 
+    //
+    this.resultLimit = function(data) {
+        if (0 > data <= 500) {
+            this.settings.api.resultLimit = data;
+        } else {
+            console.warn('Invalid Result Count (' + data + ').');
+        }
+        return this;
+    };
+ 
+    //
+    // Settings Callbacks
+    //
+    this.done = function(data) {
+        if (typeof data === 'function') {
+            this.settings.callbacks.done = data;
+        } else {
+            c.error('Callback "done()" must be a function.');
+        }
+        return this;
+    };
+    
+    this.error = function(data) {
+        if (typeof data === 'function') {
+            this.settings.callbacks.error = data;
+        } else {
+            c.error('Callback "error()" must be a function.');
+        }
+        return this;
+    };
+    
+    // this.pagination = function(data) {
+    //     if (typeof data === 'function') {
+    //         this.settings.callbacks.pagination = data;
+    //     } else {
+    //         c.error('Callback "pagination()" must be a function.');
+    //     }
+    //     return this;
+    // };
+ 
+    //
+    // Owner Data - Required
+    //
+    // this.id = function(data) {
+    //     this.rData.deleteData.id = data;
+    //     return this;
+    // };
+    
+    // this.name = function(data) {
+    //     this.rData.requiredData.name = data;
+    //     return this;
+    // };
+
+    //
+    // Retrieve Group
+    //
+    this.retrieve = function(params) {
+        if (params) {
+            if (params.id) {
+                this.settings.api.requestUri = this.settings.api.requestUri + '/' + params.id; 
+            }
+        }
+        ro.done(this.settings.callbacks.done)
+            .error(this.settings.callbacks.error)
+            .helper(true)
+            .normalization(normalize.owners)
+            // .pagination(this.settings.callbacks.pagination)
+            .requestUri('v2/owners')
+            .requestMethod('GET');
+        c.log('ro', ro);
+     
+        this.apiRequest(ro);
+    };
+    
+    this.getData = function(params) {
+        return this.rData.requiredData;
+    };
+ 
+    c.groupEnd();
+    return this;
+}
+Owners.prototype = Object.create(ThreatConnect.prototype);
+
+
+//
 // Upload
 //
 ThreatConnect.prototype.upload = function() {
@@ -1415,7 +1530,6 @@ var normalize = {
                 }
                 // indicator: indicator.summary || indicator.ip || indicator.address
             });
-            c.log(indicatorsData);
             
             indicators.push({
                 id: rvalue.id,
@@ -1495,6 +1609,26 @@ var normalize = {
         c.groupEnd();
         return {data: indicators,
                 status: status};
+    },
+    owners: function(ro, response) { 
+        c.group('normalize.owners');
+        var owners = [],
+            status = response.status;
+        
+        if (response) {
+            owners = response.data.owner;
+                
+            if (Object.prototype.toString.call( owners ) != '[object Array]') {
+                owners = [owners];
+            }
+            c.log('owners', owners);
+            
+            ro.response.data = $.merge(ro.response.data, owners);
+            
+            c.groupEnd();
+        }
+        return {status: status,
+                data: owners};
     },
     
     default: function(ro, response) {
