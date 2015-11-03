@@ -966,6 +966,8 @@
             .type(TYPE[indicatorType])
             // .indicator('1.2.3.8')
             // .type(TYPE.ADDRESS)
+            .attributes([{type: 'Description', value: 'JS SDK Test'}])
+            .tags(['JavaScript', 'SDK'])
             .add()
             .commit();
         $('#indicator-modal').modal('hide');

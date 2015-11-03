@@ -562,33 +562,34 @@ function Groups(threatconnect) {
     //
     // Group Data - Optional
     //
-    // this.attributes = function(data) {
-    //     if (!this.rData.optionalData.attributes) {this.rData.optionalData.attributes = []}
-    //     if (typeof data === 'object' && data.length != 0) {
-    //         this.rData.optionalData.attributes = $.merge(this.rData.optionalData.attributes, data);
-    //     } else {
-    //         c.error('Tags must be an array.');
-    //     }
-    //     return this;
-    // };
+    this.attributes = function(data) {
+        // if (!this.rData.optionalData.attribute) {this.rData.optionalData.attribute = []}
+        if (typeof data === 'object' && data.length != 0) {
+            this.rData.optionalData.attribute.push(this.rData.optionalData.attribute, data);
+        } else {
+            c.error('Tags must be an array.');
+        }
+        return this;
+    };
     
-    // this.tags = function(data) {
-    //     if (this.rData.optionalData.tags) {this.rData.optionalData.tags = []}
-    //     var tag;
-    //     if (typeof data === 'object' && data.length != 0) {
-    //         for (tag in data) {
-    //             this.rData.optionalData.tags.push({name: data[tag]});
-    //         }
-    //     } else {
-    //         c.error('Tags must be an array.');
-    //     }
-    //     return this;
-    // };
+    this.tags = function(data) {
+        if (this.rData.optionalData.tag) {this.rData.optionalData.tag = []}
+        var tag;
+        if (typeof data === 'object' && data.length != 0) {
+            for (tag in data) {
+                this.rData.optionalData.tag.push({name: data[tag]});
+            }
+        } else {
+            c.error('Tags must be an array.');
+        }
+        return this;
+    };
     
     //
     // Group Process
     //
     this.commit = function() {
+        var _this = this;
         // c.log('commit');
         
         // validate required fields
@@ -602,12 +603,25 @@ function Groups(threatconnect) {
                 .done(this.settings.callbacks.done)
                 .error(this.settings.callbacks.error)
                 .helper(true)
-                .pagination(this.settings.callbacks.pagination)
+                // .pagination(this.settings.callbacks.pagination)
                 .normalization(this.settings.api.cNormalizer)
                 .requestUri(this.settings.api.requestUri)
                 .requestMethod('POST');
             c.log('body', JSON.stringify(body, null, 4));
-            this.apiRequest(ro);
+            this.apiRequest(ro).done(function(data) {
+                // on done method commit attributes / tags
+                var ro = new RequestObject();
+                ro.owner(_this.settings.api.owner)
+                    .activityLog(_this.settings.api.activityLog)
+                    .body(body)
+                    .done(_this.settings.callbacks.done)
+                    .error(_this.settings.callbacks.error)
+                    .helper(true)
+                    // .pagination(_this.settings.callbacks.pagination)
+                    .normalization(this.settings.api.cNormalizer)
+                    .requestUri(this.settings.api.requestUri)
+                    .requestMethod('POST');
+            });
             
         } else {
             var errorMessage = 'Commit Failure: group name and owner are required.';
@@ -933,22 +947,24 @@ function Indicators(threatconnect) {
     //
     // Indicator Data - Optional
     //
-    this.attribute = function(data) {
-        if (!this.iData.optionalData.attributes) {this.iData.optionalData.attributes = []}
-        if (typeof data === 'object' && data.length != 0) {
-            this.iData.optionalData.attributes.push(data);
-        } else {
-            c.error('Tags must be an array.');
-        }
-        return this;
-    };
+    // this.attribute = function(data) {
+    //     if (!this.iData.optionalData.attribute) {this.iData.optionalData.attribute = []}
+    //     if (typeof data === 'object' && data.length != 0) {
+    //         this.iData.optionalData.attribute.push(data);
+    //     } else {
+    //         c.error('Tags must be an array.');
+    //     }
+    //     return this;
+    // };
     
     this.attributes = function(data) {
-        if (!this.iData.optionalData.attributes) {this.iData.optionalData.attributes = []}
-        if (typeof data === 'object' && data.length != 0) {
-            this.iData.optionalData.attributes = $.merge(this.iData.optionalData.attributes, data);
+        // if (!this.iData.optionalData.attribute) {this.iData.optionalData.attribute = []}
+        // if (typeof data === 'object' && data.length != 0) {
+        if (Object.prototype.toString.call( data ) === '[object Array]' && data.length != 0) {
+            // this.iData.optionalData.attribute = $.merge(this.iData.optionalData.attribute, data);
+            this.iData.optionalData.attribute = data;
         } else {
-            c.error('Tags must be an array.');
+            c.error('Attributes must be an array.');
         }
         return this;
     };
@@ -962,7 +978,7 @@ function Indicators(threatconnect) {
         return this;
     };
     
-    this.descrition = function(data) {
+    this.description = function(data) {
         if (typeof data === 'string') {
             this.iData.optionalData.description = data;
         } else {
@@ -980,22 +996,23 @@ function Indicators(threatconnect) {
         return this;
     };
     
-    this.tag = function(data) {
-        if (!this.iData.optionalData.tags) {this.iData.optionalData.tags = []}
-        if (typeof data === 'string') {
-            this.iData.optionalData.tags.push({name: data});
-        } else {
-            c.error('Tags must be a string.');
-        }
-        return this;
-    };
+    // this.tag = function(data) {
+    //     if (!this.iData.optionalData.tag) {this.iData.optionalData.tag = []}
+    //     if (typeof data === 'string') {
+    //         this.iData.optionalData.tag.push({name: data});
+    //     } else {
+    //         c.error('Tags must be a string.');
+    //     }
+    //     return this;
+    // };
     
     this.tags = function(data) {
-        if (!this.iData.optionalData.tags) {this.iData.optionalData.tags = []}
         var tag;
-        if (typeof data === 'object' && data.length != 0) {
+        // if (typeof data === 'object' && data.length != 0) {
+        if (Object.prototype.toString.call( data ) === '[object Array]' && data.length != 0) {
+            if (!this.iData.optionalData.tag) {this.iData.optionalData.tag = []}
             for (tag in data) {
-                this.iData.optionalData.tags.push({name: data[tag]});
+                this.iData.optionalData.tag.push({name: data[tag]});
             }
         } else {
             c.error('Tags must be an array.');
@@ -1080,7 +1097,7 @@ function Indicators(threatconnect) {
                 .normalization(normalize.default)
                 .requestUri('v2/batch')
                 .requestMethod('POST');
-            // c.log('this.settings.batch', JSON.stringify(this.settings.batch, null, 4));
+            c.log('this.settings.batch', JSON.stringify(this.settings.batch, null, 4));
             // c.log('ro', JSON.stringify(ro, null, 4));
             
             this.apiRequest(ro)
@@ -1189,9 +1206,6 @@ function Owners(threatconnect) {
     },
     this.rData = {
         optionalData: {},
-        // deleteData: {},
-        // requiredData: {},
-        // specificData: {},
     };
  
     //
@@ -1225,28 +1239,6 @@ function Owners(threatconnect) {
         return this;
     };
     
-    // this.pagination = function(data) {
-    //     if (typeof data === 'function') {
-    //         this.settings.callbacks.pagination = data;
-    //     } else {
-    //         c.error('Callback "pagination()" must be a function.');
-    //     }
-    //     return this;
-    // };
- 
-    //
-    // Owner Data - Required
-    //
-    // this.id = function(data) {
-    //     this.rData.deleteData.id = data;
-    //     return this;
-    // };
-    
-    // this.name = function(data) {
-    //     this.rData.requiredData.name = data;
-    //     return this;
-    // };
-
     //
     // Retrieve Group
     //
@@ -1418,6 +1410,26 @@ var normalize = {
         }
         return {status: status,
                 data: adversaries};
+    },
+    attributes: function(ro, response) { 
+        c.group('normalize.attributes');
+        var attributes = [],
+            status = response.status;
+        
+        if (response) {
+            attributes = response.data.attribute;
+                
+            if (Object.prototype.toString.call( attributes ) != '[object Array]') {
+                attributes = [attributes];
+            }
+            c.log('attributes', attributes);
+            
+            ro.response.data = $.merge(ro.response.data, attributes);
+            
+            c.groupEnd();
+        }
+        return {status: status,
+                data: attributes};
     },
     documents: function(ro, response) { 
         c.group('normalize.documents');
@@ -1630,7 +1642,26 @@ var normalize = {
         return {status: status,
                 data: owners};
     },
-    
+    tags: function(ro, response) { 
+        c.group('normalize.tags');
+        var tags = [],
+            status = response.status;
+        
+        if (response) {
+            tags = response.data.tag;
+                
+            if (Object.prototype.toString.call( tags ) != '[object Array]') {
+                tags = [tags];
+            }
+            c.log('tags', tags);
+            
+            ro.response.data = $.merge(ro.response.data, tags);
+            
+            c.groupEnd();
+        }
+        return {status: status,
+                data: tags};
+    },
     default: function(ro, response) {
         c.group('normalize.default');
         c.log('response', response);
