@@ -256,7 +256,8 @@ function RequestObject(params) {
 }
 
 function ThreatConnect(params) {
-    if (!!((params.apiId && params.apiKey) || params.apiToken)) { return false; }
+    if (!!(params.apiId && params.apiKey && params.apiUrl) && !!(params.apiToken && params.apiUrl)) { return false; }
+    c.log('ThreatConnect', params);
     
     this.apiId = params.apiId;
     this.apiSec = params.apiSec;
@@ -266,6 +267,7 @@ function ThreatConnect(params) {
     this.concurrentCalls = (params.concurrentCalls ? params.concurrentCalls : 10);
     
     this.apiHmacRequestHeader = function (ro) {
+        c.log('using HMAC');
         this._getTimestamp = function() {
             var date = new Date().getTime();
             return Math.floor(date / 1000);
@@ -281,6 +283,7 @@ function ThreatConnect(params) {
     };
     
     this.apiTokenRequestHeader = function (ro) {
+        c.log('using Token');
         ro.addHeader('authorization', "TC-Token " + this.apiToken);
     };
     
@@ -367,7 +370,7 @@ function ThreatConnect(params) {
                 }
             })
             .fail(function (response) {
-                c.log('fail response');
+                c.log('fail response', response);
                 ro.response.error = response.responseText;
                 
                 ro._error(ro.response);
@@ -1189,7 +1192,7 @@ Indicators.prototype = Object.create(ThreatConnect.prototype);
 //
 
 function Owners(threatconnect) {
-    c.group('Onwers');
+    c.group('Owners');
     ThreatConnect.call(this, threatconnect);
     
     var ro = new RequestObject();

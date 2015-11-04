@@ -31,7 +31,7 @@
 
 <body>
 
-    <nav id="BCS" class="navbar navbar-default navbar-static-top">
+    <nav class="navbar navbar-default navbar-static-top">
         <div class="container-fluid">
             <div class="navbar-header">
                 <a class="navbar-brand" href="#">TC JavaScript Tester</a>
@@ -47,6 +47,17 @@
                     <li><a data-toggle="tab" href="#incident-pane">Incidents</a></li> 
                     <li><a data-toggle="tab" href="#indicator-pane">Indicators</a></li> 
                     <li><a data-toggle="tab" href="#owner-pane">Owners</a></li> 
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <form class="navbar-form navbar-right navbar-input-group" role="search">
+                            <div class="form-group">
+                                <label for="owner-select">Owner</label>
+                                <select class="form-control" id="owner-select">
+                                </select>
+                            </div>
+                        </form>
+                    </li> 
                 </ul>
             </div>
         </div>
@@ -95,7 +106,7 @@
             </div>
         </div>
         
-        <div class="tab-pane" id="adversary-pane" data-id="#adversary-table">
+        <div class="tab-pane" id="adversary-pane" data="adversaries" data-id="#adversary-table">
             <div class="panel panel-default">
                 <div class="panel-body">
         
@@ -153,7 +164,7 @@
             </div>
         </div>
         
-        <div class="tab-pane" id="document-pane" data-id="#document-table">
+        <div class="tab-pane" id="document-pane" data="documents" data-id="#document-table">
             <div class="panel panel-default">
                 <div class="panel-body">
         
@@ -213,7 +224,7 @@
             </div>
         </div>
         
-        <div class="tab-pane" id="email-pane" data-id="#email-table">
+        <div class="tab-pane" id="email-pane" data="emails" data-id="#email-table">
             <div class="panel panel-default">
                 <div class="panel-body">
         
@@ -272,7 +283,7 @@
             </div>
         </div>
         
-        <div class="tab-pane" id="incident-pane" data-id="#incident-table">
+        <div class="tab-pane" id="incident-pane" data="incidents" data-id="#incident-table">
             <div class="panel panel-default">
                 <div class="panel-body">
         
@@ -330,7 +341,7 @@
             </div>
         </div>
         
-        <div class="tab-pane" id="indicator-pane" data-id="#indicator-table">
+        <div class="tab-pane" id="indicator-pane" data="indicators" data-id="#indicator-table">
             <div class="panel panel-default">
                 <div class="panel-body">
         
@@ -392,7 +403,7 @@
             </div>
         </div>
         
-        <div class="tab-pane" id="owner-pane" data-id="#owner-table">
+        <div class="tab-pane" id="owner-pane" data="owners" data-id="#owner-table">
             <div class="panel panel-default">
                 <div class="panel-body">
         
@@ -632,11 +643,13 @@
         // spaces mode if spaceElementId defined
         var tcSpaceElementId = getParameterByName('tcSpaceElementId');
         if ( tcSpaceElementId ) {
+            c.log('tcSpaceElementId Found.');
             apiSettings = {
                 apiToken: getParameterByName('tcToken'),
                 apiUrl: getParameterByName('tcApiPath')
             };
         } else {
+            c.log('tcSpaceElementId NOT Found.');
             apiSettings = {
                 apiId: '80139273637620589570',
                 apiSec: 'TCpl5xUATf6Hw$kP8KUajwX?0H8BmqeqnimIB7q95df8Eay?%LkLsEQ0eFT1nXQw',
@@ -644,9 +657,34 @@
             };
         }
         
-    var tc = new ThreatConnect(apiSettings),
-        owner = 'SumX';
+    var tc = new ThreatConnect(apiSettings);
     
+    // Set select owner options
+    tc.owners()
+        .done(function(response) {
+            var owner,
+                selected = 'selected';
+            for (owner in response.data) {   
+                $('#owner-select')
+                    .append($('<option ' + selected + '></option>')
+                    .attr('value', response.data[owner].name)
+                    .text(response.data[owner].name)); 
+                selected = '';
+            }
+        })
+        .error(function(response) {
+            var message =  'Owner Retrieval failed. (' + response + ').';
+            statusAlert('danger', message);
+        })
+        .retrieve();
+        
+    $('#owner-select').change(function() {
+        var active_tab = $('.tab-content > .active').not('.fade').attr('data');
+        c.log('changed', active_tab);
+        var retrieve = window['retrieve_' + active_tab];
+        retrieve();
+    });
+        
     //
     // Click Actions
     //
@@ -823,7 +861,7 @@
             name = $('#adversary-name').val();
         
         tc.adversaries()
-            .owner(owner)
+            .owner($('#owner-select :selected').text())
             .done(function(response) {
                 if (response.status === "Success") {
                     message =  'Adversary ' + name + ' was successfully committed.';
@@ -851,7 +889,7 @@
             fileSize = $('#file-size').val();
         
         tc.documents()
-            .owner(owner)
+            .owner($('#owner-select :selected').text())
             .done(function(response) {
                 if (response.status === "Success") {
                     message =  'Document ' + name + ' was successfully committed.';
@@ -885,7 +923,7 @@
             emailTo = $('#email-to').val();
         
         tc.emails()
-            .owner(owner)
+            .owner($('#owner-select :selected').text())
             .done(function(response) {
                 if (response.status === "Success") {
                     message =  'Email ' + name + ' was successfully committed.';
@@ -917,7 +955,7 @@
             name = $('#incident-name').val();
         
         tc.incidents()
-            .owner(owner)
+            .owner($('#owner-select :selected').text())
             .done(function(response) {
                 if (response.status === "Success") {
                     message =  'Incident ' + name + ' was successfully committed.';
@@ -944,7 +982,7 @@
             indicatorType = $('#indicator-type').val();
             
         tc.indicators()
-            .owner(owner)
+            .owner($('#owner-select :selected').text())
             .action('Create') // Create|Delete
             .attributeWriteType('Append')  // Append|Replace
             .haltOnError(false)
@@ -985,7 +1023,7 @@
         for (selection in selections) {
             selection = selections[selection];
             tc.adversaries()
-                .owner(owner)
+                .owner($('#owner-select :selected').text())
                 .done(function(response) {
                     if (response.status === 'Success') {
                         adversary_table.bootstrapTable('remove', {
@@ -1017,7 +1055,7 @@
         for (selection in selections) {
             selection = selections[selection];
             tc.documents()
-                .owner(owner)
+                .owner($('#owner-select :selected').text())
                 .done(function(response) {
                     if (response.status === 'Success') {
                         document_table.bootstrapTable('remove', {
@@ -1049,7 +1087,7 @@
         for (selection in selections) {
             selection = selections[selection];
             tc.emails()
-                .owner(owner)
+                .owner($('#owner-select :selected').text())
                 .done(function(response) {
                     if (response.status === 'Success') {
                         email_table.bootstrapTable('remove', {
@@ -1081,7 +1119,7 @@
         for (selection in selections) {
             selection = selections[selection];
             tc.incidents()
-                .owner(owner)
+                .owner($('#owner-select :selected').text())
                 .done(function(response) {
                     if (response.status === 'Success') {
                         incident_table.bootstrapTable('remove', {
@@ -1113,7 +1151,7 @@
     var retrieve_adversaries = function() {
         c.log('retrieve adversaries');
         tc.adversaries()
-                .owner(owner)
+                .owner($('#owner-select :selected').text())
                 .resultLimit(500)
                 .pagination(function(response) {
                     if (response.data.length > 0) {
@@ -1139,7 +1177,7 @@
     var retrieve_documents = function() {
         c.log('retrieve documents');
             tc.documents()
-                .owner(owner)
+                .owner($('#owner-select :selected').text())
                 .resultLimit(500)
                 .pagination(function(response) {
                     if (response.data.length > 0) {
@@ -1164,7 +1202,7 @@
     var retrieve_emails = function() {
         c.log('retrieve emails');
             tc.emails()
-                .owner(owner)
+                .owner($('#owner-select :selected').text())
                 .resultLimit(500)
                 .pagination(function(response) {
                     if (response.data.length > 0) {
@@ -1189,7 +1227,7 @@
     var retrieve_incidents = function() {
         c.log('retrieve incidents');
             tc.incidents()
-                .owner(owner)
+                .owner($('#owner-select :selected').text())
                 .resultLimit(500)
                 .pagination(function(response) {
                     c.log('response', response);
@@ -1215,7 +1253,7 @@
     var retrieve_indicators = function() {
         c.log('retrieve indicator');
             tc.indicators()
-                .owner(owner)
+                .owner($('#owner-select :selected').text())
                 .resultLimit(500)
                 .pagination(function(response) {
                     if (response.data.length > 0) {
@@ -1288,7 +1326,7 @@
             fr.onload = function(data) {
                 c.log('fr.result', fr.result);
                 tc.upload()
-                    .owner(owner)
+                    .owner($('#owner-select :selected').text())
                     .body(fr.result)
                     .id(id)
                     .done(function(response) {
@@ -1320,7 +1358,7 @@
         
             
         var activityLog = formActivityLog || false,
-            roOwner = formOwner || owner,
+            roOwner = formOwner || $('#owner-select :selected').text(),
             resultLimit = formResultLimit || 500,
             resultStart = formResultStart || 0;
             
