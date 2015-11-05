@@ -104,7 +104,6 @@ function RequestObject(params) {
     this._payload = {},
     this._remaining = 0,
     this._requestUri = undefined,
-    this._resultCount = 0,
     this._resultLimit = 200,
     this._resultStart = 0,
     this._type = undefined,
@@ -114,6 +113,7 @@ function RequestObject(params) {
         error: undefined,
         id: undefined,
         requestMethod: 'GET',
+        resultCount: 0,
         status: undefined,
     };
 
@@ -180,6 +180,7 @@ function RequestObject(params) {
         this.limit = parseInt(data, 10);
         if (this.limit < 500 && this.limit > this._resultLimit) {
             this._resultLimit = this.limit;
+            
         }
         return this;
     };
@@ -221,7 +222,7 @@ function RequestObject(params) {
     };
     
     this.resultCount = function(data) {
-        this._resultCount = data;
+        this.response.resultCount = data;
         return this;
     };
     
@@ -352,15 +353,14 @@ function ThreatConnect(params) {
                     if (response.data.resultCount) {
                         ro.resultCount(response.data.resultCount)
                             .resultStart(ro._resultStart + ro._resultLimit)
-                            .remaining(ro._resultCount - ro._resultLimit);
+                            .remaining(ro.response.resultCount - ro._resultLimit);
                             
-                        // c.log('ro.resultCount', ro.resultCount);
+                        // c.log('ro.resonse.resultCount', ro.resonse.resultCount);
                         // c.log('ro._remaining', ro._remaining);
                         
                         _this.apiRequestPagination(ro);
                     } else {
                         // callback for done
-                        c.log('done apiRequest')
                         ro._done(ro.response);
                     }
                 } else if (upload_pattern.test(ro._requestUri)) {
@@ -452,6 +452,10 @@ function ThreatConnect(params) {
         return new Emails(this);
     };
     
+    this.groups = function() {
+        return new Groups(this);
+    };
+    
     this.incidents = function() {
         return new Incidents(this);
     };
@@ -469,7 +473,7 @@ function ThreatConnect(params) {
 // Group
 //
 
-function Groups(threatconnect) {
+function Group(threatconnect) {
     c.group('Group');
     ThreatConnect.call(this, threatconnect);
     
@@ -597,7 +601,14 @@ function Groups(threatconnect) {
         
         // validate required fields
         if (this.rData.requiredData.name && this.settings.api.owner) {
-            var body = $.extend(this.rData.requiredData, this.rData.optionalData);
+            var body = $.extend(this.rData.requiredData, this.rData.optionalData),
+                method = 'POST',
+                requestUri = this.settings.api.requestUri;
+            
+            if (this.rData.deleteData.id) {
+                method = 'PUT',
+                requestUri = this.settings.api.requestUri + '/' + this.rData.deleteData.id;
+            }
             
             /* create job */ 
             ro.owner(this.settings.api.owner)
@@ -606,24 +617,24 @@ function Groups(threatconnect) {
                 .done(this.settings.callbacks.done)
                 .error(this.settings.callbacks.error)
                 .helper(true)
-                // .pagination(this.settings.callbacks.pagination)
+                .pagination(this.settings.callbacks.pagination)  // required for updates
                 .normalization(this.settings.api.cNormalizer)
-                .requestUri(this.settings.api.requestUri)
-                .requestMethod('POST');
+                .requestUri(requestUri)
+                .requestMethod(method);
             c.log('body', JSON.stringify(body, null, 4));
             this.apiRequest(ro).done(function(data) {
                 // on done method commit attributes / tags
-                var ro = new RequestObject();
-                ro.owner(_this.settings.api.owner)
-                    .activityLog(_this.settings.api.activityLog)
-                    .body(body)
-                    .done(_this.settings.callbacks.done)
-                    .error(_this.settings.callbacks.error)
-                    .helper(true)
-                    // .pagination(_this.settings.callbacks.pagination)
-                    .normalization(this.settings.api.cNormalizer)
-                    .requestUri(this.settings.api.requestUri)
-                    .requestMethod('POST');
+                // var ro = new RequestObject();
+                // ro.owner(_this.settings.api.owner)
+                //     .activityLog(_this.settings.api.activityLog)
+                //     .body(body)
+                //     .done(_this.settings.callbacks.done)
+                //     .error(_this.settings.callbacks.error)
+                //     .helper(true)
+                //     // .pagination(_this.settings.callbacks.pagination)
+                //     .normalization(_this.settings.api.cNormalizer)
+                //     .requestUri(_this.settings.api.requestUri)
+                //     .requestMethod('POST');
             });
             
         } else {
@@ -657,8 +668,12 @@ function Groups(threatconnect) {
     // Retrieve Group
     //
     this.retrieve = function(params) {
+        var normalizer = this.settings.api.rNormalizer;
         if (params) {
-            if (params.id) {
+            if (params.id && params.type) {
+                this.settings.api.requestUri = this.settings.api.requestUri + '/' + params.type + '/' + params.id + '/indicators'; 
+                normalizer = normalize.indicators;
+            } else if (params.id) {
                 this.settings.api.requestUri = this.settings.api.requestUri + '/' + params.id; 
             }
         }
@@ -667,7 +682,8 @@ function Groups(threatconnect) {
             .done(this.settings.callbacks.done)
             .error(this.settings.callbacks.error)
             .helper(true)
-            .normalization(this.settings.api.rNormalizer)
+            // .normalization(this.settings.api.rNormalizer)
+            .normalization(normalizer)
             .pagination(this.settings.callbacks.pagination)
             .requestUri(this.settings.api.requestUri)
             .requestMethod('GET')
@@ -690,19 +706,19 @@ function Groups(threatconnect) {
 // Adversaries
 //
 function Adversaries(threatconnect) {
-    Groups.call(this, threatconnect);
+    Group.call(this, threatconnect);
     
     this.settings.api.requestUri = 'v2/groups/adversaries';
     this.settings.api.cNormalizer = normalize.adversaries;
     this.settings.api.rNormalizer = normalize.adversaries;
 }
-Adversaries.prototype = Object.create(Groups.prototype);
+Adversaries.prototype = Object.create(Group.prototype);
 
 //
 // Documents
 //
 function Documents(threatconnect) {
-    Groups.call(this, threatconnect);
+    Group.call(this, threatconnect);
     
     this.settings.api.requestUri = 'v2/groups/documents';
     this.settings.api.cNormalizer = normalize.documents;
@@ -720,25 +736,13 @@ function Documents(threatconnect) {
         return this;
     };
 }
-Documents.prototype = Object.create(Groups.prototype);
-
-//
-// Incidents
-//
-function Incidents(threatconnect) {
-    Groups.call(this, threatconnect);
-    
-    this.settings.api.requestUri = 'v2/groups/incidents';
-    this.settings.api.cNormalizer = normalize.incidents;
-    this.settings.api.rNormalizer = normalize.incidents;
-}
-Incidents.prototype = Object.create(Groups.prototype);
+Documents.prototype = Object.create(Group.prototype);
 
 //
 // Emails
 //
 function Emails(threatconnect) {
-    Groups.call(this, threatconnect);
+    Group.call(this, threatconnect);
     
     this.settings.api.requestUri = 'v2/groups/emails';
     this.settings.api.cNormalizer = normalize.emails;
@@ -792,8 +796,31 @@ function Emails(threatconnect) {
         return this;
     };
 }
-Emails.prototype = Object.create(Groups.prototype);
+Emails.prototype = Object.create(Group.prototype);
 
+//
+// Group
+//
+function Groups(threatconnect) {
+    Group.call(this, threatconnect);
+    
+    this.settings.api.requestUri = 'v2/groups';
+    this.settings.api.cNormalizer = normalize.groups;
+    this.settings.api.rNormalizer = normalize.groups;
+}
+Groups.prototype = Object.create(Group.prototype);
+
+//
+// Incidents
+//
+function Incidents(threatconnect) {
+    Group.call(this, threatconnect);
+    
+    this.settings.api.requestUri = 'v2/groups/incidents';
+    this.settings.api.cNormalizer = normalize.incidents;
+    this.settings.api.rNormalizer = normalize.incidents;
+}
+Incidents.prototype = Object.create(Group.prototype);
 
 //
 // Indicators
@@ -1481,6 +1508,30 @@ var normalize = {
         }
         return {status: status,
                 data: emails};
+    },
+    groups: function(ro, response) { 
+        c.group('normalize.groups');
+        var groups = [],
+            status = response.status;
+            
+        if (response) {
+            groups = response.data.group;
+            
+            if (Object.prototype.toString.call( groups ) != '[object Array]') {
+                if (groups.owner) {
+                    groups.ownerName = groups.owner.name;
+                    delete groups.owner;
+                }
+                groups = [groups];
+            }
+            c.log('groups', groups);
+            
+            ro.response.data = $.merge(ro.response.data, groups);
+            
+            c.groupEnd();
+        }
+        return {status: status,
+                data: groups};
     },
     incidents: function(ro, response) { 
         c.group('normalize.incidents');
