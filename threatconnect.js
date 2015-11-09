@@ -96,7 +96,7 @@ function RequestObject(params) {
     this._error = undefined,
     this._headers = {},
     this._helper = false,
-    this._limit = 1000000,
+    this._limit = undefined,
     this._normalizer = normalize.default,
     this._owner = undefined,
     this._pagination = undefined,
@@ -127,18 +127,16 @@ function RequestObject(params) {
         return this;
     };
     
-    this.activityLog = function(bool) {
-        if (typeof data === 'boolean') {
-            this.payload('createActivityLog', bool.toString());
+    this.activityLog = function(data) {
+        if (boolCheck('activityLog', data)) {
+            this.payload('createActivityLog', data.toString());
         }
         return this;
     };
     
     this.async = function(data) {
-        if (typeof data === 'boolean') {
+        if (boolCheck('async', data)) {
             this._async = data;
-        } else {
-            c.error('async must be a boolean.');
         }
         return this;
     };
@@ -157,12 +155,16 @@ function RequestObject(params) {
     };
     
     this.done = function(data) {
-        this._done = data;
+        if (functionCheck('done', data)) {
+            this._done = data;
+        }
         return this;
     };
     
     this.error = function(data) {
-        this._error = data;
+        if (functionCheck('error', data)) {
+            this._error = data;
+        }
         return this;
     };
     
@@ -177,10 +179,12 @@ function RequestObject(params) {
     };
     
     this.limit = function(data) {
-        this.limit = parseInt(data, 10);
-        if (this.limit < 500 && this.limit > this._resultLimit) {
-            this._resultLimit = this.limit;
-            
+        if (intCheck('limit', data)) {
+            this._limit = data;
+            if (data < 500) {
+                this._resultLimit = data;
+                this.payload('resultLimit', data);
+            }
         }
         return this;
     };
@@ -201,8 +205,10 @@ function RequestObject(params) {
         return this;
     };
     
-    this.pagination = function(method) {
-        this._pagination = method;
+    this.pagination = function(data) {
+        if (data) {
+            if (functionCheck('pagination', data)) { this._pagination = data; }
+        }
         return this;
     };
     
@@ -227,16 +233,11 @@ function RequestObject(params) {
     };
     
     this.resultLimit = function(data) {
-        if (parseInt(data, 10) <= 500) {
-            if (this.limit < 500 && this.limit > parseInt(data, 10)) {
-                this.payload('resultLimit', this._limi);
-                this._resultLimit = this._limit;
-            } else {
-                this.payload('resultLimit', parseInt(data, 10));
-                this._resultLimit = parseInt(data, 10);
+        if (rangeCheck('resultLimit', data, 1, 500)) {
+            if (data > this._limit) {
+                this.payload('resultLimit', data);
+                this._resultLimit = data;
             }
-        } else {
-            c.warn('The maximum value for resultLimit is 500.');
         }
         return this;
     };
@@ -381,14 +382,11 @@ function ThreatConnect(params) {
         var _this = this;
         c.group('apiRequestPagination');
                 
-        // stop processing if limit is reached
-        if (ro.response.data.length >= ro._limit && ro._remaining <= 0) return;
-        
         var ajaxRequests = [];
         for (var i=1;i<=this.concurrentCalls;i++) {
             c.log('ro._remaining', ro._remaining);
             
-            if (ro._remaining <= 0) {
+            if (ro.response.data.length >= ro._limit || ro._remaining <= 0) {
                 break;
             }
             
@@ -431,7 +429,7 @@ function ThreatConnect(params) {
             //     console.log('Response for request #' + (i + 1) + ' is ' + arguments[i][0]);
             //     console.log(arguments[i][0]);
             // }
-            if (ro._remaining > 0) {
+            if (ro._remaining > 0 && ro._limit > ro.response.data.length) {
                 _this.apiRequestPagination(ro);
             } else {
                 ro._done(ro.response);
@@ -477,7 +475,6 @@ function Group(threatconnect) {
     c.group('Group');
     ThreatConnect.call(this, threatconnect);
     
-    var ro = new RequestObject();
     this.settings = {
         api: {
             activityLog: false,             // false|true
@@ -500,11 +497,8 @@ function Group(threatconnect) {
     // Settings API
     //
     this.activityLog = function(data) {
-        // c.log('activityLog', data);
-        if (typeof data === 'boolean') {
+        if (boolCheck('activityLog', data)) {
             this.settings.api.activityLog = data;
-        } else {
-            c.error('activityLog must be a boolean.');
         }
         return this;
     };
@@ -513,7 +507,7 @@ function Group(threatconnect) {
         if (0 > data <= 500) {
             this.settings.api.resultLimit = data;
         } else {
-            console.warn('Invalid Result Count (' + data + ').');
+            console.warn('Invalid Result Limit (' + data + ').');
         }
         return this;
     };
@@ -611,6 +605,7 @@ function Group(threatconnect) {
             }
             
             /* create job */ 
+            var ro = new RequestObject();
             ro.owner(this.settings.api.owner)
                 .activityLog(this.settings.api.activityLog)
                 .body(body)
@@ -649,6 +644,8 @@ function Group(threatconnect) {
     //
     this.delete = function() {
         var uri = this.settings.api.requestUri + '/' + this.rData.deleteData.id;
+        
+        var ro = new RequestObject();
         ro.owner(this.settings.api.owner)
             .activityLog(this.settings.api.activityLog)
             .done(this.settings.callbacks.done)
@@ -677,6 +674,7 @@ function Group(threatconnect) {
                 this.settings.api.requestUri = this.settings.api.requestUri + '/' + params.id; 
             }
         }
+        var ro = new RequestObject();
         ro.owner(this.settings.api.owner)
             .activityLog(this.settings.api.activityLog)
             .done(this.settings.callbacks.done)
@@ -833,6 +831,7 @@ function Indicators(threatconnect) {
     this.settings = {
         api: {
             activityLog: false,             // false|true
+            limit: undefined,
             // method: 'POST',
             // requestUri: 'v2/batch',
             resultLimit: 500,
@@ -860,26 +859,27 @@ function Indicators(threatconnect) {
             URL: {}
         },
     };
-    var ro = new RequestObject();
     
     //
     // Settings API
     //
     this.activityLog = function(data) {
-        // c.log('activityLog', data);
-        if (typeof data === 'boolean') {
+        if (boolCheck('activityLog', data)) {
             this.settings.api.activityLog = data;
-        } else {
-            c.error('activityLog must be a boolean.');
+        }
+        return this;
+    };
+    
+    this.limit = function(data) {
+        if (intCheck('limit', data)) {
+            this.settings.api.limit = data;
         }
         return this;
     };
     
     this.resultLimit = function(data) {
-        if (0 > data <= 500) {
+        if (rangeCheck('resultLimit', data, 1, 500)) {
             this.settings.api.resultLimit = data;
-        } else {
-            console.warn('Invalid Result Count (' + data + ').');
         }
         return this;
     };
@@ -888,42 +888,28 @@ function Indicators(threatconnect) {
     // Settings Batch
     //
     this.action = function(data) {
-        // c.log('action', data);
-        if ($.inArray(data, ['Create', 'Delete']) != -1) {
+        if (valueCheck('action', data, ['Create', 'Delete'])) {
             this.settings.batch.haltOnError = data;
-        } else {
-            c.error('Setting action must be of value (Create|Delete).');
         }
         return this;
     };
     
     this.attributeWriteType = function(data) {
-        // c.log('attributeWriteType', data);
-        if ($.inArray(data, ['Append', 'Replace']) != -1) {
+        if (valueCheck('attributeWriteType', data, ['Append', 'Replace'])) {
             this.settings.batch.haltOnError = data;
-        } else {
-            c.error('Setting attributeWriteType must be of value (Append|Replace).');
         }
         return this;
     };
-                
+                 
     this.haltOnError = function(data) {
-        // c.log('haltOnError', data);
-        if (typeof data === 'boolean') {
+        if (boolCheck('haltOnError', data)) {
             this.settings.batch.haltOnError = data;
-        } else {
-            c.error('Setting haltOnError must be a boolean.');
         }
         return this;
     };
-    
+     
     this.owner = function(data) {
-        // c.log('owner', data);
-        if (typeof data === 'string') {
-            this.settings.batch.owner = data;
-        } else {
-            c.error('Setting owner must be a string.');
-        }
+        this.settings.batch.owner = data;
         return this;
     };
     
@@ -931,28 +917,22 @@ function Indicators(threatconnect) {
     // Settings Callbacks
     //
     this.done = function(data) {
-        if (typeof data === 'function') {
+        if (functionCheck('done', data)) {
             this.settings.callbacks.done = data;
-        } else {
-            c.error('Callback "done()" must be a function.');
         }
         return this;
     };
     
     this.error = function(data) {
-        if (typeof data === 'function') {
+        if (functionCheck('error', data)) {
             this.settings.callbacks.error = data;
-        } else {
-            c.error('Callback "error()" must be a function.');
         }
         return this;
     };
     
     this.pagination = function(data) {
-        if (typeof data === 'function') {
+        if (functionCheck('pagination', data)) {
             this.settings.callbacks.pagination = data;
-        } else {
-            c.error('Callback "pagination()" must be a function.');
         }
         return this;
     };
@@ -961,13 +941,11 @@ function Indicators(threatconnect) {
     // Indicator Data - Required
     //
     this.indicator = function(data) {
-        // c.log('indicator', data);
         this.iData.requiredData.summary = data;
         return this;
     };
     
     this.type = function(data) {
-        // c.log('type', data.type);
         if (data.type && data.uri) {
             this.iData.requiredData.type = data.type;
         }
@@ -977,6 +955,7 @@ function Indicators(threatconnect) {
     //
     // Indicator Data - Optional
     //
+    
     // this.attribute = function(data) {
     //     if (!this.iData.optionalData.attribute) {this.iData.optionalData.attribute = []}
     //     if (typeof data === 'object' && data.length != 0) {
@@ -1000,10 +979,8 @@ function Indicators(threatconnect) {
     };
     
     this.confidence = function(data) {
-        if (!isNaN(data)) {
+        if (intCheck('confidence', data)) {
             this.iData.optionalData.confidence = data;
-        } else {
-            c.error('Confidence must be an integer.', data);
         }
         return this;
     };
@@ -1018,7 +995,7 @@ function Indicators(threatconnect) {
     };
     
     this.rating = function(data) {
-        if (!isNaN(parseFloat(data))) {
+        if (intCheck('rating', data)) {
             this.iData.optionalData.rating = data;
         } else {
             c.error('Rating must be a Float.', data);
@@ -1053,6 +1030,7 @@ function Indicators(threatconnect) {
     //
     // Indicator Data - File Specific
     //
+    
     this.descrition = function(data) {
         this.iData.specificData.File.description = data;
         return this;
@@ -1061,15 +1039,16 @@ function Indicators(threatconnect) {
     //
     // Indicator Data - Host Specific
     //
+    
     this.dnsActive = function(data) {
-        if (typeof data === 'boolean') {
+        if (boolCheck('dnsActive', data)) {
             this.iData.specificData.Host.dnsActive = data;
         }
         return this;
     };
     
     this.whoisActive = function(data) {
-        if (typeof data === 'boolean') {
+        if (boolCheck('whoisActive', data)) {
             this.iData.specificData.Host.whoisActive = data;
         }
         return this;
@@ -1078,6 +1057,7 @@ function Indicators(threatconnect) {
     //
     // Indicator Data - Url Specific
     //
+    
     this.source = function(data) {
         this.iData.specificData.URL.source = data;
         return this;
@@ -1111,8 +1091,8 @@ function Indicators(threatconnect) {
     // Indicator Commit to API
     this.commit = function() {
         var _this = this,
-            message;
-        // c.log('commit');
+            message,
+            ro = new RequestObject();
         
         // validate required fields
         if (this.settings.batch.owner && this.batchBody.length != 0) {
@@ -1155,6 +1135,8 @@ function Indicators(threatconnect) {
                     message = {error: 'Failed to configure indicator job.'};
                     _this.settings.callbacks.error(message);
                 });
+                
+                c.log('thissssssssssssssssssss', this);
             
         } else {
             console.error('Commit Failure: batch owner and indicators are required.');
@@ -1168,6 +1150,7 @@ function Indicators(threatconnect) {
     this.retrieve = function(params) {
         var requestUri = 'v2/indicators',
             method = 'GET',
+            ro = new RequestObject(),
             type = undefined;
         
         if (params) {
@@ -1184,10 +1167,11 @@ function Indicators(threatconnect) {
         }
      
         ro.owner(this.settings.batch.owner)  // bcs make this consistent batch vs data
-            .activityLog(this.settings.api.activityLog)
+            // .activityLog(this.settings.api.activityLog)
             .done(this.settings.callbacks.done)
             .error(this.settings.callbacks.error)
             .helper(true)
+            .limit(this.settings.api.limit)
             .normalization(normalize.indicators)
             .pagination(this.settings.callbacks.pagination)
             .requestUri(requestUri)
@@ -1725,5 +1709,49 @@ var normalize = {
     }
 };
 
-/*
-*/
+var boolCheck = function(name, value) {
+    /* validate user input is a boolean */
+    
+    if (typeof value === 'boolean') {
+        return true;
+    }
+    c.warn(name + ' must be of type boolean.');
+    return false;
+};
+
+var functionCheck = function(name, value) {
+    if (typeof value == 'function') {
+        return true;
+    }
+    c.error(name + ' must be of type function.');
+    return false;
+};
+
+var intCheck = function(name, value) {
+    /* validate user input is an integer */
+    
+    if (!isNaN(parseFloat(value))) {
+        return true;
+    }
+    c.warn(name + ' must be of type integer.');
+    return false;
+};
+
+var rangeCheck = function(name, value, low, high) {
+    /* validate user input has appropriate values */
+    if (!isNaN(value) && !isNaN(low) && !isNaN(high)) {
+        if (low >= value <= high) {
+            return true;
+        }
+    }
+    c.warn(name + ' must be of type integer between ' + low + ' and ' + high + '.');
+    return false;
+};
+
+var valueCheck = function(name, value, array) {
+    if ($.inArray(value, array) != -1) {
+        return true;
+    }
+    c.warn(name + ' must be of value (.' + array.join(',') + ').');
+    return false;
+};
