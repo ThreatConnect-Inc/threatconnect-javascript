@@ -75,6 +75,16 @@ const TYPE = {
         'type': 'Indicator',
         'uri': 'indicators',
     },
+    SIGNATURE: {
+        'dataField': 'signature',
+        'type': 'Signature',
+        'uri': 'groups/signatures',
+    },
+    THREAT: {
+        'dataField': 'threat',
+        'type': 'Threat',
+        'uri': 'groups/threats',
+    },
     URL: {
         'dataField': 'url',
         'postField': 'text',
@@ -799,6 +809,72 @@ function Groups(threatconnect) {
             this.settings.api.requestUriType,
             this.settings.api.requestUriId,
             params.type.uri
+        ].join('/');
+        c.log('requestUri', requestUri);
+            
+        var ro = new RequestObject();
+        ro.owner(this.settings.api.owner)
+            .activityLog(this.settings.api.activityLog)
+            .done(this.settings.callbacks.done)
+            .error(this.settings.callbacks.error)
+            .helper(true)
+            .normalization(normalizer)
+            .pagination(this.settings.callbacks.pagination)
+            .requestUri(requestUri)
+            .requestMethod('GET')
+            .resultLimit(this.settings.api.resultLimit)
+            .type(params.type);
+        c.log('ro', ro);
+     
+        this.apiRequest(ro);
+    };
+    
+    //
+    // Retrieve Attributes
+    //
+    this.retrieveAttributes = function(params) {
+        // type: TYPE.GROUP
+        c.log('params', params);
+        var normalizer = normalize.attributes;
+        
+        var requestUri = [
+            this.settings.api.requestUri,
+            this.settings.api.requestUriType,
+            this.settings.api.requestUriId,
+            'attributes'
+        ].join('/');
+        c.log('requestUri', requestUri);
+            
+        var ro = new RequestObject();
+        ro.owner(this.settings.api.owner)
+            .activityLog(this.settings.api.activityLog)
+            .done(this.settings.callbacks.done)
+            .error(this.settings.callbacks.error)
+            .helper(true)
+            .normalization(normalizer)
+            .pagination(this.settings.callbacks.pagination)
+            .requestUri(requestUri)
+            .requestMethod('GET')
+            .resultLimit(this.settings.api.resultLimit)
+            .type(params.type);
+        c.log('ro', ro);
+     
+        this.apiRequest(ro);
+    };
+    
+    //
+    // Retrieve Associations
+    //
+    this.retrieveTags = function(params) {
+        // type: TYPE.GROUP
+        c.log('params', params);
+        var normalizer = normalize.tags;
+        
+        var requestUri = [
+            this.settings.api.requestUri,
+            this.settings.api.requestUriType,
+            this.settings.api.requestUriId,
+            'tags'
         ].join('/');
         c.log('requestUri', requestUri);
             

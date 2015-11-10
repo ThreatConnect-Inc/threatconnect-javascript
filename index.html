@@ -170,6 +170,8 @@
                             <button type="button" class="btn btn-default" id="Adversary-clear">Clear</button>
                             <button type="button" class="btn btn-default" id="Adversary-refresh">Refresh</button>
                             <button type="button" class="btn btn-default" data-toggle="modal" data-target="#Association-modal">Associations</button>
+                            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#Attribute-modal">Attributes</button>
+                            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#Tag-modal">Tags</button>
                             <!--
                             <button type="button" class="btn btn-default">Attributes</button>
                             <button type="button" class="btn btn-default">Tags</button>
@@ -758,6 +760,44 @@
     
         </div>
     </div>
+        
+    <div id="Attribute-modal" class="modal fade" role="dialog">
+        <div class="modal-dialog modal-lg">
+    
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Attribute</h4>
+                </div>
+                <div class="modal-body">
+                    <pre id="Attribute-content"></pre> 
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+    
+        </div>
+    </div>
+        
+    <div id="Tag-modal" class="modal fade" role="dialog">
+        <div class="modal-dialog modal-lg">
+    
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Tag</h4>
+                </div>
+                <div class="modal-body">
+                    <pre id="Tag-content"></pre> 
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+    
+        </div>
+    </div>
     
 </body>
 
@@ -881,10 +921,25 @@
     // Modal Show     
     $('.modal').on('show.bs.modal', function(){
         var modalId = $(this).attr('id');
+        c.log($(this).parent());
+        var selections =  $('#Adversary-table').bootstrapTable('getSelections');
+        c.log('selections', selections);
+        
         if (modalId === 'Association-modal') {
             retrieveAssociations({
                 groupType: TYPE.ADVERSARY,
-                type: TYPE.GROUP
+                type: TYPE.GROUP,
+                id: selections[0].id
+            });
+        } else if (modalId === 'Attribute-modal') {
+            retrieveAttributes({
+                groupType: TYPE.ADVERSARY,
+                id: selections[0].id
+            });
+        } else if (modalId === 'Tag-modal') {
+            retrieveTags({
+                groupType: TYPE.ADVERSARY,
+                id: selections[0].id
             });
         } else if (modalId === 'Group-map-modal') {
             
@@ -1802,22 +1857,63 @@
     // Retrieve Associations
     //
     var retrieveAssociations = function(params) {
-        c.log('retrieve adversaries');
+        c.log('retrieve associations');
         tc.groups()
             .owner($('#Owner-select :selected').text())
             .type(params.groupType)
-            // .id(params.id)
-            .id(1)
+            .id(params.id)
             .resultLimit(500)
             .done(function(response) {
-                c.log('adversary retrieve done', response);
+                c.log('association retrieve done', response);
                 $('#Association-content').text(JSON.stringify(response, null, 4));
             })
             .error(function(response) {
-                var message =  'Adversary Retrieval failed. (' + response + ').';
+                var message = 'Association Retrieval failed. (' + response + ').';
                 statusAlert('danger', message);
             })
             .retrieveAssociations({type: params.type});
+    };
+    
+    //
+    // Retrieve Attributes
+    //
+    var retrieveAttributes = function(params) {
+        c.log('retrieve attributes');
+        tc.groups()
+            .owner($('#Owner-select :selected').text())
+            .type(params.groupType)
+            .id(params.id)
+            .resultLimit(500)
+            .done(function(response) {
+                c.log('attribute retrieve done', response);
+                $('#Attribute-content').text(JSON.stringify(response, null, 4));
+            })
+            .error(function(response) {
+                var message = 'Attribute Retrieval failed. (' + response + ').';
+                statusAlert('danger', message);
+            })
+            .retrieveAttributes({type: params.type});
+    };
+    
+    //
+    // Retrieve Tags
+    //
+    var retrieveTags = function(params) {
+        c.log('retrieve tags');
+        tc.groups()
+            .owner($('#Owner-select :selected').text())
+            .type(params.groupType)
+            .id(params.id)
+            .resultLimit(500)
+            .done(function(response) {
+                c.log('tag retrieve done', response);
+                $('#Tag-content').text(JSON.stringify(response, null, 4));
+            })
+            .error(function(response) {
+                var message =  'Tag Retrieval failed. (' + response + ').';
+                statusAlert('danger', message);
+            })
+            .retrieveTags({type: params.type});
     };
     
     //
