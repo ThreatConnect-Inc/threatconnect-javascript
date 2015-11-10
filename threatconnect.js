@@ -24,6 +24,21 @@ const TYPE = {
         'type': 'Address',
         'uri': 'addresses',
     },
+    ADVERSARY: {
+        'dataField': 'adversary',
+        'type': 'Adversary',
+        'uri': 'groups/adversaries',
+    },
+    DOCUMENT: {
+        'dataField': 'document',
+        'type': 'Document',
+        'uri': 'groups/documents',
+    },
+    EMAIL: {
+        'dataField': 'email',
+        'type': 'Email',
+        'uri': 'groups/emails',
+    },
     EMAIL_ADDRESS: {
         'dataField': 'emailAddress',
         'postField': 'address',
@@ -38,12 +53,27 @@ const TYPE = {
         'type': 'File',
         'uri': 'files',
     },
+    GROUP: {
+        'dataField': 'group',
+        'type': 'Group',
+        'uri': 'groups',
+    },
     HOST: {
         'dataField': 'host',
         'postField': 'hostName',
         'indicatorFields': ['hostName'],
         'type': 'Host',
         'uri': 'hosts',
+    },
+    INCIDENT: {
+        'dataField': 'incident',
+        'type': 'Incident',
+        'uri': 'groups/incidents',
+    },
+    INDICATOR: {
+        'dataField': 'indicator',
+        'type': 'Indicator',
+        'uri': 'indicators',
     },
     URL: {
         'dataField': 'url',
@@ -83,9 +113,6 @@ function getParameterFromUri(name, uri) {
     return results === null ? undefined : decodeURIComponent(results[1].replace(/\+/g, " "));
 }
 
-//
-// Request Object
-//
 function RequestObject(params) {
     c.group('RequestObject');
 
@@ -179,11 +206,13 @@ function RequestObject(params) {
     };
     
     this.limit = function(data) {
-        if (intCheck('limit', data)) {
-            this._limit = data;
-            if (data < 500) {
-                this._resultLimit = data;
-                this.payload('resultLimit', data);
+        if (data) {
+            if (intCheck('limit', data)) {
+                this._limit = data;
+                if (data < 500) {
+                    this._resultLimit = data;
+                    this.payload('resultLimit', data);
+                }
             }
         }
         return this;
@@ -467,18 +496,19 @@ function ThreatConnect(params) {
     };
 }
 
-//
-// Group
-//
-
-function Group(threatconnect) {
+function Groups(threatconnect) {
     c.group('Group');
     ThreatConnect.call(this, threatconnect);
     
     this.settings = {
         api: {
             activityLog: false,             // false|true
-            resultLimit: 500
+            normalizer: normalize.groups,
+            requestUri: 'v2',
+            requestUriType: 'groups',
+            requestUriId: '',
+            resultLimit: 500,
+            type: TYPE.GROUP
         },
         callbacks: {
             done: undefined,
@@ -488,9 +518,15 @@ function Group(threatconnect) {
     },
     this.rData = {
         optionalData: {},
-        deleteData: {},
         requiredData: {},
-        specificData: {},
+        specificData: {
+            adversary: {},
+            document: {},
+            email: {},
+            incident: {},
+            signature: {},
+            threat: {}
+        },
     };
  
     //
@@ -504,10 +540,8 @@ function Group(threatconnect) {
     };
     
     this.resultLimit = function(data) {
-        if (0 > data <= 500) {
+        if (rangeCheck('resultLimit', data, 1, 500)) {
             this.settings.api.resultLimit = data;
-        } else {
-            console.warn('Invalid Result Limit (' + data + ').');
         }
         return this;
     };
@@ -521,28 +555,22 @@ function Group(threatconnect) {
     // Settings Callbacks
     //
     this.done = function(data) {
-        if (typeof data === 'function') {
+        if (functionCheck('done', data)) {
             this.settings.callbacks.done = data;
-        } else {
-            c.error('Callback "done()" must be a function.');
         }
         return this;
     };
     
     this.error = function(data) {
-        if (typeof data === 'function') {
+        if (functionCheck('error', data)) {
             this.settings.callbacks.error = data;
-        } else {
-            c.error('Callback "error()" must be a function.');
         }
         return this;
     };
     
     this.pagination = function(data) {
-        if (typeof data === 'function') {
+        if (functionCheck('pagination', data)) {
             this.settings.callbacks.pagination = data;
-        } else {
-            c.error('Callback "pagination()" must be a function.');
         }
         return this;
     };
@@ -551,7 +579,7 @@ function Group(threatconnect) {
     // Group Data - Required
     //
     this.id = function(data) {
-        this.rData.deleteData.id = data;
+        this.settings.api.requestUriId = data;
         return this;
     };
     
@@ -565,10 +593,8 @@ function Group(threatconnect) {
     //
     this.attributes = function(data) {
         // if (!this.rData.optionalData.attribute) {this.rData.optionalData.attribute = []}
-        if (typeof data === 'object' && data.length != 0) {
+        if (objectCheck('attributes', data) && data.length != 0) {
             this.rData.optionalData.attribute.push(this.rData.optionalData.attribute, data);
-        } else {
-            c.error('Tags must be an array.');
         }
         return this;
     };
@@ -576,13 +602,63 @@ function Group(threatconnect) {
     this.tags = function(data) {
         if (this.rData.optionalData.tag) {this.rData.optionalData.tag = []}
         var tag;
-        if (typeof data === 'object' && data.length != 0) {
+        if (objectCheck('tag', data) && data.length != 0) {
             for (tag in data) {
                 this.rData.optionalData.tag.push({name: data[tag]});
             }
-        } else {
-            c.error('Tags must be an array.');
         }
+        return this;
+    };
+    
+    this.type = function(data) {
+        this.settings.api.requestUriType = data.uri;
+        this.settings.api.type = data;
+        return this;
+    };
+    
+    //
+    // Type Specific
+    //
+    
+    // document
+    this.fileName = function(data) {
+        this.rData.specificData.document.fileName = data;
+        return this;
+    };
+ 
+    this.fileSize = function(data) {
+        this.rData.specificData.document.fileSize = data;
+        return this;
+    };
+    
+    // email
+    this.emailBody = function(data) {
+        this.rData.specificData.email.body = data;
+        return this;
+    };
+ 
+    this.emailFrom = function(data) {
+        this.rData.specificData.email.from = data;
+        return this;
+    };
+ 
+    this.emailHeader = function(data) {
+        this.rData.specificData.email.header = data;
+        return this;
+    };
+ 
+    this.emailScore = function(data) {
+        this.rData.specificData.email.score = data;
+        return this;
+    };
+ 
+    this.emailSubject = function(data) {
+        this.rData.specificData.email.subject = data;
+        return this;
+    };
+ 
+    this.emailTo = function(data) {
+        this.rData.specificData.email.to = data;
         return this;
     };
     
@@ -591,17 +667,26 @@ function Group(threatconnect) {
     //
     this.commit = function() {
         var _this = this;
-        // c.log('commit');
         
         // validate required fields
         if (this.rData.requiredData.name && this.settings.api.owner) {
-            var body = $.extend(this.rData.requiredData, this.rData.optionalData),
+            var body,
                 method = 'POST',
-                requestUri = this.settings.api.requestUri;
+                requestUri = this.settings.api.requestUri,
+                specificBody;
+                
+            // prepare body
+            specificBody = this.rData.specificData[this.settings.api.type.dataField],
+            body = $.extend(this.rData.requiredData, $.extend(this.rData.optionalData, specificBody));
             
-            if (this.rData.deleteData.id) {
-                method = 'PUT',
-                requestUri = this.settings.api.requestUri + '/' + this.rData.deleteData.id;
+            requestUri = [
+                this.settings.api.requestUri,
+                this.settings.api.requestUriType,
+                this.settings.api.requestUriId
+            ].join('/');
+                
+            if (this.settings.api.requestUriId) {
+                method = 'PUT';
             }
             
             /* create job */ 
@@ -612,12 +697,14 @@ function Group(threatconnect) {
                 .done(this.settings.callbacks.done)
                 .error(this.settings.callbacks.error)
                 .helper(true)
-                .pagination(this.settings.callbacks.pagination)  // required for updates
-                .normalization(this.settings.api.cNormalizer)
+                .pagination(this.settings.callbacks.pagination)  // bcs - required for updates?
+                .normalization(this.settings.api.normalizer)
                 .requestUri(requestUri)
-                .requestMethod(method);
+                .requestMethod(method)
+                .type(this.settings.api.type);
             c.log('body', JSON.stringify(body, null, 4));
-            this.apiRequest(ro).done(function(data) {
+            this.apiRequest(ro);
+                //.done(function(data) {
                 // on done method commit attributes / tags
                 // var ro = new RequestObject();
                 // ro.owner(_this.settings.api.owner)
@@ -630,7 +717,7 @@ function Group(threatconnect) {
                 //     .normalization(_this.settings.api.cNormalizer)
                 //     .requestUri(_this.settings.api.requestUri)
                 //     .requestMethod('POST');
-            });
+            // });
             
         } else {
             var errorMessage = 'Commit Failure: group name and owner are required.';
@@ -643,7 +730,11 @@ function Group(threatconnect) {
     // Delete Group
     //
     this.delete = function() {
-        var uri = this.settings.api.requestUri + '/' + this.rData.deleteData.id;
+        var requestUri = [
+            this.settings.api.requestUri,
+            this.settings.api.requestUriType,
+            this.settings.api.requestUriId
+        ].join('/');
         
         var ro = new RequestObject();
         ro.owner(this.settings.api.owner)
@@ -651,11 +742,11 @@ function Group(threatconnect) {
             .done(this.settings.callbacks.done)
             .error(this.settings.callbacks.error)
             .helper(true)
-            .id(this.rData.deleteData.id)
-            .requestUri(uri)
+            .id(this.settings.api.requestUriId)
+            .requestUri(requestUri)
             .requestMethod('DELETE')
-            .resultLimit(this.settings.api.resultLimit);
-            // .type(this.settings.data.type);
+            .resultLimit(this.settings.api.resultLimit)
+            .type(this.settings.api.type);
         c.log('body', ro);
      
         this.apiRequest(ro);
@@ -664,37 +755,73 @@ function Group(threatconnect) {
     //
     // Retrieve Group
     //
-    this.retrieve = function(params) {
-        var normalizer = this.settings.api.rNormalizer;
-        if (params) {
-            if (params.id && params.type) {
-                this.settings.api.requestUri = this.settings.api.requestUri + '/' + params.type + '/' + params.id + '/indicators'; 
-                normalizer = normalize.indicators;
-            } else if (params.id) {
-                this.settings.api.requestUri = this.settings.api.requestUri + '/' + params.id; 
-            }
-        }
+    this.retrieve = function() {
+        var requestUri = [
+            this.settings.api.requestUri,
+            this.settings.api.requestUriType,
+            this.settings.api.requestUriId
+        ].join('/');
+            
         var ro = new RequestObject();
         ro.owner(this.settings.api.owner)
             .activityLog(this.settings.api.activityLog)
             .done(this.settings.callbacks.done)
             .error(this.settings.callbacks.error)
             .helper(true)
-            // .normalization(this.settings.api.rNormalizer)
-            .normalization(normalizer)
+            .normalization(this.settings.api.normalizer)
             .pagination(this.settings.callbacks.pagination)
-            .requestUri(this.settings.api.requestUri)
+            .requestUri(requestUri)
             .requestMethod('GET')
-            .resultLimit(this.settings.api.resultLimit);
-            // .type(this.settings.data.type);
+            .resultLimit(this.settings.api.resultLimit)
+            .type(this.settings.api.type);
         c.log('ro', ro);
      
         this.apiRequest(ro);
     };
     
-    this.getData = function(params) {
-        return this.rData.requiredData;
+    //
+    // Retrieve Associations
+    //
+    this.retrieveAssociations = function(params) {
+        // type: TYPE.GROUP
+        c.log('params', params);
+        var normalizer;
+        if (params.type.type) {
+            if (params.type.type == 'Group') {
+                normalizer = normalize.groups;
+            } else if (params.type.type == 'Indicator') {
+                normalizer = normalize.indicators;
+            }
+        }
+        
+        var requestUri = [
+            this.settings.api.requestUri,
+            this.settings.api.requestUriType,
+            this.settings.api.requestUriId,
+            params.type.uri
+        ].join('/');
+        c.log('requestUri', requestUri);
+            
+        var ro = new RequestObject();
+        ro.owner(this.settings.api.owner)
+            .activityLog(this.settings.api.activityLog)
+            .done(this.settings.callbacks.done)
+            .error(this.settings.callbacks.error)
+            .helper(true)
+            .normalization(normalizer)
+            .pagination(this.settings.callbacks.pagination)
+            .requestUri(requestUri)
+            .requestMethod('GET')
+            .resultLimit(this.settings.api.resultLimit)
+            .type(params.type);
+        c.log('ro', ro);
+     
+        this.apiRequest(ro);
     };
+    
+    // this.getData = function(params) {
+    //     return this.rData.requiredData;
+    // };
  
     c.groupEnd();
     return this;
@@ -703,129 +830,129 @@ function Group(threatconnect) {
 //
 // Adversaries
 //
-function Adversaries(threatconnect) {
-    Group.call(this, threatconnect);
+// function Adversaries(threatconnect) {
+//     Group.call(this, threatconnect);
     
-    this.settings.api.requestUri = 'v2/groups/adversaries';
-    this.settings.api.cNormalizer = normalize.adversaries;
-    this.settings.api.rNormalizer = normalize.adversaries;
-}
-Adversaries.prototype = Object.create(Group.prototype);
+//     this.settings.api.requestUri = 'v2/groups/adversaries';
+//     this.settings.api.cNormalizer = normalize.adversaries;
+//     this.settings.api.rNormalizer = normalize.adversaries;
+// }
+// Adversaries.prototype = Object.create(Group.prototype);
 
 //
 // Documents
 //
-function Documents(threatconnect) {
-    Group.call(this, threatconnect);
+// function Documents(threatconnect) {
+//     Groups.call(this, threatconnect);
     
-    this.settings.api.requestUri = 'v2/groups/documents';
-    this.settings.api.cNormalizer = normalize.documents;
-    this.settings.api.rNormalizer = normalize.documents;
+//     this.settings.api.requestUri = 'v2/groups/documents';
+//     this.settings.api.cNormalizer = normalize.documents;
+//     this.settings.api.rNormalizer = normalize.documents;
     
-    // Group Data - Required
-    this.fileName = function(data) {
-        this.rData.requiredData.fileName = data;
-        return this;
-    };
+//     // Group Data - Required
+//     this.fileName = function(data) {
+//         this.rData.requiredData.fileName = data;
+//         return this;
+//     };
     
-    // Group Data - Optional
-    this.fileSize = function(data) {
-        this.rData.optionalData.fileSize = data;
-        return this;
-    };
-}
-Documents.prototype = Object.create(Group.prototype);
+//     // Group Data - Optional
+//     this.fileSize = function(data) {
+//         this.rData.optionalData.fileSize = data;
+//         return this;
+//     };
+// }
+// Documents.prototype = Object.create(Groups.prototype);
 
 //
 // Emails
 //
-function Emails(threatconnect) {
-    Group.call(this, threatconnect);
+// function Emails(threatconnect) {
+//     Groups.call(this, threatconnect);
     
-    this.settings.api.requestUri = 'v2/groups/emails';
-    this.settings.api.cNormalizer = normalize.emails;
-    this.settings.api.rNormalizer = normalize.emails;
+//     this.settings.api.requestUri = 'v2/groups/emails';
+//     this.settings.api.cNormalizer = normalize.emails;
+//     this.settings.api.rNormalizer = normalize.emails;
     
-    // Group Data - Optional
-    this.emailBody = function(data) {
-        if (data.length > 0) {
-           this.rData.optionalData.body = data;
-        }
-        return this;
-    };
+//     // Group Data - Optional
+//     this.emailBody = function(data) {
+//         if (data.length > 0) {
+//           this.rData.optionalData.body = data;
+//         }
+//         return this;
+//     };
     
-    // Group Data - Optional
-    this.emailFrom = function(data) {
-        if (data.length > 0) {
-            this.rData.optionalData.from = data;
-        }
-        return this;
-    };
+//     // Group Data - Optional
+//     this.emailFrom = function(data) {
+//         if (data.length > 0) {
+//             this.rData.optionalData.from = data;
+//         }
+//         return this;
+//     };
     
-    // Group Data - Optional
-    this.emailHeader = function(data) {
-        if (data.length > 0) {
-            this.rData.optionalData.header = data;
-        }
-        return this;
-    };
+//     // Group Data - Optional
+//     this.emailHeader = function(data) {
+//         if (data.length > 0) {
+//             this.rData.optionalData.header = data;
+//         }
+//         return this;
+//     };
     
-    // Group Data - Optional
-    this.emailScore = function(data) {
-        if (data.length > 0) {
-            this.rData.optionalData.score = data;
-        }
-        return this;
-    };
+//     // Group Data - Optional
+//     this.emailScore = function(data) {
+//         if (data.length > 0) {
+//             this.rData.optionalData.score = data;
+//         }
+//         return this;
+//     };
     
-    // Group Data - Optional
-    this.emailSubject = function(data) {
-        if (data.length > 0) {
-            this.rData.optionalData.subject = data;
-        }
-        return this;
-    };
+//     // Group Data - Optional
+//     this.emailSubject = function(data) {
+//         if (data.length > 0) {
+//             this.rData.optionalData.subject = data;
+//         }
+//         return this;
+//     };
     
-    // Group Data - Optional
-    this.emailTo = function(data) {
-        if (data.length > 0) {
-            this.rData.optionalData.to = data;
-        }
-        return this;
-    };
-}
-Emails.prototype = Object.create(Group.prototype);
+//     // Group Data - Optional
+//     this.emailTo = function(data) {
+//         if (data.length > 0) {
+//             this.rData.optionalData.to = data;
+//         }
+//         return this;
+//     };
+// }
+// Emails.prototype = Object.create(Groups.prototype);
 
 //
-// Group
+// Groups
 //
-function Groups(threatconnect) {
-    Group.call(this, threatconnect);
+// function Groups(threatconnect) {
+//     Group.call(this, threatconnect);
     
-    this.settings.api.requestUri = 'v2/groups';
-    this.settings.api.cNormalizer = normalize.groups;
-    this.settings.api.rNormalizer = normalize.groups;
-}
-Groups.prototype = Object.create(Group.prototype);
+//     this.settings.api.requestUri = 'v2/groups';
+//     this.settings.api.cNormalizer = normalize.groups;
+//     this.settings.api.rNormalizer = normalize.groups;
+// }
+// Groups.prototype = Object.create(Group.prototype);
 
 //
 // Incidents
 //
-function Incidents(threatconnect) {
-    Group.call(this, threatconnect);
+// function Incidents(threatconnect) {
+//     Groups.call(this, threatconnect);
     
-    this.settings.api.requestUri = 'v2/groups/incidents';
-    this.settings.api.cNormalizer = normalize.incidents;
-    this.settings.api.rNormalizer = normalize.incidents;
-}
-Incidents.prototype = Object.create(Group.prototype);
+//     this.settings.api.requestUri = 'v2/groups/incidents';
+//     this.settings.api.cNormalizer = normalize.incidents;
+//     this.settings.api.rNormalizer = normalize.incidents;
+// }
+// Incidents.prototype = Object.create(Groups.prototype);
 
 //
 // Indicators
 //
 function Indicators(threatconnect) {
-    c.group('add_indicator');
-    Groups.call(this, threatconnect);
+    c.group('Indicators');
+    ThreatConnect.call(this, threatconnect);
     
     this.batchBody = [],
     this.settings = {
@@ -1135,9 +1262,6 @@ function Indicators(threatconnect) {
                     message = {error: 'Failed to configure indicator job.'};
                     _this.settings.callbacks.error(message);
                 });
-                
-                c.log('thissssssssssssssssssss', this);
-            
         } else {
             console.error('Commit Failure: batch owner and indicators are required.');
         } 
@@ -1401,30 +1525,30 @@ ThreatConnect.prototype.upload = function() {
  */
  
 var normalize = {
-    adversaries: function(ro, response) { 
-        c.group('normalize.adversaries');
-        var adversaries = [],
-            status = response.status;
+    // adversaries: function(ro, response) { 
+    //     c.group('normalize.adversaries');
+    //     var adversaries = [],
+    //         status = response.status;
         
-        if (response) {
-            adversaries = response.data.adversary;
+    //     if (response) {
+    //         adversaries = response.data.adversary;
                 
-            if (Object.prototype.toString.call( adversaries ) != '[object Array]') {
-                if (adversaries.owner) {
-                    adversaries.ownerName = adversaries.owner.name;
-                    delete adversaries.owner;
-                }
-                adversaries = [adversaries];
-            }
-            c.log('adversaries', adversaries);
+    //         if (Object.prototype.toString.call( adversaries ) != '[object Array]') {
+    //             if (adversaries.owner) {
+    //                 adversaries.ownerName = adversaries.owner.name;
+    //                 delete adversaries.owner;
+    //             }
+    //             adversaries = [adversaries];
+    //         }
+    //         c.log('adversaries', adversaries);
             
-            ro.response.data = $.merge(ro.response.data, adversaries);
+    //         ro.response.data = $.merge(ro.response.data, adversaries);
             
-            c.groupEnd();
-        }
-        return {status: status,
-                data: adversaries};
-    },
+    //         c.groupEnd();
+    //     }
+    //     return {status: status,
+    //             data: adversaries};
+    // },
     attributes: function(ro, response) { 
         c.group('normalize.attributes');
         var attributes = [],
@@ -1445,61 +1569,61 @@ var normalize = {
         return {status: status,
                 data: attributes};
     },
-    documents: function(ro, response) { 
-        c.group('normalize.documents');
-        var documents = [],
-            status = response.status;
+    // documents: function(ro, response) { 
+    //     c.group('normalize.documents');
+    //     var documents = [],
+    //         status = response.status;
             
-        if (response) {
-            documents = response.data.document;
+    //     if (response) {
+    //         documents = response.data.document;
             
-            if (Object.prototype.toString.call( documents ) != '[object Array]') {
-                if (documents.owner) {
-                    documents.ownerName = documents.owner.name;
-                    delete documents.owner;
-                }
-                documents = [documents];
-            }
-            c.log('document', document);
+    //         if (Object.prototype.toString.call( documents ) != '[object Array]') {
+    //             if (documents.owner) {
+    //                 documents.ownerName = documents.owner.name;
+    //                 delete documents.owner;
+    //             }
+    //             documents = [documents];
+    //         }
+    //         c.log('document', document);
             
-            ro.response.data = $.merge(ro.response.data, documents);
+    //         ro.response.data = $.merge(ro.response.data, documents);
             
-            c.groupEnd();
-        }
-        return {status: status,
-                data: documents};
-    },
-    emails: function(ro, response) { 
-        c.group('normalize.emails');
-        var emails = [],
-            status = response.status;
+    //         c.groupEnd();
+    //     }
+    //     return {status: status,
+    //             data: documents};
+    // },
+    // emails: function(ro, response) { 
+    //     c.group('normalize.emails');
+    //     var emails = [],
+    //         status = response.status;
             
-        if (response) {
-            emails = response.data.email;
+    //     if (response) {
+    //         emails = response.data.email;
             
-            if (Object.prototype.toString.call( emails ) != '[object Array]') {
-                if (emails.owner) {
-                    emails.ownerName = emails.owner.name;
-                    delete emails.owner;
-                }
-                emails = [emails];
-            }
-            c.log('email', emails);
+    //         if (Object.prototype.toString.call( emails ) != '[object Array]') {
+    //             if (emails.owner) {
+    //                 emails.ownerName = emails.owner.name;
+    //                 delete emails.owner;
+    //             }
+    //             emails = [emails];
+    //         }
+    //         c.log('email', emails);
             
-            ro.response.data = $.merge(ro.response.data, emails);
+    //         ro.response.data = $.merge(ro.response.data, emails);
             
-            c.groupEnd();
-        }
-        return {status: status,
-                data: emails};
-    },
+    //         c.groupEnd();
+    //     }
+    //     return {status: status,
+    //             data: emails};
+    // },
     groups: function(ro, response) { 
         c.group('normalize.groups');
         var groups = [],
             status = response.status;
             
         if (response) {
-            groups = response.data.group;
+            groups = response.data[ro._type.dataField];
             
             if (Object.prototype.toString.call( groups ) != '[object Array]') {
                 if (groups.owner) {
@@ -1508,38 +1632,60 @@ var normalize = {
                 }
                 groups = [groups];
             }
-            c.log('groups', groups);
             
             ro.response.data = $.merge(ro.response.data, groups);
-            
-            c.groupEnd();
         }
+        c.groupEnd();
         return {status: status,
                 data: groups};
     },
-    incidents: function(ro, response) { 
-        c.group('normalize.incidents');
-        var incidents = [],
-            status = response.status;
+    // groups: function(ro, response) { 
+    //     c.group('normalize.groups');
+    //     var groups = [],
+    //         status = response.status;
+            
+    //     if (response) {
+    //         groups = response.data.group;
+            
+    //         if (Object.prototype.toString.call( groups ) != '[object Array]') {
+    //             if (groups.owner) {
+    //                 groups.ownerName = groups.owner.name;
+    //                 delete groups.owner;
+    //             }
+    //             groups = [groups];
+    //         }
+    //         c.log('groups', groups);
+            
+    //         ro.response.data = $.merge(ro.response.data, groups);
+            
+    //         c.groupEnd();
+    //     }
+    //     return {status: status,
+    //             data: groups};
+    // },
+    // incidents: function(ro, response) { 
+    //     c.group('normalize.incidents');
+    //     var incidents = [],
+    //         status = response.status;
                 
-        if (response) {
-            incidents = response.data.incident;
+    //     if (response) {
+    //         incidents = response.data.incident;
             
-            if (Object.prototype.toString.call( incidents ) != '[object Array]') {
-                if (incidents.owner) {
-                    incidents.ownerName = incidents.owner.name;
-                    delete incidents.owner;
-                }
-                incidents = [incidents];
-            }
+    //         if (Object.prototype.toString.call( incidents ) != '[object Array]') {
+    //             if (incidents.owner) {
+    //                 incidents.ownerName = incidents.owner.name;
+    //                 delete incidents.owner;
+    //             }
+    //             incidents = [incidents];
+    //         }
             
-            ro.response.data = $.merge(ro.response.data, incidents);
+    //         ro.response.data = $.merge(ro.response.data, incidents);
             
-            c.groupEnd();
-        }
-        return {status: status,
-                data: incidents};
-    },
+    //         c.groupEnd();
+    //     }
+    //     return {status: status,
+    //             data: incidents};
+    // },
     indicators: function(ro, response) { 
         c.group('normalize.indicators');
         var indicators,
@@ -1601,65 +1747,65 @@ var normalize = {
         return {data: indicators,
                 status: status};
     },
-    indicators2: function(ro, response) { 
-        c.group('normalize.indicators');
-        var indicators,
-            indicatorsData,
-            indicatorTypeData,
-            status = response.status;
+    // indicators2: function(ro, response) { 
+    //     c.group('normalize.indicators');
+    //     var indicators,
+    //         indicatorsData,
+    //         indicatorTypeData,
+    //         status = response.status;
         
-        if (ro._type) {
-            // indicatorTypeData = indicatorType(ro._type.charAt(0));
-            indicatorTypeData = ro._type,
-            response = response.data[ro._type.dataField];
-            if (!response.length) {
-                response = [response];
-            }
-        } else {
-            response = response.data.indicator;
-        }
+    //     if (ro._type) {
+    //         // indicatorTypeData = indicatorType(ro._type.charAt(0));
+    //         indicatorTypeData = ro._type,
+    //         response = response.data[ro._type.dataField];
+    //         if (!response.length) {
+    //             response = [response];
+    //         }
+    //     } else {
+    //         response = response.data.indicator;
+    //     }
         
-        indicators = [];
-        $.each( response, function( rkey, rvalue ) {
-            // c.log('rvalue', rvalue);
-            if ('type' in rvalue) {
-                indicatorTypeData = indicatorHelper(rvalue.type.charAt(0).toLowerCase());
-            }
+    //     indicators = [];
+    //     $.each( response, function( rkey, rvalue ) {
+    //         // c.log('rvalue', rvalue);
+    //         if ('type' in rvalue) {
+    //             indicatorTypeData = indicatorHelper(rvalue.type.charAt(0).toLowerCase());
+    //         }
             
-            indicatorsData = {};
-            $.each( indicatorTypeData.indicatorFields, function( ikey, ivalue ) {
-                // change summary to proper field value
-                // handle different types of hash
+    //         indicatorsData = {};
+    //         $.each( indicatorTypeData.indicatorFields, function( ikey, ivalue ) {
+    //             // change summary to proper field value
+    //             // handle different types of hash
                 
-                // BCS FIX THIS FOR FILE HASHES
-                if ('summary' in rvalue) {
-                    indicatorsData[ivalue] = rvalue['summary'];
-                } else {
-                    indicatorsData[ivalue] = rvalue[ivalue];
-                }
-                // indicator: indicator.summary || indicator.ip || indicator.address
-            });
+    //             // BCS FIX THIS FOR FILE HASHES
+    //             if ('summary' in rvalue) {
+    //                 indicatorsData[ivalue] = rvalue['summary'];
+    //             } else {
+    //                 indicatorsData[ivalue] = rvalue[ivalue];
+    //             }
+    //             // indicator: indicator.summary || indicator.ip || indicator.address
+    //         });
             
-            indicators.push({
-                id: rvalue.id,
-                indicators: indicatorsData,
-                dateAdded: rvalue.dateAdded,
-                lastModified: rvalue.lastModified,
-                ownerName: rvalue.ownerName || rvalue.owner.name,
-                rating: rvalue.rating,
-                confidence: rvalue.confidence,
-                type: indicatorTypeData.type,
-                threatAssessRating: rvalue.threatAssessRating,
-                threatAssessConfidence: rvalue.threatAssessConfidence,
-                webLink: rvalue.webLink,
-            });
-        });
-        ro.response.data = $.merge(ro.response.data, indicators);
+    //         indicators.push({
+    //             id: rvalue.id,
+    //             indicators: indicatorsData,
+    //             dateAdded: rvalue.dateAdded,
+    //             lastModified: rvalue.lastModified,
+    //             ownerName: rvalue.ownerName || rvalue.owner.name,
+    //             rating: rvalue.rating,
+    //             confidence: rvalue.confidence,
+    //             type: indicatorTypeData.type,
+    //             threatAssessRating: rvalue.threatAssessRating,
+    //             threatAssessConfidence: rvalue.threatAssessConfidence,
+    //             webLink: rvalue.webLink,
+    //         });
+    //     });
+    //     ro.response.data = $.merge(ro.response.data, indicators);
         
-        c.groupEnd();
-        return {data: indicators,
-                status: status};
-    },
+    //     c.groupEnd();
+    //     return {data: indicators,
+    //             status: status};
+    // },
     owners: function(ro, response) { 
         c.group('normalize.owners');
         var owners = [],
@@ -1724,6 +1870,14 @@ var functionCheck = function(name, value) {
         return true;
     }
     c.error(name + ' must be of type function.');
+    return false;
+};
+
+var objectCheck = function(name, value) {
+    if (typeof value == 'object') {
+        return true;
+    }
+    c.error(name + ' must be of type object.');
     return false;
 };
 
