@@ -828,126 +828,6 @@ function Groups(threatconnect) {
 }
 
 //
-// Adversaries
-//
-// function Adversaries(threatconnect) {
-//     Group.call(this, threatconnect);
-    
-//     this.settings.api.requestUri = 'v2/groups/adversaries';
-//     this.settings.api.cNormalizer = normalize.adversaries;
-//     this.settings.api.rNormalizer = normalize.adversaries;
-// }
-// Adversaries.prototype = Object.create(Group.prototype);
-
-//
-// Documents
-//
-// function Documents(threatconnect) {
-//     Groups.call(this, threatconnect);
-    
-//     this.settings.api.requestUri = 'v2/groups/documents';
-//     this.settings.api.cNormalizer = normalize.documents;
-//     this.settings.api.rNormalizer = normalize.documents;
-    
-//     // Group Data - Required
-//     this.fileName = function(data) {
-//         this.rData.requiredData.fileName = data;
-//         return this;
-//     };
-    
-//     // Group Data - Optional
-//     this.fileSize = function(data) {
-//         this.rData.optionalData.fileSize = data;
-//         return this;
-//     };
-// }
-// Documents.prototype = Object.create(Groups.prototype);
-
-//
-// Emails
-//
-// function Emails(threatconnect) {
-//     Groups.call(this, threatconnect);
-    
-//     this.settings.api.requestUri = 'v2/groups/emails';
-//     this.settings.api.cNormalizer = normalize.emails;
-//     this.settings.api.rNormalizer = normalize.emails;
-    
-//     // Group Data - Optional
-//     this.emailBody = function(data) {
-//         if (data.length > 0) {
-//           this.rData.optionalData.body = data;
-//         }
-//         return this;
-//     };
-    
-//     // Group Data - Optional
-//     this.emailFrom = function(data) {
-//         if (data.length > 0) {
-//             this.rData.optionalData.from = data;
-//         }
-//         return this;
-//     };
-    
-//     // Group Data - Optional
-//     this.emailHeader = function(data) {
-//         if (data.length > 0) {
-//             this.rData.optionalData.header = data;
-//         }
-//         return this;
-//     };
-    
-//     // Group Data - Optional
-//     this.emailScore = function(data) {
-//         if (data.length > 0) {
-//             this.rData.optionalData.score = data;
-//         }
-//         return this;
-//     };
-    
-//     // Group Data - Optional
-//     this.emailSubject = function(data) {
-//         if (data.length > 0) {
-//             this.rData.optionalData.subject = data;
-//         }
-//         return this;
-//     };
-    
-//     // Group Data - Optional
-//     this.emailTo = function(data) {
-//         if (data.length > 0) {
-//             this.rData.optionalData.to = data;
-//         }
-//         return this;
-//     };
-// }
-// Emails.prototype = Object.create(Groups.prototype);
-
-//
-// Groups
-//
-// function Groups(threatconnect) {
-//     Group.call(this, threatconnect);
-    
-//     this.settings.api.requestUri = 'v2/groups';
-//     this.settings.api.cNormalizer = normalize.groups;
-//     this.settings.api.rNormalizer = normalize.groups;
-// }
-// Groups.prototype = Object.create(Group.prototype);
-
-//
-// Incidents
-//
-// function Incidents(threatconnect) {
-//     Groups.call(this, threatconnect);
-    
-//     this.settings.api.requestUri = 'v2/groups/incidents';
-//     this.settings.api.cNormalizer = normalize.incidents;
-//     this.settings.api.rNormalizer = normalize.incidents;
-// }
-// Incidents.prototype = Object.create(Groups.prototype);
-
-//
 // Indicators
 //
 function Indicators(threatconnect) {
@@ -1525,30 +1405,6 @@ ThreatConnect.prototype.upload = function() {
  */
  
 var normalize = {
-    // adversaries: function(ro, response) { 
-    //     c.group('normalize.adversaries');
-    //     var adversaries = [],
-    //         status = response.status;
-        
-    //     if (response) {
-    //         adversaries = response.data.adversary;
-                
-    //         if (Object.prototype.toString.call( adversaries ) != '[object Array]') {
-    //             if (adversaries.owner) {
-    //                 adversaries.ownerName = adversaries.owner.name;
-    //                 delete adversaries.owner;
-    //             }
-    //             adversaries = [adversaries];
-    //         }
-    //         c.log('adversaries', adversaries);
-            
-    //         ro.response.data = $.merge(ro.response.data, adversaries);
-            
-    //         c.groupEnd();
-    //     }
-    //     return {status: status,
-    //             data: adversaries};
-    // },
     attributes: function(ro, response) { 
         c.group('normalize.attributes');
         var attributes = [],
@@ -1569,54 +1425,6 @@ var normalize = {
         return {status: status,
                 data: attributes};
     },
-    // documents: function(ro, response) { 
-    //     c.group('normalize.documents');
-    //     var documents = [],
-    //         status = response.status;
-            
-    //     if (response) {
-    //         documents = response.data.document;
-            
-    //         if (Object.prototype.toString.call( documents ) != '[object Array]') {
-    //             if (documents.owner) {
-    //                 documents.ownerName = documents.owner.name;
-    //                 delete documents.owner;
-    //             }
-    //             documents = [documents];
-    //         }
-    //         c.log('document', document);
-            
-    //         ro.response.data = $.merge(ro.response.data, documents);
-            
-    //         c.groupEnd();
-    //     }
-    //     return {status: status,
-    //             data: documents};
-    // },
-    // emails: function(ro, response) { 
-    //     c.group('normalize.emails');
-    //     var emails = [],
-    //         status = response.status;
-            
-    //     if (response) {
-    //         emails = response.data.email;
-            
-    //         if (Object.prototype.toString.call( emails ) != '[object Array]') {
-    //             if (emails.owner) {
-    //                 emails.ownerName = emails.owner.name;
-    //                 delete emails.owner;
-    //             }
-    //             emails = [emails];
-    //         }
-    //         c.log('email', emails);
-            
-    //         ro.response.data = $.merge(ro.response.data, emails);
-            
-    //         c.groupEnd();
-    //     }
-    //     return {status: status,
-    //             data: emails};
-    // },
     groups: function(ro, response) { 
         c.group('normalize.groups');
         var groups = [],
@@ -1639,53 +1447,6 @@ var normalize = {
         return {status: status,
                 data: groups};
     },
-    // groups: function(ro, response) { 
-    //     c.group('normalize.groups');
-    //     var groups = [],
-    //         status = response.status;
-            
-    //     if (response) {
-    //         groups = response.data.group;
-            
-    //         if (Object.prototype.toString.call( groups ) != '[object Array]') {
-    //             if (groups.owner) {
-    //                 groups.ownerName = groups.owner.name;
-    //                 delete groups.owner;
-    //             }
-    //             groups = [groups];
-    //         }
-    //         c.log('groups', groups);
-            
-    //         ro.response.data = $.merge(ro.response.data, groups);
-            
-    //         c.groupEnd();
-    //     }
-    //     return {status: status,
-    //             data: groups};
-    // },
-    // incidents: function(ro, response) { 
-    //     c.group('normalize.incidents');
-    //     var incidents = [],
-    //         status = response.status;
-                
-    //     if (response) {
-    //         incidents = response.data.incident;
-            
-    //         if (Object.prototype.toString.call( incidents ) != '[object Array]') {
-    //             if (incidents.owner) {
-    //                 incidents.ownerName = incidents.owner.name;
-    //                 delete incidents.owner;
-    //             }
-    //             incidents = [incidents];
-    //         }
-            
-    //         ro.response.data = $.merge(ro.response.data, incidents);
-            
-    //         c.groupEnd();
-    //     }
-    //     return {status: status,
-    //             data: incidents};
-    // },
     indicators: function(ro, response) { 
         c.group('normalize.indicators');
         var indicators,
@@ -1747,65 +1508,6 @@ var normalize = {
         return {data: indicators,
                 status: status};
     },
-    // indicators2: function(ro, response) { 
-    //     c.group('normalize.indicators');
-    //     var indicators,
-    //         indicatorsData,
-    //         indicatorTypeData,
-    //         status = response.status;
-        
-    //     if (ro._type) {
-    //         // indicatorTypeData = indicatorType(ro._type.charAt(0));
-    //         indicatorTypeData = ro._type,
-    //         response = response.data[ro._type.dataField];
-    //         if (!response.length) {
-    //             response = [response];
-    //         }
-    //     } else {
-    //         response = response.data.indicator;
-    //     }
-        
-    //     indicators = [];
-    //     $.each( response, function( rkey, rvalue ) {
-    //         // c.log('rvalue', rvalue);
-    //         if ('type' in rvalue) {
-    //             indicatorTypeData = indicatorHelper(rvalue.type.charAt(0).toLowerCase());
-    //         }
-            
-    //         indicatorsData = {};
-    //         $.each( indicatorTypeData.indicatorFields, function( ikey, ivalue ) {
-    //             // change summary to proper field value
-    //             // handle different types of hash
-                
-    //             // BCS FIX THIS FOR FILE HASHES
-    //             if ('summary' in rvalue) {
-    //                 indicatorsData[ivalue] = rvalue['summary'];
-    //             } else {
-    //                 indicatorsData[ivalue] = rvalue[ivalue];
-    //             }
-    //             // indicator: indicator.summary || indicator.ip || indicator.address
-    //         });
-            
-    //         indicators.push({
-    //             id: rvalue.id,
-    //             indicators: indicatorsData,
-    //             dateAdded: rvalue.dateAdded,
-    //             lastModified: rvalue.lastModified,
-    //             ownerName: rvalue.ownerName || rvalue.owner.name,
-    //             rating: rvalue.rating,
-    //             confidence: rvalue.confidence,
-    //             type: indicatorTypeData.type,
-    //             threatAssessRating: rvalue.threatAssessRating,
-    //             threatAssessConfidence: rvalue.threatAssessConfidence,
-    //             webLink: rvalue.webLink,
-    //         });
-    //     });
-    //     ro.response.data = $.merge(ro.response.data, indicators);
-        
-    //     c.groupEnd();
-    //     return {data: indicators,
-    //             status: status};
-    // },
     owners: function(ro, response) { 
         c.group('normalize.owners');
         var owners = [],
