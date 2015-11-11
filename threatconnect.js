@@ -133,15 +133,17 @@ function RequestObject(params) {
     this._error = undefined,
     this._headers = {},
     this._helper = false,
-    this._limit = undefined,
+    this._limit = 1000000,
     this._normalizer = normalize.default,
     this._owner = undefined,
     this._pagination = undefined,
     this._pathUrl = undefined,
-    this._payload = {},
+    this._payload = {
+        resultLimit: 500,
+    },
     this._remaining = 0,
     this._requestUri = undefined,
-    this._resultLimit = 200,
+    this._resultLimit = 500,
     this._resultStart = 0,
     this._type = undefined,
     this.response = {
@@ -155,6 +157,7 @@ function RequestObject(params) {
     };
 
     this.payload = function(key, val) {
+        // TODO: validate supported parameters
         this._payload[key] = val;
         return this;
     };
@@ -273,7 +276,7 @@ function RequestObject(params) {
     
     this.resultLimit = function(data) {
         if (rangeCheck('resultLimit', data, 1, 500)) {
-            if (data > this._limit) {
+            if (this._limit > 500) {
                 this.payload('resultLimit', data);
                 this._resultLimit = data;
             }
@@ -281,9 +284,10 @@ function RequestObject(params) {
         return this;
     };
     
-    this.resultStart = function(start) {
-        this.payload('resultStart', start);
-        this._resultStart = start;
+    this.resultStart = function(data) {
+        c.log('resultStart', data);
+        this.payload('resultStart', data);
+        this._resultStart = data;
         return this;
     };
     
@@ -370,7 +374,7 @@ function ThreatConnect(params) {
         return $.ajax(defaults)
             // .always(function (response) {
             .done(function (response) {
-                c.log('response', response);
+                c.log('done response', response);
                 var upload_pattern = /upload/;
                 
                 if (ro._helper === false) {
