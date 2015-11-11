@@ -147,6 +147,8 @@ function RequestObject(params) {
     this._resultStart = 0,
     this._type = undefined,
     this.response = {
+        apiCalls: 0,
+        batchId: undefined,
         body: undefined,
         data: [],
         error: undefined,
@@ -178,6 +180,11 @@ function RequestObject(params) {
         if (boolCheck('async', data)) {
             this._async = data;
         }
+        return this;
+    };
+    
+    this.batchId = function(data) {
+        this.response.batchId = data;
         return this;
     };
     
@@ -302,7 +309,6 @@ function RequestObject(params) {
 
 function ThreatConnect(params) {
     if (!!(params.apiId && params.apiKey && params.apiUrl) && !!(params.apiToken && params.apiUrl)) { return false; }
-    c.log('ThreatConnect', params);
     
     this.apiId = params.apiId;
     this.apiSec = params.apiSec;
@@ -376,6 +382,9 @@ function ThreatConnect(params) {
             .done(function (response) {
                 c.log('done response', response);
                 var upload_pattern = /upload/;
+                
+                // increment api call count
+                ro.response.apiCalls++;
                 
                 if (ro._helper === false) {
                     ro._done(response);
@@ -457,9 +466,14 @@ function ThreatConnect(params) {
             };
                 
             ajaxRequests.push($.ajax(defaults).done(function(response) {
-                // callback for paginated results
+                // increment api call count
+                ro.response.apiCalls++;
+                
                 if (typeof ro._pagination === 'function') {
+                    // callback for paginated results
                     ro._pagination(ro._normalizer(ro, response));
+                } else {
+                    ro._normalizer(ro, response);
                 }
             }));
             ro.resultStart(ro._resultStart + ro._resultLimit)
@@ -481,25 +495,29 @@ function ThreatConnect(params) {
         c.groupEnd();
     };
     
-    this.adversaries = function() {
-        return new Adversaries(this);
-    };
+    // this.adversaries = function() {
+    //     return new Adversaries(this);
+    // };
     
-    this.documents = function() {
-        return new Documents(this);
-    };
+    // this.documents = function() {
+    //     return new Documents(this);
+    // };
     
-    this.emails = function() {
-        return new Emails(this);
+    // this.emails = function() {
+    //     return new Emails(this);
+    // };
+    
+    this.batch = function() {
+        return new Batch(this);
     };
     
     this.groups = function() {
         return new Groups(this);
     };
     
-    this.incidents = function() {
-        return new Incidents(this);
-    };
+    // this.incidents = function() {
+    //     return new Incidents(this);
+    // };
     
     this.indicators = function() {
         return new Indicators(this);
@@ -907,6 +925,102 @@ function Groups(threatconnect) {
     return this;
 }
 
+function Batch(threatconnect) {
+    c.group('Batch');
+    ThreatConnect.call(this, threatconnect);
+    
+    this.settings = {
+        api: {
+            activityLog: false,             // false|true
+            limit: undefined,
+            requestUri: 'v2/batch'
+        },
+        callbacks: {
+            done: undefined,
+            error: undefined,
+            pagination: undefined,
+        },
+    },
+    this.rData = {
+        optionalData: {},
+        requiredData: {},
+        specificData: {},
+    };
+    
+    this.id = function(data) {
+        if (intCheck('id', data)) {
+            this.rData.requiredData.id = data;
+            this.settings.api.requestUri = this.settings.api.requestUri + '/' + data;
+        }
+        return this;
+    };
+    
+    //
+    // Settings Callbacks
+    //
+    this.done = function(data) {
+        if (functionCheck('done', data)) {
+            this.settings.callbacks.done = data;
+        }
+        return this;
+    };
+    
+    this.error = function(data) {
+        if (functionCheck('error', data)) {
+            this.settings.callbacks.error = data;
+        }
+        return this;
+    };
+    
+    this.pagination = function(data) {
+        if (functionCheck('pagination', data)) {
+            this.settings.callbacks.pagination = data;
+        }
+        return this;
+    };
+    
+    //
+    // Retrieve Group
+    //
+    this.retrieve = function() {
+        
+        var ro = new RequestObject();
+        ro.helper(true)
+            .done(this.settings.callbacks.done)
+            .error(this.settings.callbacks.error)
+            .normalization(normalize.default)
+            .requestUri(this.settings.api.requestUri)
+            .requestMethod('GET');
+        c.log('ro', ro);
+     
+        this.apiRequest(ro);
+        
+        return this;
+    };
+    
+    //
+    // Retrieve Group
+    //
+    this.errors = function() {
+        this.settings.api.requestUri =  this.settings.api.requestUri + '/errors';
+        
+        var ro = new RequestObject();
+        ro.helper(true)
+            .done(this.settings.callbacks.done)
+            .error(this.settings.callbacks.error)
+            .normalization(normalize.default)
+            .requestUri(this.settings.api.requestUri)
+            .requestMethod('GET');
+        c.log('ro', ro);
+     
+        this.apiRequest(ro);
+        
+        return this;
+    };
+    
+    return this;
+}
+
 //
 // Indicators
 //
@@ -945,6 +1059,9 @@ function Indicators(threatconnect) {
             Host: {},
             URL: {}
         },
+    },
+    this.response = {
+        batchId: undefined
     };
     
     //
@@ -1199,7 +1316,9 @@ function Indicators(threatconnect) {
             
             this.apiRequest(ro)
                 .done(function(prom) {
+                    _this.response.batchId = prom.data.batchId;
                     ro.activityLog(_this.settings.api.activityLog)
+                        .batchId(prom.data.batchId)
                         .body(_this.batchBody)
                         .contentType('application/octet-stream')
                         .done(_this.settings.callbacks.done)
@@ -1225,6 +1344,8 @@ function Indicators(threatconnect) {
         } else {
             console.error('Commit Failure: batch owner and indicators are required.');
         } 
+        
+        return this;
     };
     
     this.getData = function(params) {
@@ -1275,6 +1396,8 @@ function Indicators(threatconnect) {
         this.settings.callbacks.done = undefined;
         this.settings.callbacks.pagination = undefined;
         this.settings.callbacks.error = undefined;
+        
+        return this;
     };
     
     c.groupEnd();
@@ -1356,6 +1479,8 @@ function Owners(threatconnect) {
         c.log('ro', ro);
      
         this.apiRequest(ro);
+        
+        return this;
     };
     
     this.getData = function(params) {
