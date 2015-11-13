@@ -137,9 +137,29 @@
                     <div class="tab-content">
                         
                         <div id="Adversary-table-tab" class="tab-pane fade in active">
+                            <!--
+                                   
+                                   data-card-view="true"
+                                   data-page-list="[10, 25, 50, 100, ALL]"
+                                   data-show-pagination-switch="true"
+                                   
+                                   // broke
+                                   data-show-footer="true"
+                                   
+                                   
+                                   // ??
+                                   data-side-pagination="server"
+                                   data-detail-formatter="groupData"
+                                   
+                            -->
                             <table id="Adversary-table"
                                    data-cache="false"
+                                   
+                                   data-detail-view="true"
+                                   data-minimum-count-columns="2"
+                                   
                                    data-height="543"
+                                   data-id-field="id"
                                    data-search="true"
                                    data-striped="true"
                                    data-select-item-name="toolbar1"
@@ -147,6 +167,7 @@
                                    data-toolbar="#Adversary-toolbar"
                                    data-pagination="true"
                                    data-show-columns="true"
+                                   data-show-export="true"
                                    data-show-refresh="false"
                                    data-show-toggle="true"
                                    data-sort-name="id"
@@ -864,6 +885,7 @@
         }
         
     var tc = new ThreatConnect(apiSettings);
+    var tmp;
     
     //turn to inline mode
     // $.fn.editable.defaults.mode = 'inline';
@@ -1286,7 +1308,7 @@
                 }
             })
             .error(function(response) {
-                var message =  'Adversary failed to committed. (' + response.error + ').';
+                var message =  'Adversary failed to commit (' + response.error + ').';
                 statusAlert('danger', message);
             })
             .pagination(function(response) {
@@ -1319,7 +1341,7 @@
                 }
             })
             .error(function(response) {
-                message =  'Document failed to committed. (' + response.error + ').';
+                message =  'Document failed to commit. (' + response.error + ').';
                 statusAlert('danger', message);
             })
             .pagination(function(response) {
@@ -1359,7 +1381,7 @@
                 }
             })
             .error(function(response) {
-                message =  'Email failed to committed. (' + response.error + ').';
+                message =  'Email failed to commit. (' + response.error + ').';
                 statusAlert('danger', message);
             })
             .pagination(function(response) {
@@ -1387,7 +1409,7 @@
                 }
             })
             .error(function(response) {
-                var message =  'Incident failed to committed. (' + response.error + ').';
+                var message =  'Incident failed to commit. (' + response.error + ').';
                 statusAlert('danger', message);
             })
             .pagination(function(response) {
@@ -1410,7 +1432,8 @@
             .attributeWriteType('Append')  // Append|Replace
             .haltOnError(false)
             .done(function(response) {
-                if (response.status === "Success") {
+                c.log('commit response', response);
+                if (response.status === "Completed") {
                     message =  'Indicator ' + indicator + ' was successfully committed.';
                     statusAlert('success', message);
                     increaseCount('Indicator');
@@ -1421,18 +1444,21 @@
             })
             .error(function(response) {
                 c.log('error');
-                message =  'Indicator failed to committed. (' + response.error + ').';
+                message =  'Indicator failed to commit. (' + response.error + ').';
                 statusAlert('danger', message);
             })
-            // bcs
             .indicator(indicator)
             .type(TYPE[indicatorType])
-            // .indicator('1.2.3.8')
-            // .type(TYPE.ADDRESS)
             .attributes([{type: 'Description', value: 'JS SDK Test'}])
             .tags(['JavaScript', 'SDK'])
             .add()
+            // bcs
+            // .indicator('1.5.8.3')
+            // .type(TYPE.ADDRESS)
+            // .attributes([{type: 'Description1', value: 'JS SDK Test'}])
+            // .add()
             .commit();
+            
         $('#Indicator-modal').modal('hide');
     };
     
@@ -1684,6 +1710,7 @@
                 setCount('Adversary', response.resultCount);
                 tableActions('Adversary');
                 enableForm('Adversary');
+                detailView();
             })
             .error(function(response) {
                 var message =  'Adversary Retrieval failed. (' + response + ').';
@@ -1809,29 +1836,31 @@
     
     var retrieveIndicator = function() {
         c.log('retrieve indicator');
-            tc.indicators()
-                .owner($('#Owner-select :selected').text())
-                .resultLimit(500)
-                .pagination(function(response) {
-                    if (response.data.length > 0) {
-                        $('#Indicator-table').bootstrapTable('append', response.data);
-                    }
-                })
-                .done(function(response) {
-                    $('#Indicator-content').text(JSON.stringify(response, null, 4));
-                    $('#Indicator-table').bootstrapTable('refreshOptions', {
-                        sortName: 'id',
-                        sortOrder: 'asc',
-                        data: response.data
-                    });
-                    setCount('Indicator', response.resultCount);
-                })
-                .error(function(response) {
-                    var message =  'Indicator Retrieval failed. (' + response.error + ').';
-                    statusAlert('danger', message);
-                })
-                .retrieve();
-                // .retrieve({type: TYPE.FILE});
+        tc.indicators()
+            // .type(TYPE.ADDRESS)
+            // .indicator('37.220.10.138')
+            .owner($('#Owner-select :selected').text())
+            .resultLimit(200)
+            .pagination(function(response) {
+                if (response.data.length > 0) {
+                    $('#Indicator-table').bootstrapTable('append', response.data);
+                }
+            })
+            .done(function(response) {
+                c.log('response', response);
+                $('#Indicator-content').text(JSON.stringify(response, null, 4));
+                $('#Indicator-table').bootstrapTable('refreshOptions', {
+                    sortName: 'id',
+                    sortOrder: 'asc',
+                    data: response.data
+                });
+                setCount('Indicator', response.resultCount);
+            })
+            .error(function(response) {
+                var message =  'Indicator Retrieval failed. (' + response.error + ').';
+                statusAlert('danger', message);
+            })
+            .retrieve();
     };
     
     var retrieveOwner = function() {
@@ -1885,8 +1914,13 @@
             .id(params.id)
             .resultLimit(500)
             .done(function(response) {
-                c.log('attribute retrieve done', response);
-                $('#Attribute-content').text(JSON.stringify(response, null, 4));
+                var attrib,
+                    panel = $('#attribute-panel-' + params.id);
+                    
+                for (attrib in response.data) {
+                    panel.append('<p></p>')
+                        .text(response.data[attrib].type + ' : ' + response.data[attrib].value);
+                }
             })
             .error(function(response) {
                 var message = 'Attribute Retrieval failed. (' + response + ').';
@@ -1906,8 +1940,15 @@
             .id(params.id)
             .resultLimit(500)
             .done(function(response) {
-                c.log('tag retrieve done', response);
-                $('#Tag-content').text(JSON.stringify(response, null, 4));
+                var tag,
+                    panel = $('#tag-panel-' + params.id);
+                    
+                for (tag in response.data) {
+                    panel.append('<h3></h3>')
+                        .append($('<span></span>')
+                            .addClass('label label-default')
+                            .text(response.data[tag].name));
+                }
             })
             .error(function(response) {
                 var message =  'Tag Retrieval failed. (' + response + ').';
@@ -2091,6 +2132,47 @@
             .text(name);
         return iSpan[0].outerHTML;
     };
+    
+    var detailView = function() {
+        $('a.detail-icon').on('click', function(e) {
+            // event.preventDefault();
+            var detail = $(this);
+            // bcs if this
+            $($(e)[0].toElement).hasClass('icon-minus');
+            c.log('detail', detail);
+            tmp = $(e);
+            // tmp = $(this);
+            var idIndex = $(detail.closest('table')).find('[data-field="id"]').index();
+            var id = $($(detail.closest('tr')).find('td')[idIndex]).text();
+            var detailViewTd = detail.closest('tr').next().find('td');
+            
+            detailViewTd.append(
+                $('<div></div>')
+                .append($('<div></div>').addClass('panel panel-primary')
+                    .append($('<div>Attributes</div>').addClass('panel-heading'))
+                    .append($('<div></div>')
+                        .addClass('panel panel-body')
+                        .attr('id', 'attribute-panel-' + id))
+                    .append($('<div>Tags</div>').addClass('panel-heading'))
+                    .append($('<div></div>')
+                        .addClass('panel panel-body')
+                        .attr('id', 'tag-panel-' + id))));
+                
+            retrieveAttributes({
+                groupType: TYPE.ADVERSARY,
+                id: id 
+            });
+            
+            retrieveTags({
+                groupType: TYPE.ADVERSARY,
+                id: id 
+            });
+            
+            
+            
+        });
+    };
+    
     // var tableForm = function(table) {
     //     c.log('tableForm', table);
                     

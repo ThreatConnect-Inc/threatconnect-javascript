@@ -148,7 +148,6 @@ function RequestObject(params) {
     this._type = undefined,
     this.response = {
         apiCalls: 0,
-        batchId: undefined,
         body: undefined,
         data: [],
         error: undefined,
@@ -183,11 +182,6 @@ function RequestObject(params) {
         return this;
     };
     
-    this.batchId = function(data) {
-        this.response.batchId = data;
-        return this;
-    };
-    
     this.body = function(data) {
         this.response.body = JSON.stringify(data);
         if (data.id) {
@@ -202,15 +196,15 @@ function RequestObject(params) {
     };
     
     this.done = function(data) {
-        if (functionCheck('done', data)) {
-            this._done = data;
+        if (data) {
+            if (functionCheck('done', data)) { this._done = data; }
         }
         return this;
     };
     
     this.error = function(data) {
-        if (functionCheck('error', data)) {
-            this._error = data;
+        if (data) {
+            if (functionCheck('error', data)) { this._error = data; }
         }
         return this;
     };
@@ -387,7 +381,7 @@ function ThreatConnect(params) {
                 ro.response.apiCalls++;
                 
                 if (ro._helper === false) {
-                    ro._done(response);
+                    if (ro._done) { ro._done(ro.response); }
                     return;
                 }
                 
@@ -414,12 +408,12 @@ function ThreatConnect(params) {
                         _this.apiRequestPagination(ro);
                     } else {
                         // callback for done
-                        ro._done(ro.response);
+                        if (ro._done) { ro._done(ro.response); }
                     }
                 } else if (upload_pattern.test(ro._requestUri)) {
-                    ro._done(ro.response);
+                    if (ro._done) { ro._done(ro.response); }
                 } else if (ro.response.requestMethod === 'DELETE') {
-                    ro._done(ro.response);
+                    if (ro._done) { ro._done(ro.response); }
                 }
             })
             .fail(function (response) {
@@ -489,7 +483,7 @@ function ThreatConnect(params) {
             if (ro._remaining > 0 && ro._limit > ro.response.data.length) {
                 _this.apiRequestPagination(ro);
             } else {
-                ro._done(ro.response);
+                if (ro._done) { ro._done(ro.response); }
             }
         });
         c.groupEnd();
@@ -507,8 +501,8 @@ function ThreatConnect(params) {
     //     return new Emails(this);
     // };
     
-    this.batch = function() {
-        return new Batch(this);
+    this.attributes = function() {
+        return new Attributes(this);
     };
     
     this.groups = function() {
@@ -525,6 +519,10 @@ function ThreatConnect(params) {
     
     this.owners = function() {
         return new Owners(this);
+    };
+    
+    this.tags = function() {
+        return new Tags(this);
     };
 }
 
@@ -571,6 +569,11 @@ function Groups(threatconnect) {
         return this;
     };
     
+    this.id = function(data) {
+        this.settings.api.requestUriId = data;
+        return this;
+    };
+    
     this.resultLimit = function(data) {
         if (rangeCheck('resultLimit', data, 1, 500)) {
             this.settings.api.resultLimit = data;
@@ -610,10 +613,6 @@ function Groups(threatconnect) {
     //
     // Group Data - Required
     //
-    this.id = function(data) {
-        this.settings.api.requestUriId = data;
-        return this;
-    };
     
     this.name = function(data) {
         this.rData.requiredData.name = data;
@@ -925,102 +924,6 @@ function Groups(threatconnect) {
     return this;
 }
 
-function Batch(threatconnect) {
-    c.group('Batch');
-    ThreatConnect.call(this, threatconnect);
-    
-    this.settings = {
-        api: {
-            activityLog: false,             // false|true
-            limit: undefined,
-            requestUri: 'v2/batch'
-        },
-        callbacks: {
-            done: undefined,
-            error: undefined,
-            pagination: undefined,
-        },
-    },
-    this.rData = {
-        optionalData: {},
-        requiredData: {},
-        specificData: {},
-    };
-    
-    this.id = function(data) {
-        if (intCheck('id', data)) {
-            this.rData.requiredData.id = data;
-            this.settings.api.requestUri = this.settings.api.requestUri + '/' + data;
-        }
-        return this;
-    };
-    
-    //
-    // Settings Callbacks
-    //
-    this.done = function(data) {
-        if (functionCheck('done', data)) {
-            this.settings.callbacks.done = data;
-        }
-        return this;
-    };
-    
-    this.error = function(data) {
-        if (functionCheck('error', data)) {
-            this.settings.callbacks.error = data;
-        }
-        return this;
-    };
-    
-    this.pagination = function(data) {
-        if (functionCheck('pagination', data)) {
-            this.settings.callbacks.pagination = data;
-        }
-        return this;
-    };
-    
-    //
-    // Retrieve Group
-    //
-    this.retrieve = function() {
-        
-        var ro = new RequestObject();
-        ro.helper(true)
-            .done(this.settings.callbacks.done)
-            .error(this.settings.callbacks.error)
-            .normalization(normalize.default)
-            .requestUri(this.settings.api.requestUri)
-            .requestMethod('GET');
-        c.log('ro', ro);
-     
-        this.apiRequest(ro);
-        
-        return this;
-    };
-    
-    //
-    // Retrieve Group
-    //
-    this.errors = function() {
-        this.settings.api.requestUri =  this.settings.api.requestUri + '/errors';
-        
-        var ro = new RequestObject();
-        ro.helper(true)
-            .done(this.settings.callbacks.done)
-            .error(this.settings.callbacks.error)
-            .normalization(normalize.default)
-            .requestUri(this.settings.api.requestUri)
-            .requestMethod('GET');
-        c.log('ro', ro);
-     
-        this.apiRequest(ro);
-        
-        return this;
-    };
-    
-    return this;
-}
-
 //
 // Indicators
 //
@@ -1033,15 +936,22 @@ function Indicators(threatconnect) {
         api: {
             activityLog: false,             // false|true
             limit: undefined,
-            // method: 'POST',
-            // requestUri: 'v2/batch',
+            requestUriId: undefined,
             resultLimit: 500,
+            owner: undefined,               // set twice due to batch
+            type: undefined                 // type constant
         },
         batch: {
             action: 'Create',               // Create|Delete
             attributeWriteType: 'Append',   // Append|Replace
             haltOnError: false,             // false|true
             owner: undefined,
+        },
+        status: {
+            frequency: 1000,                // default: 1 second start
+            timeout: 300000,                // default: 5 minutes
+            multiplier: 2,                  // default: 2
+            maxFrequency: 30000,            // deafult: 30 seconds
         },
         callbacks: {
             done: undefined,
@@ -1059,9 +969,6 @@ function Indicators(threatconnect) {
             Host: {},
             URL: {}
         },
-    },
-    this.response = {
-        batchId: undefined
     };
     
     //
@@ -1113,7 +1020,8 @@ function Indicators(threatconnect) {
     };
      
     this.owner = function(data) {
-        this.settings.batch.owner = data;
+        this.settings.api.owner = data;  // set for retrieve
+        this.settings.batch.owner = data;  // set for commit
         return this;
     };
     
@@ -1151,6 +1059,7 @@ function Indicators(threatconnect) {
     
     this.type = function(data) {
         if (data.type && data.uri) {
+            this.settings.api.type = data;
             this.iData.requiredData.type = data.type;
         }
         return this;
@@ -1235,7 +1144,7 @@ function Indicators(threatconnect) {
     // Indicator Data - File Specific
     //
     
-    this.descrition = function(data) {
+    this.description = function(data) {
         this.iData.specificData.File.description = data;
         return this;
     };
@@ -1295,47 +1204,90 @@ function Indicators(threatconnect) {
     // Indicator Commit to API
     this.commit = function() {
         var _this = this,
-            message,
-            ro = new RequestObject();
+            message;
         
         // validate required fields
         if (this.settings.batch.owner && this.batchBody.length != 0) {
+            c.log('this.settings.batch', JSON.stringify(this.settings.batch, null, 4));
             
             /* create job */ 
-            ro.activityLog(this.settings.api.activityLog)
+            var ro = new RequestObject();
+            ro.helper(true)
+                .activityLog(this.settings.api.activityLog)
                 .async(false)
                 .body(this.settings.batch)
-                .done(this.settings.callbacks.done)
                 .error(this.settings.callbacks.error)
-                .helper(true)
                 .normalization(normalize.default)
                 .requestUri('v2/batch')
                 .requestMethod('POST');
-            c.log('this.settings.batch', JSON.stringify(this.settings.batch, null, 4));
-            // c.log('ro', JSON.stringify(ro, null, 4));
-            
+                
+            // create job
             this.apiRequest(ro)
-                .done(function(prom) {
-                    _this.response.batchId = prom.data.batchId;
-                    ro.activityLog(_this.settings.api.activityLog)
-                        .batchId(prom.data.batchId)
+                .done(function(jobResponse) {
+                    _this.batchId = jobResponse.data.batchId;
+                    var ro = new RequestObject();
+                    ro.helper(true)
+                        .activityLog(_this.settings.api.activityLog)
+                        .async(false)
                         .body(_this.batchBody)
                         .contentType('application/octet-stream')
-                        .done(_this.settings.callbacks.done)
                         .error(_this.settings.callbacks.error)
-                        .helper(true)
                         .normalization(normalize.default)
-                        .requestUri('v2/batch/' + prom.data.batchId)
+                        .requestUri('v2/batch/' + jobResponse.data.batchId)
                         .requestMethod('POST');
-                    c.log('_this.batchBody', JSON.stringify(_this.batchBody, null, 4));
-                    c.log('done ro', ro);
-                    _this.apiRequest(ro);
-                    
-                    // reset
-                    // _this.batchBody = [];
-                    // _this.iData.optionalData = {};
-                    // _this.iData.requiredData = {};
-                    // _this.iData.specificData = {};
+                        
+                    // post data
+                    _this.apiRequest(ro)
+                        .done(function(dataResponse) {
+                            var ro = new RequestObject();
+                            ro.helper(true)
+                                .activityLog(_this.settings.api.activityLog)
+                                .async(false)
+                                .error(_this.settings.callbacks.error)
+                                .normalization(normalize.default)
+                                .requestUri('v2/batch/' + _this.batchId)
+                                .requestMethod('GET');
+                            var checkStatus = function() {
+                                setTimeout(function() {
+                                    console.log('status.frequency', _this.settings.status.frequency);
+                                    console.log('status.timeout', _this.settings.status.timeout);
+                                    
+                                    // check status
+                                    _this.apiRequest(ro)
+                                        .done(function(statusResponse) {
+                                            if (statusResponse.data.batchStatus.status == 'Completed') {
+                                                statusResponse.data.batchStatus.data = _this.batchBody;
+                                                if (statusResponse.data.batchStatus.errorCount > 0) {
+                                                    var ro = new RequestObject();
+                                                    ro.helper(true)
+                                                        .activityLog(_this.settings.api.activityLog)
+                                                        .async(false)
+                                                        .normalization(normalize.default)
+                                                        .requestUri('v2/batch/' + _this.batchId + '/errors')
+                                                        .requestMethod('GET');
+                                                        
+                                                        // get errors
+                                                        _this.apiRequest(ro)
+                                                            .done(function(errorResponse) {
+                                                                statusResponse.data.batchStatus.errors = errorResponse
+                                                                _this.settings.callbacks.done(statusResponse.data.batchStatus);
+                                                            });
+                                                } else {
+                                                    _this.settings.callbacks.done(statusResponse.data.batchStatus);
+                                                }
+                                            } else if (_this.settings.status.timeout <= 0) {
+                                                _this.settings.callbacks.error({
+                                                     error: 'Status check reach timeout value.'
+                                                });
+                                            } else {
+                                                checkStatus();
+                                            }
+                                        });
+                                }, _this.settings.status.frequency);
+                                _this.updateFrequency(_this.settings.status);
+                            };
+                            checkStatus();
+                        });
                 })
                 .fail(function() {
                     message = {error: 'Failed to configure indicator job.'};
@@ -1348,47 +1300,39 @@ function Indicators(threatconnect) {
         return this;
     };
     
-    this.getData = function(params) {
-        return this.batchBody;
-    };
+    // this.getData = function(params) {
+    //     return this.batchBody;
+    // };
     
-    this.retrieve = function(params) {
+    this.retrieve = function() {
         var requestUri = 'v2/indicators',
-            method = 'GET',
-            ro = new RequestObject(),
-            type = undefined;
+            method = 'GET';
         
-        if (params) {
-            if (params.type) {
-                type = params.type;
-                if (params.type.type && params.type.uri) {
-                    requestUri = [requestUri, params.type.uri].join('/');
-         
-                    if (params.indicator) {
-                        requestUri = [requestUri, params.indicator].join('/');
-                    }
-                }
+        if (this.settings.api.type) {
+            requestUri += '/' + this.settings.api.type.uri;
+            if (this.iData.requiredData.summary) {
+                requestUri += '/' + this.iData.requiredData.summary;
             }
         }
      
-        ro.owner(this.settings.batch.owner)  // bcs make this consistent batch vs data
-            // .activityLog(this.settings.api.activityLog)
+        var ro = new RequestObject();
+        ro.helper(true)
             .done(this.settings.callbacks.done)
             .error(this.settings.callbacks.error)
-            .helper(true)
             .limit(this.settings.api.limit)
             .normalization(normalize.indicators)
+            .owner(this.settings.api.owner)
             .pagination(this.settings.callbacks.pagination)
-            .requestUri(requestUri)
             .requestMethod(method)
+            .requestUri(requestUri)
             .resultLimit(this.settings.api.resultLimit)
-            .type(type);
+            .type(this.settings.api.type);
         c.log('ro', ro);
      
         this.apiRequest(ro);
         
         // reset
-        this.batchBody = [];
+        // this.batchBody = [];
         this.iData.optionalData = {};
         this.iData.requiredData = {};
         this.iData.specificData = {};
@@ -1400,6 +1344,15 @@ function Indicators(threatconnect) {
         return this;
     };
     
+    this.updateFrequency = function(params) {
+        if ((params.frequency * params.multiplier) < params.maxFrequency) {
+            params.frequency = params.frequency * params.multiplier;
+        } else {
+            params.frequency = params.maxFrequency;
+        }
+        params.timeout -= params.frequency;
+    };
+    
     c.groupEnd();
     return this;
 }
@@ -1408,7 +1361,6 @@ Indicators.prototype = Object.create(ThreatConnect.prototype);
 //
 // Owners
 //
-
 function Owners(threatconnect) {
     c.group('Owners');
     ThreatConnect.call(this, threatconnect);
@@ -1438,28 +1390,31 @@ function Owners(threatconnect) {
         }
         return this;
     };
- 
+    
     //
     // Settings Callbacks
     //
     this.done = function(data) {
-        if (typeof data === 'function') {
+        if (functionCheck('done', data)) {
             this.settings.callbacks.done = data;
-        } else {
-            c.error('Callback "done()" must be a function.');
         }
         return this;
     };
     
     this.error = function(data) {
-        if (typeof data === 'function') {
+        if (functionCheck('error', data)) {
             this.settings.callbacks.error = data;
-        } else {
-            c.error('Callback "error()" must be a function.');
         }
         return this;
     };
     
+    // this.pagination = function(data) {
+    //     if (functionCheck('pagination', data)) {
+    //         this.settings.callbacks.pagination = data;
+    //     }
+    //     return this;
+    // };
+ 
     //
     // Retrieve Group
     //
@@ -1483,14 +1438,200 @@ function Owners(threatconnect) {
         return this;
     };
     
-    this.getData = function(params) {
-        return this.rData.requiredData;
-    };
- 
     c.groupEnd();
     return this;
 }
 Owners.prototype = Object.create(ThreatConnect.prototype);
+
+//
+// Tags
+//
+function Tags(threatconnect) {
+    c.group('Tags');
+    ThreatConnect.call(this, threatconnect);
+    
+    var ro = new RequestObject();
+    this.settings = {
+        api: {
+            activityLog: false,             // false|true
+            owner: undefined,
+            resultLimit: 500,
+            requestUri: '/v2/tags'
+        },
+        callbacks: {
+            done: undefined,
+            error: undefined,
+            pagination: undefined,
+        },
+    },
+    this.rData = {
+        optionalData: {},
+    };
+ 
+    //
+    // Settings API
+    //
+    this.resultLimit = function(data) {
+        if (0 > data <= 500) {
+            this.settings.api.resultLimit = data;
+        } else {
+            console.warn('Invalid Result Count (' + data + ').');
+        }
+        return this;
+    };
+ 
+    this.owner = function(data) {
+        this.settings.api.owner = data;
+        return this;
+    };
+    
+    //
+    // Settings Callbacks
+    //
+    this.done = function(data) {
+        if (functionCheck('done', data)) {
+            this.settings.callbacks.done = data;
+        }
+        return this;
+    };
+    
+    this.error = function(data) {
+        if (functionCheck('error', data)) {
+            this.settings.callbacks.error = data;
+        }
+        return this;
+    };
+    
+    this.pagination = function(data) {
+        if (functionCheck('pagination', data)) {
+            this.settings.callbacks.pagination = data;
+        }
+        return this;
+    };
+ 
+    //
+    // Retrieve Group
+    //
+    this.retrieve = function(params) {
+        if (params) {
+            if (params.id) {
+                this.settings.api.requestUri = this.settings.api.requestUri + '/' + params.id; 
+            }
+        }
+        ro.helper(true)
+            .done(this.settings.callbacks.done)
+            .error(this.settings.callbacks.error)
+            .normalization(normalize.tags)
+            .owner(this.settings.api.owner)
+            .pagination(this.settings.callbacks.pagination)
+            .requestUri(this.settings.api.requestUri)
+            .requestMethod('GET');
+        c.log('ro', ro);
+     
+        this.apiRequest(ro);
+        
+        return this;
+    };
+    
+    c.groupEnd();
+    return this;
+}
+Tags.prototype = Object.create(ThreatConnect.prototype);
+
+//
+// Attributes
+//
+function Attributes(threatconnect) {
+    c.group('Attributes');
+    ThreatConnect.call(this, threatconnect);
+    
+    var ro = new RequestObject();
+    this.settings = {
+        api: {
+            activityLog: false,             // false|true
+            owner: undefined,
+            resultLimit: 500,
+            requestUri: '/v2/attributes'
+        },
+        callbacks: {
+            done: undefined,
+            error: undefined,
+            pagination: undefined,
+        },
+    },
+    this.rData = {
+        optionalData: {},
+    };
+ 
+    //
+    // Settings API
+    //
+    this.resultLimit = function(data) {
+        if (0 > data <= 500) {
+            this.settings.api.resultLimit = data;
+        } else {
+            console.warn('Invalid Result Count (' + data + ').');
+        }
+        return this;
+    };
+ 
+    this.owner = function(data) {
+        this.settings.api.owner = data;
+        return this;
+    };
+    
+    //
+    // Settings Callbacks
+    //
+    this.done = function(data) {
+        if (functionCheck('done', data)) {
+            this.settings.callbacks.done = data;
+        }
+        return this;
+    };
+    
+    this.error = function(data) {
+        if (functionCheck('error', data)) {
+            this.settings.callbacks.error = data;
+        }
+        return this;
+    };
+    
+    this.pagination = function(data) {
+        if (functionCheck('pagination', data)) {
+            this.settings.callbacks.pagination = data;
+        }
+        return this;
+    };
+ 
+    //
+    // Retrieve Group
+    //
+    this.retrieve = function(params) {
+        if (params) {
+            if (params.id) {
+                this.settings.api.requestUri = this.settings.api.requestUri + '/' + params.id; 
+            }
+        }
+        ro.helper(true)
+            .done(this.settings.callbacks.done)
+            .error(this.settings.callbacks.error)
+            .normalization(normalize.attributes)
+            .owner(this.settings.api.owner)
+            .pagination(this.settings.callbacks.pagination)
+            .requestUri(this.settings.api.requestUri)
+            .requestMethod('GET');
+        c.log('ro', ro);
+     
+        this.apiRequest(ro);
+        
+        return this;
+    };
+    
+    c.groupEnd();
+    return this;
+}
+Attributes.prototype = Object.create(ThreatConnect.prototype);
 
 
 //
@@ -1668,7 +1809,7 @@ var normalize = {
             }
         } else {
             response = response.data.indicator;
-        }
+       }
         
         indicators = [];
         $.each( response, function( rkey, rvalue ) {
