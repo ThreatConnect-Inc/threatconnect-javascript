@@ -12,11 +12,13 @@
  =============================================================================
 */
 
-/* global CryptoJS */
+/* global CryptoJS, TYPE */
 
-var c = console;
+var c = console,
+    ct = console.table;
 
-const TYPE = {
+// const TYPE = {  // ECMASCRIPT6 support only
+TYPE = {
     ADDRESS: {
         'dataField': 'address',
         'postField': 'ip',
@@ -124,7 +126,7 @@ function getParameterFromUri(name, uri) {
 }
 
 function RequestObject(params) {
-    c.group('RequestObject');
+    c.groupCollapsed('RequestObject');
 
     // this.id = uuid.v4();
     this._async = true,
@@ -286,7 +288,6 @@ function RequestObject(params) {
     };
     
     this.resultStart = function(data) {
-        c.log('resultStart', data);
         this.payload('resultStart', data);
         this._resultStart = data;
         return this;
@@ -312,7 +313,7 @@ function ThreatConnect(params) {
     this.concurrentCalls = (params.concurrentCalls ? params.concurrentCalls : 10);
     
     this.apiHmacRequestHeader = function (ro) {
-        c.log('using HMAC');
+        // c.log('using HMAC');
         this._getTimestamp = function() {
             var date = new Date().getTime();
             return Math.floor(date / 1000);
@@ -328,7 +329,7 @@ function ThreatConnect(params) {
     };
     
     this.apiTokenRequestHeader = function (ro) {
-        c.log('using Token');
+        // c.log('using Token');
         ro.addHeader('authorization', "TC-Token " + this.apiToken);
     };
     
@@ -343,6 +344,8 @@ function ThreatConnect(params) {
     
     this.apiRequest = function(ro) {
         c.group('apiRequest');
+        c.log('ro', ro);
+        
         var _this = this,
             url = this.apiRequestUrl(this.apiUrl, ro._requestUri, ro._payload);
             
@@ -366,22 +369,23 @@ function ThreatConnect(params) {
             method: ro.response.requestMethod,
             contentType: ro._contentType,
         };
-        c.log('url.href', url.href);
-        c.log('defaults', defaults);
+        // c.log('url.href', url.href);
+        // c.log('defaults', defaults);
         
         c.groupEnd();
         // make first api call
         return $.ajax(defaults)
             // .always(function (response) {
             .done(function (response) {
-                c.log('done response', response);
+                c.log('response', response);
                 var upload_pattern = /upload/;
                 
                 // increment api call count
                 ro.response.apiCalls++;
                 
                 if (ro._helper === false) {
-                    if (ro._done) { ro._done(ro.response); }
+                    // if (ro._done) { ro._done(ro.response); }
+                    if (ro._done) { ro._done(response); }
                     return;
                 }
                 
@@ -533,6 +537,8 @@ function Groups(threatconnect) {
     this.settings = {
         api: {
             activityLog: false,             // false|true
+            async: true,
+            limit: undefined,
             normalizer: normalize.groups,
             requestUri: 'v2',
             requestUriType: 'groups',
@@ -569,6 +575,20 @@ function Groups(threatconnect) {
         return this;
     };
     
+    this.async = function(data) {
+        if (boolCheck('async', data)) {
+            this.settings.api.async = data;
+        }
+        return this;
+    };
+    
+    this.limit = function(data) {
+        if (intCheck('limit', data)) {
+            this.settings.api.limit = data;
+        }
+        return this;
+    };
+    
     this.id = function(data) {
         this.settings.api.requestUriId = data;
         return this;
@@ -586,6 +606,12 @@ function Groups(threatconnect) {
         return this;
     };
  
+    this.type = function(data) {
+        this.settings.api.requestUriType = data.uri;
+        this.settings.api.type = data;
+        return this;
+    };
+    
     //
     // Settings Callbacks
     //
@@ -638,12 +664,6 @@ function Groups(threatconnect) {
                 this.rData.optionalData.tag.push({name: data[tag]});
             }
         }
-        return this;
-    };
-    
-    this.type = function(data) {
-        this.settings.api.requestUriType = data.uri;
-        this.settings.api.type = data;
         return this;
     };
     
@@ -792,6 +812,7 @@ function Groups(threatconnect) {
             this.settings.api.requestUriType,
             this.settings.api.requestUriId
         ].join('/');
+        c.log('requestUri', requestUri);
             
         var ro = new RequestObject();
         ro.owner(this.settings.api.owner)
@@ -799,6 +820,7 @@ function Groups(threatconnect) {
             .done(this.settings.callbacks.done)
             .error(this.settings.callbacks.error)
             .helper(true)
+            .limit(this.settings.api.limit)
             .normalization(this.settings.api.normalizer)
             .pagination(this.settings.callbacks.pagination)
             .requestUri(requestUri)
@@ -916,10 +938,6 @@ function Groups(threatconnect) {
         this.apiRequest(ro);
     };
     
-    // this.getData = function(params) {
-    //     return this.rData.requiredData;
-    // };
- 
     c.groupEnd();
     return this;
 }
@@ -1269,7 +1287,7 @@ function Indicators(threatconnect) {
                                                         // get errors
                                                         _this.apiRequest(ro)
                                                             .done(function(errorResponse) {
-                                                                statusResponse.data.batchStatus.errors = errorResponse
+                                                                statusResponse.data.batchStatus.errors = JSON.parse(errorResponse);
                                                                 _this.settings.callbacks.done(statusResponse.data.batchStatus);
                                                             });
                                                 } else {
@@ -1344,6 +1362,79 @@ function Indicators(threatconnect) {
         return this;
     };
     
+    this.retrieveAssociations = function(params) {
+        // /v2/indicators/<indicator type>/<value>/groups
+        
+        c.log('params', params);
+        var normalizer,
+            requestUri = 'v2/indicators',
+            method = 'GET';
+            
+        if (params.type.type) {
+            if (params.type.type == 'Group') {
+                normalizer = normalize.groups;
+            } else if (params.type.type == 'Indicator') {
+                normalizer = normalize.indicators;
+            }
+        }
+        
+        var requestUri = [
+            requestUri,
+            this.settings.api.type.uri,
+            this.iData.requiredData.summary,
+            params.type.uri
+        ].join('/');
+        c.log('requestUri', requestUri);
+        return;
+        
+        if (this.settings.api.type) {
+            requestUri += '/' + this.settings.api.type.uri;
+            if (this.iData.requiredData.summary) {
+                requestUri += '/' + this.iData.requiredData.summary;
+            }
+        }
+     
+        var ro = new RequestObject();
+        ro.helper(true)
+            .done(this.settings.callbacks.done)
+            .error(this.settings.callbacks.error)
+            .limit(this.settings.api.limit)
+            .normalization(normalizer)
+            .owner(this.settings.api.owner)
+            .pagination(this.settings.callbacks.pagination)
+            .requestMethod(method)
+            .requestUri(requestUri)
+            .resultLimit(this.settings.api.resultLimit)
+            .type(this.settings.api.type);
+        c.log('ro', ro);
+     
+        this.apiRequest(ro);
+        
+        // clear
+        // this.init();
+        
+        return this;
+    };
+    
+    this.init = function() {
+        this.batchBody = [];
+        this.iData = {
+            optionalData: {},
+            requiredData: {},
+            specificData: {
+                Address: {},
+                EmailAddress: {},
+                File: {},
+                Host: {},
+                URL: {}
+            },
+        };
+        
+        this.settings.callbacks.done = undefined;
+        this.settings.callbacks.pagination = undefined;
+        this.settings.callbacks.error = undefined;
+    };
+    
     this.updateFrequency = function(params) {
         if ((params.frequency * params.multiplier) < params.maxFrequency) {
             params.frequency = params.frequency * params.multiplier;
@@ -1368,7 +1459,8 @@ function Owners(threatconnect) {
     var ro = new RequestObject();
     this.settings = {
         api: {
-            activityLog: false,             // false|true
+            async: true,
+            requestUri: 'v2/owners',
             resultLimit: 500
         },
         callbacks: {
@@ -1382,11 +1474,17 @@ function Owners(threatconnect) {
     };
  
     //
+    // Settings API
+    //
+    this.async = function(data) {
+        if (boolCheck('async', data)) { this.settings.api.aysnc = data; }
+        return this;
+    };
+    
+    
     this.resultLimit = function(data) {
-        if (0 > data <= 500) {
+        if (rangeCheck('resultLimit', data, 1, 500)) {
             this.settings.api.resultLimit = data;
-        } else {
-            console.warn('Invalid Result Count (' + data + ').');
         }
         return this;
     };
@@ -1424,15 +1522,13 @@ function Owners(threatconnect) {
                 this.settings.api.requestUri = this.settings.api.requestUri + '/' + params.id; 
             }
         }
-        ro.done(this.settings.callbacks.done)
+        ro.helper(true)
+            .async(this.settings.api.async)
+            .done(this.settings.callbacks.done)
             .error(this.settings.callbacks.error)
-            .helper(true)
             .normalization(normalize.owners)
-            // .pagination(this.settings.callbacks.pagination)
-            .requestUri('v2/owners')
+            .requestUri(this.settings.api.requestUri)
             .requestMethod('GET');
-        c.log('ro', ro);
-     
         this.apiRequest(ro);
         
         return this;
