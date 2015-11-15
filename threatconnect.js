@@ -18,13 +18,13 @@ var c = console,
     ct = console.table;
 
 // const TYPE = {  // ECMASCRIPT6 support only
-TYPE = {
+var TYPE = {
     ADDRESS: {
         'dataField': 'address',
         'postField': 'ip',
         'indicatorFields': ['ip'],
         'type': 'Address',
-        'uri': 'addresses',
+        'uri': 'indicators/addresses',
     },
     ADVERSARY: {
         'dataField': 'adversary',
@@ -46,14 +46,14 @@ TYPE = {
         'postField': 'address',
         'indicatorFields': ['address'],
         'type': 'EmailAddress',
-        'uri': 'emailAddresses',
+        'uri': 'indicators/emailAddresses',
     },
     FILE: {
         'dataField': 'file',
         'postField': '',
         'indicatorFields': ['md5', 'sha1', 'sha256'],
         'type': 'File',
-        'uri': 'files',
+        'uri': 'indicators/files',
     },
     GROUP: {
         'dataField': 'group',
@@ -65,7 +65,7 @@ TYPE = {
         'postField': 'hostName',
         'indicatorFields': ['hostName'],
         'type': 'Host',
-        'uri': 'hosts',
+        'uri': 'indicators/hosts',
     },
     INCIDENT: {
         'dataField': 'incident',
@@ -92,7 +92,7 @@ TYPE = {
         'postField': 'text',
         'indicatorFields': ['text'],
         'type': 'URL',
-        'uri': 'urls',
+        'uri': 'indicators/urls',
     }
 };
 
@@ -840,11 +840,15 @@ function Groups(threatconnect) {
         c.log('params', params);
         var normalizer;
         if (params.type.type) {
-            if (params.type.type == 'Group') {
-                normalizer = normalize.groups;
-            } else if (params.type.type == 'Indicator') {
-                normalizer = normalize.indicators;
-            }
+
+            normalizer = normalize.find(params.type.type);
+            /*
+             if (params.type.type == 'Group') {
+             normalizer = normalize.groups;
+             } else if (params.type.type == 'Indicator') {
+             normalizer = normalize.indicators;
+             }
+             */
         }
         
         var requestUri = [
@@ -1371,11 +1375,14 @@ function Indicators(threatconnect) {
             method = 'GET';
             
         if (params.type.type) {
+            normalizer = normalize.find(params.type.type);
+            /*
             if (params.type.type == 'Group') {
                 normalizer = normalize.groups;
             } else if (params.type.type == 'Indicator') {
                 normalizer = normalize.indicators;
             }
+            */
         }
         
         var requestUri = [
@@ -1910,6 +1917,10 @@ var normalize = {
         indicators = [];
         $.each( response, function( rkey, rvalue ) {
             // c.log('rvalue', rvalue);
+            if ( rvalue && rvalue.length == 0 ) {
+                return;
+            }
+
             if ('type' in rvalue) {
                 indicatorTypeData = indicatorHelper(rvalue.type.charAt(0).toLowerCase());
             }
@@ -1929,7 +1940,7 @@ var normalize = {
                 }
                 // indicator: indicator.summary || indicator.ip || indicator.address
             });
-            
+
             indicators.push({
                 id: rvalue.id,
                 indicators: indicatorsData.join(' : '),
@@ -1996,6 +2007,27 @@ var normalize = {
         ro.response.data = $.merge(ro.response.data, response);
         c.groupEnd();
         return response;
+    },
+    find: function(type) {
+
+        switch (type) {
+            case TYPE.GROUP.type:
+            case TYPE.ADVERSARY.type:
+            case TYPE.EMAIL.type:
+            case TYPE.INCIDENT.type:
+            case TYPE.SIGNATURE.type:
+            case TYPE.THREAT.type:
+                return this.groups;
+
+            case TYPE.INDICATOR.type:
+            case TYPE.ADDRESS.type:
+            case TYPE.EMAIL_ADDRESS.type:
+            case TYPE.FILE.type:
+            case TYPE.HOST.type:
+            case TYPE.URL.type:
+                return this.indicators;
+                break;
+        }
     }
 };
 
