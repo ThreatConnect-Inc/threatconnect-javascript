@@ -961,7 +961,7 @@ function Indicators(threatconnect) {
             requestUriId: undefined,
             resultLimit: 500,
             owner: undefined,               // set twice due to batch
-            type: undefined                 // type constant
+            type: TYPE.INDICATOR            // type constant
         },
         batch: {
             action: 'Create',               // Create|Delete
@@ -1327,7 +1327,7 @@ function Indicators(threatconnect) {
     // };
     
     this.retrieve = function() {
-        var requestUri = 'v2/indicators',
+        var requestUri = 'v2',
             method = 'GET';
         
         if (this.settings.api.type) {
@@ -2026,7 +2026,8 @@ var normalize = {
             case TYPE.HOST.type:
             case TYPE.URL.type:
                 return this.indicators;
-                break;
+            default:
+                c.warn('Invalid type provided.');
         }
     }
 };
@@ -2083,5 +2084,13 @@ var valueCheck = function(name, value, array) {
         return true;
     }
     c.warn(name + ' must be of value (.' + array.join(',') + ').');
+    return false;
+};
+
+var requiredCheck = function(name, data) {
+    if (data[name]) {
+        return true;
+    }
+    c.warn(name + ' paramater is required.');
     return false;
 };

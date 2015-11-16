@@ -900,7 +900,8 @@
     var apiSettings,
         c = console;
         // spaces mode if spaceElementId defined
-        var tcSpaceElementId = getParameterByName('tcSpaceElementId');
+        var tcSpaceElementId = getParameterByName('tcSpaceElementId'),
+            geoIpUri = 'https://geoip.sumx.us/geoip';
         if ( tcSpaceElementId ) {
             apiSettings = {
                 apiToken: getParameterByName('tcToken'),
@@ -1047,7 +1048,7 @@
                 for (data in response.data) {
                     if (response.data[data].type == 'Address') {
                         var ip = response.data[data].indicators,
-                            geoIpUrl =  'https://www.telize.com/geoip/' + ip + '?callback=?';
+                            geoIpUrl =  geoIpUrl + '/' + ip + '?callback=?';
                         
 	                    $.getJSON(geoIpUrl, function() {
 	                        console.log("success");
@@ -1122,7 +1123,7 @@
                     
                     for (data in response.data) {
                         var ip = response.data[data].indicators;
-                        geoIpUrl =  'https://www.telize.com/geoip/' + ip + '?callback=?';
+                        geoIpUrl =  geoIpUrl + '/' + ip + '?callback=?';
                         
 	                    $.getJSON(geoIpUrl, function() {
 	                        console.log("success");
