@@ -1333,10 +1333,14 @@ function Indicators(threatconnect) {
         if (this.settings.api.type) {
             requestUri += '/' + this.settings.api.type.uri;
             if (this.iData.requiredData.summary) {
-                requestUri += '/' + this.iData.requiredData.summary;
+                var indicator = this.iData.requiredData.summary;
+                if (this.settings.api.type == 'URL') {
+                    indicator = encodeURIComponent(indicator);
+                }
+                requestUri += '/' + indicator;
             }
         }
-     
+
         var ro = new RequestObject();
         ro.helper(true)
             .done(this.settings.callbacks.done)
