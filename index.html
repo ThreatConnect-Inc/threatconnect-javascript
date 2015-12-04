@@ -13,9 +13,12 @@
 <!-- Bootstrap -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.9.1/bootstrap-table.min.css">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+
+<!-- Bootstrap Table -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.9.1/bootstrap-table.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.9.1/bootstrap-table.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.9.1/extensions/editable/bootstrap-table-editable.min.js"></script>
 
 <!-- X-Editable -->
 <link href="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet"/>
@@ -181,7 +184,7 @@
                                     <tr>
                                         <th data-field="state" data-checkbox="true">Item ID</th>
                                         <th data-field="id" data-align="right" data-sortable="true">ID</th>
-                                        <th data-field="name" data-align="center" data-sortable="true">Name</th>
+                                        <th data-field="name" data-align="center" data-sortable="true" data-editable="true">Name</th>
                                         <th data-field="ownerName" data-align="center">Owner</th>
                                         <th data-field="dateAdded" data-align="center">Date Added</th>
                                         <th data-field="webLink" data-align="center">Web Link</th>
@@ -196,7 +199,7 @@
                             <button type="button" class="btn btn-default" id="Adversary-clear">Clear</button>
                             <button type="button" class="btn btn-default" id="Adversary-refresh">Refresh</button>
                             <button type="button" class="btn btn-default" data-toggle="modal" data-target="#Group-Association-modal">Group Associations</button>
-                            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#Indicator-Association-modal">Indicator Associations</button>
+                            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#Group-Association-modal">Indicator Associations</button>
                             <!--
                             <button type="button" class="btn btn-default" data-toggle="modal" data-target="#Attribute-modal">Attributes</button>
                             <button type="button" class="btn btn-default" data-toggle="modal" data-target="#Tag-modal">Tags</button>
@@ -243,13 +246,13 @@
                                     <tr>
                                         <th data-field="state" data-checkbox="true">Item ID</th>
                                         <th data-field="id" data-align="right" data-sortable="true">ID</th>
-                                        <th data-field="name" data-align="center" data-sortable="true">Name</th>
+                                        <th data-field="name" data-align="center" data-sortable="true" data-editable="true">Name</th>
                                         <th data-field="ownerName" data-align="center">Owner</th>
                                         <th data-field="dateAdded" data-align="center">Date Added</th>
                                         <th data-field="webLink" data-align="center">Web Link</th>
                                     </tr>
                                 </thead>
-                                <input type="file" class="hide" id="Document-file"></input>
+                                <input type="file" class="hide" id="Document-file"/>
                             </table>
                         </div>
         
@@ -303,13 +306,13 @@
                                     <tr>
                                         <th data-field="state" data-checkbox="true">Item ID</th>
                                         <th data-field="id" data-align="right" data-sortable="true">ID</th>
-                                        <th data-field="name" data-align="center" data-sortable="true">Name</th>
+                                        <th data-field="name" data-align="center" data-sortable="true" data-editable="true">Name</th>
                                         <th data-field="ownerName" data-align="center">Owner</th>
                                         <th data-field="dateAdded" data-align="center">Date Added</th>
                                         <th data-field="webLink" data-align="center">Web Link</th>
                                     </tr>
                                 </thead>
-                                <input type="file" class="hide" id="Email-file"></input>
+                                <input type="file" class="hide" id="Email-file"/>
                             </table>
                         </div>
         
@@ -422,7 +425,7 @@
                                     <tr>
                                         <th data-field="state" data-checkbox="true">Item ID</th>
                                         <th data-field="id" data-align="right" data-sortable="true">ID</th>
-                                        <th data-field="name" data-align="center" data-sortable="true">Name</th>
+                                        <th data-field="name" data-align="center" data-sortable="true" data-editable="true">Name</th>
                                         <th data-field="ownerName" data-align="center">Owner</th>
                                         <th data-field="dateAdded" data-align="center">Date Added</th>
                                         <th data-field="webLink" data-align="center">Web Link</th>
@@ -876,49 +879,38 @@
     display: block;
 }
 
-/*html, body*/
-/*{*/
-/*    height: 100%;*/
-/*}*/
-/*.fill*/
-/*{*/
-/*    min-height: 90%;*/
-/*    height: 90%;*/
-/*    width: 100%;*/
-/*    min-width: 100%;*/
-/*}*/
-
 .label-as-badge {
     border-radius: 1em;
 }
-    
 </style>
 
 <script>
     /* global c3, getParameterByName, getParameterFromUri, L, map, RequestObject, ThreatConnect, TYPE */
     
     var apiSettings,
-        c = console;
-        // spaces mode if spaceElementId defined
-        var tcSpaceElementId = getParameterByName('tcSpaceElementId'),
-            geoIpUri = 'https://geoip.sumx.us/geoip';
-        if ( tcSpaceElementId ) {
-            apiSettings = {
-                apiToken: getParameterByName('tcToken'),
-                apiUrl: getParameterByName('tcApiPath')
-            };
-        } else {
-            apiSettings = {
-                apiId: '80139273637620589570',
-                apiSec: 'TCpl5xUATf6Hw$kP8KUajwX?0H8BmqeqnimIB7q95df8Eay?%LkLsEQ0eFT1nXQw',
-                apiUrl: 'https://ti.sumx.us/api'
-            };
-            // apiSettings = {
-            //     apiId: '36096177525557134167',
-            //     apiSec: 'rh!57`d]!X+Hk*P]K#Dm9@LsCz}nSPz&88c(=Rka4Dc*oiqJKh3eTq*%?G]H)JjR',
-            //     apiUrl: 'https://ti.sumx.us/api'
-            // };
-        }
+        c = console,
+        groupMap = undefined,
+        map = undefined,
+        tcSpaceElementId = getParameterByName('tcSpaceElementId'), // spaces mode if spaceElementId defined
+        geoIpUrl = 'https://geoip.sumx.us/geoip';
+
+    if ( tcSpaceElementId ) {
+        apiSettings = {
+            apiToken: getParameterByName('tcToken'),
+            apiUrl: getParameterByName('tcApiPath')
+        };
+    } else {
+        apiSettings = {
+            apiId: '80139273637620589570',
+            apiSec: 'TCpl5xUATf6Hw$kP8KUajwX?0H8BmqeqnimIB7q95df8Eay?%LkLsEQ0eFT1nXQw',
+            apiUrl: 'https://ti.sumx.us/api'
+        };
+        // apiSettings = {
+        //     apiId: '36096177525557134167',
+        //     apiSec: 'rh!57`d]!X+Hk*P]K#Dm9@LsCz}nSPz&88c(=Rka4Dc*oiqJKh3eTq*%?G]H)JjR',
+        //     apiUrl: 'https://ti.sumx.us/api'
+        // };
+    }
         
     var tc = new ThreatConnect(apiSettings);
     
@@ -967,7 +959,7 @@
         var modalId = $(this).attr('id');
         if (modalId === 'Group-map-modal') {
             groupMap.remove();
-        } else if (modalId === 'Association-modal') {
+        } else if (modalId === 'Group-Association-modal') {
             
         } else {
             $(this).find('form')[0].reset();
@@ -984,13 +976,13 @@
         if (modalId === 'Group-Association-modal') {
             retrieveGroupAssociations({
                 groupType: TYPE.ADVERSARY,
-                type: TYPE.GROUP,
+                associationType: TYPE.GROUP,
                 id: selections[0].id
             });
         } else if (modalId === 'Indicator-Association-modal') {
             retrieveGroupAssociations({
                 groupType: TYPE.ADVERSARY,
-                type: TYPE.INDICATOR,
+                associationType: TYPE.INDICATOR,
                 id: selections[0].id
             });
         } else if (modalId === 'Attribute-modal') {
@@ -1098,94 +1090,104 @@
         if ($(this).attr('href') === '#Home') {
             // do nothing for now
         } else if ($(this).attr('href') === '#Adversary-pane') {
-            retrieveAdversary();
+            // retrieveAdversary();
+            retrieveGroup(TYPE.ADVERSARY);
         } else if ($(this).attr('href') === '#Document-pane') {
-            retrieveDocument();
+            // retrieveDocument();
+            retrieveGroup(TYPE.DOCUMENT);
         } else if ($(this).attr('href') === '#Email-pane') {
-            retrieveEmail();
+            // retrieveEmail();
+            retrieveGroup(TYPE.EMAIL);
         } else if ($(this).attr('href') === '#Group-pane') {
-            retrieveGroup();
+            // retrieveGroup();
+            retrieveGroup(TYPE.GROUP);
         } else if ($(this).attr('href') === '#Incident-pane') {
-            retrieveIncident();
+            // retrieveIncident();
+            retrieveGroup(TYPE.INCIDENT);
         } else if ($(this).attr('href') === '#Indicator-pane') {
             retrieveIndicator();
             map = createMap('map');
         } else if ($(this).attr('href') === '#map-tab') {
-            var data, geoIpUrl;
+            var data;
             map.invalidateSize(false);
-            
-            // load ip points on map
-            tc.indicators()
-                .owner($('#Owner-select :selected').text())
-                .type(TYPE.ADDRESS)
-                .resultLimit(500)
-                .pagination(function(response) {
-                    
-                    for (data in response.data) {
-                        var ip = response.data[data].indicators;
-                        geoIpUrl =  geoIpUrl + '/' + ip + '?callback=?';
-                        
-	                    $.getJSON(geoIpUrl, function() {
-	                        console.log("success");
-	                    })
-	                    .always(function(data) {
-	                        console.log("complete", data);
-	                        if (data.latitude && data.longitude) {
-	                            L.marker([data.latitude, data.longitude]).addTo(map)
+
+            var indicators = tc.indicators();
+            indicators.owner($('#Owner-select :selected').text())
+                    .type(TYPE.ADDRESS)
+                    .resultLimit(500)
+                    .done(function(response) {
+                        for (data in response.data) {
+                            var ip = response.data[data].indicators;
+                            // geoIpUrl =  geoIpUrl + '/' + ip + '?callback=?';
+                            // c.log('geoIpUrl', geoIpUrl);
+
+                            $.getJSON(geoIpUrl + '/' + ip + '?callback=?', function() {
+                                    console.log("success");
+                            })
+                            .always(function(data) {
+                                console.log("complete", data);
+                                if (data.latitude && data.longitude) {
+                                    L.marker([data.latitude, data.longitude])
+                                    .addTo(map)
                                     .bindPopup(data.ip)
                                     .openPopup();
-                            }
-	                    });
-                    }
-                })
-                .done(function(response) {
-                })
-                .error(function(response) {
-                    var message =  'Incident Retrieval failed. (' + response + ').';
-                    statusAlert('danger', message);
-                })
-                .retrieve();
-            
-            // load host points on map
-            tc.indicators()
-                .owner($('#Owner-select :selected').text())
-                .type(TYPE.HOST)
-                .resultLimit(500)
-                .pagination(function(response) {
-                    
-                    for (data in response.data) {
-                        var host = response.data[data].indicators;
-                        geoIpUrl =  'https://freegeoip.net/json/' + host + '?callback=';
-                        
-	                    $.getJSON(geoIpUrl, function() {
-	                        console.log("success");
-	                    })
-	                    .always(function(data) {
-	                        console.log("complete", data);
-	                        console.log("complete", data.longitude);
-	                        console.log("complete", data.latitude);
-	                        L.marker([data.latitude, data.longitude]).addTo(map)
-                                .bindPopup(data.ip)
-                                .openPopup();
+                                }
+                            });
+                        }
+                    })
+                    .error(function(response) {
+                        var message =  'Indicator Retrieval failed. (' + response.error + ').';
+                        statusAlert('danger', message);
+                    });
 
-	                    });
-                    }
-                })
-                .done(function(response) {
-                })
-                .error(function(response) {
-                    var message =  'Incident Retrieval failed. (' + response + ').';
-                    statusAlert('danger', message);
-                })
-                .retrieve();
+            indicators.retrieve(function() {
+                while(indicators.hasNext()) {
+                    indicators.next();
+                }
+            });
+
+            var indicators = tc.indicators();
+            indicators.owner($('#Owner-select :selected').text())
+                    .type(TYPE.HOST)
+                    .resultLimit(500)
+                    .done(function(response) {
+                        for (data in response.data) {
+                            var host = response.data[data].indicators;
+                            geoIpUrl =  'https://freegeoip.net/json/' + host + '?callback=';
+
+                            $.getJSON(geoIpUrl, function() {
+                                        console.log("success");
+                            })
+                            .always(function(data) {
+                                console.log("complete", data);
+                                if (data.latitude && data.longitude) {
+                                    L.marker([data.latitude, data.longitude])
+                                    .addTo(map)
+                                    .bindPopup(data.ip)
+                                    .openPopup();
+                                }
+                            });
+                        }
+                    })
+                    .error(function(response) {
+                        var message =  'Indicator Retrieval failed. (' + response.error + ').';
+                        statusAlert('danger', message);
+                    });
+
+            indicators.retrieve(function() {
+                while(indicators.hasNext()) {
+                    indicators.next();
+                }
+            });
+
         } else if ($(this).attr('href') === '#Owner-pane') {
             retrieveOwner();
         }
         return false;
     });
-    
+
     // adversary
-    $('#Adversary-clear').click(function(e) {
+    $('#Adversary-clear').click(function() {
         c.log('clearing adversary table');
         $('#Adversary-table').bootstrapTable('removeAll');
     });
@@ -1193,7 +1195,7 @@
     $('#Adversary-commit').click(function(e){
         c.log('commiting adversary');
         // e.stopPropagation();
-        commitAdversary();
+        commitGroup({type: TYPE.ADVERSARY});
         return false;
     });
     
@@ -1205,18 +1207,20 @@
     $('#Adversary-refresh').click(function(e){
         c.log('refreshing adversaries');
         $('#Adversary-table').bootstrapTable('removeAll');
-        retrieveAdversary();
+        // retrieveAdversary();
+        retrieveGroup(TYPE.ADVERSARY)
     });
     
     // document
-    $('#Document-clear').click(function(e){
+    $('#Document-clear').click(function(){
         c.log('clearing document table');
         $('#Document-table').bootstrapTable('removeAll');
     });
     
     $('#Document-commit').click(function(e){
         c.log('commiting Document');
-        commitDocument();
+        // commitDocument();
+        commitGroup({type: TYPE.DOCUMENT});
         return false;
     });
     
@@ -1228,18 +1232,19 @@
     $('#Document-refresh').click(function(e){
         c.log('refreshing Documents');
         $('#Document-table').bootstrapTable('removeAll');
-        retrieveDocument();
+        // retrieveDocument();
+        retrieveGroup(TYPE.DOCUMENT)
     });
     
     // email
-    $('#Email-clear').click(function(e){
+    $('#Email-clear').click(function(){
         c.log('clearing email table');
         $('#Email-table').bootstrapTable('removeAll');
     });
     
     $('#Email-commit').click(function(e){
         c.log('commiting email');
-        commitEmail();
+        commitGroup({type: TYPE.EMAIL});
         return false;
     });
     
@@ -1251,11 +1256,12 @@
     $('#Email-refresh').click(function(e){
         c.log('refreshing emails');
         $('#Email-table').bootstrapTable('removeAll');
-        retrieveEmail();
+        // retrieveEmail();
+        retrieveGroup(TYPE.EMAIL);
     });
     
     // group
-    $('#Group-clear').click(function(e){
+    $('#Group-clear').click(function(){
         c.log('clearing group table');
         $('#Group-table').bootstrapTable('removeAll');
     });
@@ -1263,18 +1269,19 @@
     $('#Group-refresh').click(function(e){
         c.log('refreshing groups');
         $('#Group-table').bootstrapTable('removeAll');
-        retrieveGroup();
+        retrieveGroup(TYPE.GROUP);
     });
     
     // incident
-    $('#Incident-clear').click(function(e){
+    $('#Incident-clear').click(function(){
         c.log('clearing incident table');
         $('#Incident-table').bootstrapTable('removeAll');
     });
     
     $('#Incident-commit').click(function(e){
         c.log('commiting incidents');
-        commitIncident();
+        // commitIncident();
+        commitGroup({type: TYPE.INCIDENT});
         return false;
     });
     
@@ -1286,11 +1293,12 @@
     $('#Incident-refresh').click(function(e){
         c.log('refreshing incidents');
         $('#Incident-table').bootstrapTable('removeAll');
-        retrieveIncident();
+        // retrieveIncident();
+        retrieveGroup(TYPE.INCIDENT);
     });
     
     // indicator
-    $('#Indicator-clear').click(function(e){
+    $('#Indicator-clear').click(function(){
         c.log('clearing indicator table');
         $('#Indicator-table').bootstrapTable('removeAll');
     });
@@ -1313,7 +1321,7 @@
     });
     
     // owner
-    $('#Owner-clear').click(function(e){
+    $('#Owner-clear').click(function(){
         c.log('clearing owner table');
         $('#Owner-table').bootstrapTable('removeAll');
     });
@@ -1327,134 +1335,192 @@
     //
     // Commit
     //
-    var commitAdversary = function() {
-        var message,
-            name = $('#Adversary-name').val();
-        
-        tc.groups()
-            .owner($('#Owner-select :selected').text())
-            .type(TYPE.ADVERSARY)
+    var commitGroup = function(params) {
+        var groups = tc.groups(),
+            groupType = params.type.type,
+            name = $('#' + groupType + '-name').val();
+
+        groups.owner($('#Owner-select :selected').text())
+            .type(params.type)
             .name(name)
             .done(function(response) {
                 if (response.status === "Success") {
-                    message =  'Adversary ' + name + ' was successfully committed.';
+                    message =  groupType + ' ' + name + ' was successfully committed.';
                     statusAlert('success', message);
-                    increaseCount('Adversary');
+                    increaseCount(groupType);
+
+                    if (response.data.length > 0) {
+                        c.log('done response', response);
+                        $('#' + groupType + '-table').bootstrapTable('append', response.data);
+                    }
                 }
             })
             .error(function(response) {
-                var message =  'Adversary failed to commit (' + response.error + ').';
+                var message =  groupType + ' failed to commit (' + response.error + ').';
                 statusAlert('danger', message);
-            })
-            .pagination(function(response) {
-                if (response.data.length > 0) {
-                    c.log('pagination response', response);
-                    $('#Adversary-table').bootstrapTable('append', response.data);
-                }
-            })
-            .commit();
-        $('#Adversary-modal').modal('hide');
+            });
+
+        if (params.id) {
+            groups.id(paramas.id);
+        }
+
+        // bcs
+        switch (params.type.type) {
+            case TYPE.ADVERSARY.type:
+                break;
+            case TYPE.DOCUMENT.type:
+                groups.fileName($('#file-name').val())
+                    .fileSize($('#file-size').val());
+                break;
+            case TYPE.EMAIL.type:
+                groups.emailBody($('#Email-body').val())
+                    .emailFrom($('#Email-from').val())
+                    .emailHeader($('#Email-header').val())
+                    .emailScore($('#Email-score').val())
+                    .emailSubject($('#Email-subject').val())
+                    .emailTo($('#Email-to').val());
+                break;
+            case TYPE.INCIDENT.type:
+                break;
+            case TYPE.SIGNATURE.type:
+                break;
+            case TYPE.THREAT.type:
+                break;
+            default:
+                c.warn('Invalid type provided.', params.type);
+        }
+        groups.commit();
+        $('#' + groupType + '-modal').modal('hide');
     };
+
+//    var commitAdversary = function() {
+//        var message,
+//            name = $('#Adversary-name').val();
+//
+//        tc.groups()
+//            .owner($('#Owner-select :selected').text())
+//            .type(TYPE.ADVERSARY)
+//            .name(name)
+//            .done(function(response) {
+//                if (response.status === "Success") {
+//                    message =  'Adversary ' + name + ' was successfully committed.';
+//                    statusAlert('success', message);
+//                    increaseCount('Adversary');
+//                }
+//            })
+//            .error(function(response) {
+//                var message =  'Adversary failed to commit (' + response.error + ').';
+//                statusAlert('danger', message);
+//            })
+//            .pagination(function(response) {
+//                if (response.data.length > 0) {
+//                    c.log('pagination response', response);
+//                    $('#Adversary-table').bootstrapTable('append', response.data);
+//                }
+//            })
+//            .commit();
+//        $('#Adversary-modal').modal('hide');
+//    };
     
-    var commitDocument = function() {
-        var message,
-            name = $('#Document-name').val(),
-            fileName = $('#file-name').val(),
-            fileSize = $('#file-size').val();
-        
-        tc.groups()
-            .owner($('#Owner-select :selected').text())
-            .type(TYPE.DOCUMENT)
-            .name(name)
-            .fileName(fileName)
-            .fileSize(fileSize)
-            .done(function(response) {
-                if (response.status === "Success") {
-                    message =  'Document ' + name + ' was successfully committed.';
-                    statusAlert('success', message);
-                    increaseCount('Document');
-                }
-            })
-            .error(function(response) {
-                message =  'Document failed to commit. (' + response.error + ').';
-                statusAlert('danger', message);
-            })
-            .pagination(function(response) {
-                if (response.data.length > 0) {
-                    $('#Document-table').bootstrapTable('append', response.data);
-                }
-            })
-            .commit();
-        $('#Document-modal').modal('hide');
-    };
+//    var commitDocument = function() {
+//        var message,
+//            name = $('#Document-name').val(),
+//            fileName = $('#file-name').val(),
+//            fileSize = $('#file-size').val();
+//
+//        tc.groups()
+//            .owner($('#Owner-select :selected').text())
+//            .type(TYPE.DOCUMENT)
+//            .name(name)
+//            .fileName(fileName)
+//            .fileSize(fileSize)
+//            .done(function(response) {
+//                if (response.status === "Success") {
+//                    message =  'Document ' + name + ' was successfully committed.';
+//                    statusAlert('success', message);
+//                    increaseCount('Document');
+//                }
+//            })
+//            .error(function(response) {
+//                message =  'Document failed to commit. (' + response.error + ').';
+//                statusAlert('danger', message);
+//            })
+//            .pagination(function(response) {
+//                if (response.data.length > 0) {
+//                    $('#Document-table').bootstrapTable('append', response.data);
+//                }
+//            })
+//            .commit();
+//        $('#Document-modal').modal('hide');
+//    };
     
-    var commitEmail = function() {
-        var message,
-            name = $('#Email-name').val(),
-            emailBody = $('#Email-body').val(),
-            emailFrom = $('#Email-from').val(),
-            emailHeader = $('#Email-header').val(),
-            emailScore = $('#Email-score').val(),
-            emailSubject = $('#Email-subject').val(),
-            emailTo = $('#Email-to').val();
-        
-        tc.emails()
-            .owner($('#Owner-select :selected').text())
-            .type(TYPE.EMAIL)
-            .name(name)
-            .emailBody(emailBody)
-            .emailFrom(emailFrom)
-            .emailHeader(emailHeader)
-            .emailScore(emailScore)
-            .emailSubject(emailSubject)
-            .emailTo(emailTo)
-            .done(function(response) {
-                if (response.status === "Success") {
-                    message =  'Email ' + name + ' was successfully committed.';
-                    statusAlert('success', message);
-                    increaseCount('Email');
-                }
-            })
-            .error(function(response) {
-                message =  'Email failed to commit. (' + response.error + ').';
-                statusAlert('danger', message);
-            })
-            .pagination(function(response) {
-                if (response.data.length > 0) {
-                    $('#Email-table').bootstrapTable('append', response.data);
-                }
-            })
-            .commit();
-        $('#Email-modal').modal('hide');
-    };
+//    var commitEmail = function() {
+//        var message,
+//            name = $('#Email-name').val(),
+//            emailBody = $('#Email-body').val(),
+//            emailFrom = $('#Email-from').val(),
+//            emailHeader = $('#Email-header').val(),
+//            emailScore = $('#Email-score').val(),
+//            emailSubject = $('#Email-subject').val(),
+//            emailTo = $('#Email-to').val();
+//
+//        tc.emails()
+//            .owner($('#Owner-select :selected').text())
+//            .type(TYPE.EMAIL)
+//            .name(name)
+//            .emailBody(emailBody)
+//            .emailFrom(emailFrom)
+//            .emailHeader(emailHeader)
+//            .emailScore(emailScore)
+//            .emailSubject(emailSubject)
+//            .emailTo(emailTo)
+//            .done(function(response) {
+//                if (response.status === "Success") {
+//                    message =  'Email ' + name + ' was successfully committed.';
+//                    statusAlert('success', message);
+//                    increaseCount('Email');
+//                }
+//            })
+//            .error(function(response) {
+//                message =  'Email failed to commit. (' + response.error + ').';
+//                statusAlert('danger', message);
+//            })
+//            .pagination(function(response) {
+//                if (response.data.length > 0) {
+//                    $('#Email-table').bootstrapTable('append', response.data);
+//                }
+//            })
+//            .commit();
+//        $('#Email-modal').modal('hide');
+//    };
     
-    var commitIncident = function() {
-        var message, 
-            name = $('#Incident-name').val();
-            
-        tc.incidents()
-            .owner($('#Owner-select :selected').text())
-            .type(TYPE.INCIDENT)
-            .name(name)
-            .done(function(response) {
-                if (response.status === "Success") {
-                    message =  'Incident ' + name + ' was successfully committed.';
-                    statusAlert('success', message);
-                    increaseCount('Incident');
-                }
-            })
-            .error(function(response) {
-                var message =  'Incident failed to commit. (' + response.error + ').';
-                statusAlert('danger', message);
-            })
-            .pagination(function(response) {
-                if (response.data.length > 0) {
-                    $('#Incident-table').bootstrapTable('append', response.data);
-                }
-            })
-            .commit();
-        $('#Incident-modal').modal('hide');
-    };
+//    var commitIncident = function() {
+//        var message,
+//            name = $('#Incident-name').val();
+//
+//        tc.incidents()
+//            .owner($('#Owner-select :selected').text())
+//            .type(TYPE.INCIDENT)
+//            .name(name)
+//            .done(function(response) {
+//                if (response.status === "Success") {
+//                    message =  'Incident ' + name + ' was successfully committed.';
+//                    statusAlert('success', message);
+//                    increaseCount('Incident');
+//                }
+//            })
+//            .error(function(response) {
+//                var message =  'Incident failed to commit. (' + response.error + ').';
+//                statusAlert('danger', message);
+//            })
+//            .pagination(function(response) {
+//                if (response.data.length > 0) {
+//                    $('#Incident-table').bootstrapTable('append', response.data);
+//                }
+//            })
+//            .commit();
+//        $('#Incident-modal').modal('hide');
+//    };
     
     var commitIndicator = function() {
         var message,
@@ -1565,7 +1631,7 @@
                 }
             })
             .error(function(response) {
-                c.log('errrrrrrrrrrrrror', response);
+                c.log('error', response);
                 var message =  'Incident Update failed. (' + response + ').';
                 if (response.error) {
                     message =  'Incident Update failed. (' + response.error + ').';
@@ -1722,239 +1788,122 @@
     //
     // Retrieve
     //
-    var retrieveAdversary = function() {
-        c.log('retrieve adversaries');
-        tc.groups()
-            .owner($('#Owner-select :selected').text())
-            .type(TYPE.ADVERSARY)
-            .resultLimit(500)
-            .pagination(function(response) {
-                var d;
-                if (response.data.length > 0) {
-                    for (d in response.data) {
-                        var data = response.data[d];
-                        data.name = genEditSpan(data.id, data.name);
-                    }
-                    $('#Adversary-table').bootstrapTable('append', response.data);
-                }
-            })
-            .done(function(response) {
-                c.log('adversary retrieve done', response);
-                $('#Adversary-content').text(JSON.stringify(response, null, 4));
-                $('#Adversary-table').bootstrapTable('refreshOptions', {
-                    sortName: 'id',
-                    sortOrder: 'asc',
-                    // data: response.data
-                });
-                setCount('Adversary', response.resultCount);
-                tableActions('Adversary');
-                enableForm('Adversary');
-                detailView();
-            })
-            .error(function(response) {
-                var message =  'Adversary Retrieval failed. (' + response + ').';
-                statusAlert('danger', message);
-            })
-            .retrieve();
-    };
-    
-    var retrieveDocument = function() {
-        c.log('retrieve documents');
-        tc.groups()
-            .owner($('#Owner-select :selected').text())
-            .resultLimit(500)
-            .type(TYPE.DOCUMENT)
-            .pagination(function(response) {
-                if (response.data.length > 0) {
-                    $('#Document-table').bootstrapTable('append', response.data);
-                }
-            })
-            .done(function(response) {
-                $('#Document-content').text(JSON.stringify(response, null, 4));
-                $('#Document-table').bootstrapTable('refreshOptions', {
-                    sortName: 'id',
-                    sortOrder: 'asc',
-                    // data: response.data
-                });
-                setCount('Document', response.resultCount);
-            })
-            .error(function(response) {
-                var message =  'Document Retrieval failed. (' + response + ').';
-                statusAlert('danger', message);
-            })
-            .retrieve();
-    };
-    
-    var retrieveEmail = function() {
-        c.log('retrieve emails');
-        tc.groups()
-            .owner($('#Owner-select :selected').text())
-            .resultLimit(500)
-            .type(TYPE.EMAIL)
-            .pagination(function(response) {
-                if (response.data.length > 0) {
-                    $('#Email-table').bootstrapTable('append', response.data);
-                }
-            })
-            .done(function(response) {
-                $('#Email-content').text(JSON.stringify(response, null, 4));
-                $('#Email-table').bootstrapTable('refreshOptions', {
-                    sortName: 'id',
-                    sortOrder: 'asc',
-                    data: response.data
-                });
-                setCount('Email', response.resultCount);
-            })
-            .error(function(response) {
-                var message =  'Email Retrieval failed. (' + response + ').';
-                statusAlert('danger', message);
-            })
-            .retrieve();
-    };
-    
-    var retrieveGroup = function() {
-        c.log('retrieve groups');
-            tc.groups()
-                .owner($('#Owner-select :selected').text())
+    var retrieveGroup = function(type) {
+        c.log('retrieveGroup');
+        var groups = tc.groups(),
+            groupType = type.type;
+
+        groups.owner($('#Owner-select :selected').text())
+                .type(type)
                 .resultLimit(500)
-                .pagination(function(response) {
-                    c.log('response', response);
-                    if (response.data.length > 0) {
-                        $('#Group-table').bootstrapTable('append', response.data);
-                    }
-                })
                 .done(function(response) {
-                    $('#Group-content').text(JSON.stringify(response, null, 4));
-                    $('#Group-table').bootstrapTable('refreshOptions', {
-                        sortName: 'id',
-                        sortOrder: 'asc',
-                        data: response.data
-                    });
-                    setCount('Group', response.resultCount);
+                    c.log(groupType + ' retrieve done', response);
+                    var d;
+                    // raw data
+                    $('#' + groupType + '-content').append(JSON.stringify(response, null, 4));
+
+                    // data table
+                    if (response.data.length > 0) {
+                        $('#' + groupType + '-table').bootstrapTable('append', response.data);
+                    }
+                    detailView();
+                    enableForm();
+
+                    // setCount('Adversary', response.resultCount);
+                    // tableActions('Adversary');
+                    // enableForm('Adversary');
+                    // detailView();
                 })
                 .error(function(response) {
-                    var message =  'Group Retrieval failed. (' + response + ').';
+                    var message =  groupType + ' Retrieval failed. (' + response.error + ').';
                     statusAlert('danger', message);
-                })
-                .retrieve();
-    };
-    
-    var retrieveIncident = function() {
-        c.log('retrieve incidents');
-        tc.groups()
-            .owner($('#Owner-select :selected').text())
-            .resultLimit(500)
-            .type(TYPE.INCIDENT)
-            .pagination(function(response) {
-                var d;
-                if (response.data.length > 0) {
-                    for (d in response.data) {
-                        var data = response.data[d];
-                        data.name = genEditSpan(data.id, data.name);
-                    }
-                    $('#Incident-table').bootstrapTable('append', response.data);
-                }
-            })
-            .done(function(response) {
-                $('#Incident-content').text(JSON.stringify(response, null, 4));
-                $('#Incident-table').bootstrapTable('refreshOptions', {
-                    sortName: 'id',
-                    sortOrder: 'asc',
-                    // data: response.data
                 });
-                setCount('Incident', response.resultCount);
-                tableActions('Incident');
-                enableForm('Incident');
-            })
-            .error(function(response) {
-                var message =  'Incident Retrieval failed. (' + response + ').';
-                statusAlert('danger', message);
-            })
-            .retrieve();
+
+        groups.retrieve(function() {
+            while(groups.hasNext()) {
+                groups.next();
+            }
+        });
     };
-    
+
     var retrieveIndicator = function() {
         c.log('retrieve indicator');
-        tc.indicators()
-            // .type(TYPE.ADDRESS)
-            // .indicator('37.220.10.138')
-            .owner($('#Owner-select :selected').text())
-            .resultLimit(500)
-            .pagination(function(response) {
-                if (response.data.length > 0) {
-                    $('#Indicator-table').bootstrapTable('append', response.data);
-                }
-            })
-            .done(function(response) {
-                c.log('response', response);
-                $('#Indicator-content').text(JSON.stringify(response, null, 4));
-                $('#Indicator-table').bootstrapTable('refreshOptions', {
-                    sortName: 'id',
-                    sortOrder: 'asc',
-                    data: response.data
+        var indicators = tc.indicators();
+        indicators.owner($('#Owner-select :selected').text())
+                .resultLimit(100)
+                .done(function(response) {
+                    if (response.data.length > 0) {
+                        $('#Indicator-table').bootstrapTable('append', response.data);
+                        $('#Indicator-content').append(JSON.stringify(response, null, 4));
+                    }
+                    setCount('Indicator', response.resultCount);
+
+
+                    // chart
+                    var dateArray = [];
+                    var i;
+                    for (i in response.data) {
+                        var indicator = response.data[i],
+                            dateAdded = indicator.dateAdded.split('T')[0],
+                            lastModified = indicator.lastModified.split('T')[0];
+
+                        if (dateAdded in dateArray) {
+                            dateArray[dateAdded]['da']++;
+                        } else {
+                            dateArray[dateAdded] = {
+                                da: 0,
+                                lm: 0
+                            };
+                        }
+
+                        if (lastModified in dateArray) {
+                            dateArray[lastModified].lm++;
+                        } else {
+                            dateArray[lastModified] = {
+                                da: 0,
+                                lm: 0
+                            };
+                        }
+                    }
+
+                    var d,
+                        x = ['x'],
+                        data1 = ['added'],
+                        data2 = ['modified'];
+
+                    for (d in dateArray) {
+                         var da = 0,
+                             dm = 0;
+                         x.push(d);
+
+                         if (dateArray[d].da) {
+                             da = dateArray[d].da;
+                         }
+                         if (dateArray[d].lm) {
+                             dm = dateArray[d].lm;
+                         }
+
+
+                      data1.push(da);
+                      data2.push(dm);
+                 }
+                 c.log('x', x);
+                 c.log('data1', data1);
+                 c.log('data2', data2);
+
+                 indicatorChart([x, data1, data2]);
+                })
+                .error(function(response) {
+                    var message =  'Indicator Retrieval failed. (' + response.error + ').';
+                    statusAlert('danger', message);
                 });
-                setCount('Indicator', response.resultCount);
-                
-                var dateArray = [];
-                var i;
-                for (i in response.data) {
-                    var indicator = response.data[i],
-                        dateAdded = indicator.dateAdded.split('T')[0],
-                        lastModified = indicator.lastModified.split('T')[0];
-                        
-                    if (dateAdded in dateArray) {
-                        dateArray[dateAdded]['da']++;
-                    } else {
-                        dateArray[dateAdded] = {
-                            da: 0,
-                            lm: 0
-                        };
-                    }
-                    
-                    if (lastModified in dateArray) {
-                        dateArray[lastModified].lm++;
-                    } else {
-                        dateArray[lastModified] = {
-                            da: 0,
-                            lm: 0
-                        };
-                    }
-                }
-                
-                var d,
-                    x = ['x'],
-                    data1 = ['added'],
-                    data2 = ['modified'];
-                    
-                for (d in dateArray) {
-                     var da = 0,
-                         dm = 0;
-                     x.push(d);
-                     
-                     if (dateArray[d].da) {
-                         da = dateArray[d].da;
-                     }
-                     if (dateArray[d].lm) {
-                         dm = dateArray[d].lm;
-                     }
-                     
-                     
-                     data1.push(da);
-                     data2.push(dm);
-                }
-                c.log('x', x);
-                c.log('data1', data1);
-                c.log('data2', data2);
-                
-                indicatorChart([x, data1, data2]);
-            })
-            .error(function(response) {
-                var message =  'Indicator Retrieval failed. (' + response.error + ').';
-                statusAlert('danger', message);
-            })
-            .retrieve();
-    };
-    
+
+        indicators.retrieve(function() {
+            while(indicators.hasNext()) {
+                indicators.next();
+            }
+        });
+
     var retrieveOwner = function() {
         c.log('retrieve owners');
         tc.owners()
@@ -1982,6 +1931,7 @@
         tc.groups()
             .owner($('#Owner-select :selected').text())
             .type(params.groupType)
+            .associationType(params.associationType)
             .id(params.id)
             .resultLimit(500)
             .done(function(response) {
@@ -1992,7 +1942,7 @@
                 var message = 'Association Retrieval failed. (' + response + ').';
                 statusAlert('danger', message);
             })
-            .retrieveAssociations({type: params.type});
+            .retrieveAssociations();
     };
     
     var retrieveIndicatorAssociations = function(params) {
@@ -2013,9 +1963,6 @@
             .retrieveAssociations({type: params.type});
     };
     
-    //
-    // Retrieve Attributes
-    //
     var retrieveAttributes = function(params) {
         c.log('retrieve attributes');
         tc.groups()
@@ -2036,15 +1983,12 @@
                 var message = 'Attribute Retrieval failed. (' + response + ').';
                 statusAlert('danger', message);
             })
-            .retrieveAttributes({type: params.type});
+            .retrieveAttributes();
     };
     
-    //
-    // Retrieve Tags
-    //
     var retrieveTags = function(params) {
         c.log('retrieve tags');
-        tc.groups()
+        var groups = tc.groups()
             .owner($('#Owner-select :selected').text())
             .type(params.groupType)
             .id(params.id)
@@ -2064,7 +2008,7 @@
                 var message =  'Tag Retrieval failed. (' + response + ').';
                 statusAlert('danger', message);
             })
-            .retrieveTags({type: params.type});
+            .retrieveTags();
     };
     
     //
@@ -2119,8 +2063,10 @@
         var apiUri = $('#api-uri').val(),
             body = $('#api-body').val(),
             method = $(this).text(),
-            ro = new RequestObject(),
-            formActivityLog = getParameterFromUri('activityLog', apiUri),
+
+            // ro = new RequestObject(),
+            ro = tc.requestObject(),
+            formActivityLog = getParameterFromUri('createActivityLog', apiUri),
             formOwner = getParameterFromUri('owner', apiUri),
             formResultLimit = getParameterFromUri('resultLimit', apiUri),
             formResultStart = getParameterFromUri('resultStart', apiUri),
@@ -2141,7 +2087,7 @@
         */
         
         ro.owner(roOwner)
-            .activityLog(activityLog)
+            .createActivityLog(activityLog)
             .done(function(response) {
                 c.log('api response', response);
                 $('#api-content').text(JSON.stringify(response, null, 4));
@@ -2153,7 +2099,7 @@
             .requestMethod(method)
             .resultLimit(resultLimit)
             .resultStart(resultStart);
-            
+
         if (method === 'POST' || method === 'PUT') {
             
             if (body.length > 0) {
@@ -2164,7 +2110,7 @@
         }
         c.log('ro', ro);
         
-        tc.apiRequest(ro);
+        ro.apiRequest(ro);
     });
     
     var statusAlert = function(type, message) {
@@ -2200,12 +2146,6 @@
         retrieveGroupCount('Group');
         retrieveGroupCount('Incident');
         retrieveIndicatorCount('Indicator');
-        // resourceCounts('v2/groups/adversaries', 'Adversary');
-        // resourceCounts('v2/groups/documents', 'Document');
-        // resourceCounts('v2/groups/emails', 'Email');
-        // resourceCounts('v2/groups', 'Group');
-        // resourceCounts('v2/groups/incidents', 'Incident');
-        // resourceCounts('v2/indicators', 'Indicator');
     };
     
     var increaseCount = function(type) {
@@ -2240,14 +2180,19 @@
     };
     
     var enableForm = function(type) {
-        $('.editName').editable();
-        $('.editName').on('save', function(e, params){
-            var updateMethod = window['update' + type];
-            updateMethod({
-                name: params.newValue,
-                id: $(this)[0].id
-            });
-        });
+//        $('.editName').editable();
+//        $('.editName').on('save', function(e, params){
+//            var updateMethod = window['update' + type];
+//            updateMethod({
+//                name: params.newValue,
+//                id: $(this)[0].id
+//            });
+//        });
+
+        // $('.editable-submit').click(function() {
+        $('.editable-submit').on('save', function(e, params) {
+            console.log('BBBBBBBBBBBBBBBBBCCCCCCCCCCCCCCCSSSSSSSSSSSSSSSSSSS edit');
+        })
     };
     
     var genEditSpan = function(id, name) {
@@ -2315,39 +2260,12 @@
             }
         });
     };
-    
-    // var tableForm = function(table) {
-    //     c.log('tableForm', table);
-                    
-    //     var idIndex = $('#' + table + '-table tr').find('[data-field="id"]').index();
-    //     c.log('idIndex', idIndex);
-    //     var nameIndex = $('#' + table + '-table tr').find('[data-field="name"]').index();
-    //     c.log('nameIndex', nameIndex);
-    //     $('#' + table + '-table tr').each(function() {
-    //         var id = $(this).find('td').eq(idIndex).html();
-    //         c.log('id', id);
-    //         var name = $(this).find('td').eq(nameIndex);
-    //         name.html('<span id="' + id + '" class="editName">' + name.html() + '</span>');
-    //         c.log('td name', name.html());
-    //     });
-        
-    //     $('.editName').editable();
-    //     $('.editName').on('save', function(e, params){
-    //         var updateMethod = window['commit' + table];
-    //         updateMethod({
-    //             name: params.newValue,
-    //             id: $(this)[0].id
-    //         });
-    //         // c.log('saving e', e);
-    //         // c.log('saving params', params);
-    //         // c.log('saving this', $(this)[0].id);
-    //     });
-    // };
-    
+
     function manualRequest(params) {
         c.groupCollapsed('manualRequest');
-        var ro = new RequestObject();
-        
+        // var ro = new RequestObject();
+        var ro = tc.requestObject();
+
         ro.owner(params.owner)
             .done(params.done)
             .error(params.error)
@@ -2378,25 +2296,23 @@
     }
     
     function retrieveIndicatorCount(pane) {
-        tc.indicators()
-            .owner($('#Owner-select :selected').text())
-            .limit(1)
+        var indicators = tc.indicators();
+        indicators.owner($('#Owner-select :selected').text())
+            .resultLimit(1)
             .done(function(response) {
                 setCount(pane, response.resultCount);
             })
             .error(function(response) {
                 var message =  'Indicator Retrieval failed. (' + response.error + ').';
                 statusAlert('danger', message);
-            })
-            .retrieve();
+            }).retrieve();
     }
     
     function retrieveGroupCount(pane) {
-        tc.groups()
-            .async(false)
-            .owner($('#Owner-select :selected').text())
+         var groups = tc.groups();
+         groups.owner($('#Owner-select :selected').text())
             .type(TYPE[pane.toUpperCase()])
-            .limit(1)
+            .resultLimit(1)
             .done(function(response) {
                 setCount(pane, response.resultCount);
             })
@@ -2406,13 +2322,12 @@
             })
             .retrieve();
     }
-    
-    
-    retrieveIndicatorAssociations({
-        indicatorType: TYPE.ADDRESS,
-        indicator: '74.121.142.111',
-        type: TYPE.GROUP
-    });
+
+//    retrieveIndicatorAssociations({
+//        indicatorType: TYPE.ADDRESS,
+//        indicator: '74.121.142.111',
+//        type: TYPE.GROUP
+//    });
 </script>
 </html>
 
