@@ -101,6 +101,18 @@ var TYPE = {
     }
 };
 
+// const FILTER = {  // ECMASCRIPT6 support only
+var FILTER = {
+    AND: 'and',
+    EQ: '=',
+    GT: '>',
+    GE: '>=',
+    LT: '<',
+    LE: '<=',
+    NE: '!=',
+    OR: 'or'
+};
+
 function indicatorHelper(prefix) {
     var iTypes = {
         'a': TYPE.ADDRESS,
@@ -128,6 +140,34 @@ function getParameterFromUri(name, uri) {
         results = regex.exec(uri);
         
     return results === null ? undefined : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+
+function Filter(param) {
+
+    var separator = '';
+        filters = '';
+        orParams = false;
+
+    if (param == FILTER.OR) {
+        orParams = true;
+    }
+
+    this.on = function(field, operator, value) {
+        filters += separator + field + operator + value;
+        separator = ',';
+        c.log('ffffffffffffffffffffffffffffffffffilter', filters);
+
+        return this;
+    }
+
+    this.get = function() {
+        return {
+            filters: filters,
+            orParams: orParams
+        }
+    }
+
+    return this;
 }
 
 function RequestObject() {
@@ -205,7 +245,14 @@ function RequestObject() {
         }
         return this;
     };
-    
+
+    this.filter = function(data) {
+        c.log('ddddddddddddddddddata', data.get());
+        this.addPayload('filters', data.get().filters)
+        this.addPayload('orParams', data.get().orParams)
+        return this;
+    };
+
     this.modifiedSince = function(data) {
         this.addPayload('modifiedSince', data);
         return this;

@@ -1017,7 +1017,7 @@
             
             return;
         } else if (selections.length > 1) {
-            c.warn('only one upload at a time is supported.');
+            c.warn('only one group can be selected at a time.');
             group_table.bootstrapTable('uncheckAll');
             
             setTimeout(function() {
@@ -1027,22 +1027,24 @@
             
             return;
         }
-        
+
         // get group associations
         tc.groups()
             .owner($('#Owner-select :selected').text())
             .type(TYPE[selections[0].type.toUpperCase()])
+            .associationType(TYPE.INDICATOR)
             .id(selections[0].id)
             .resultLimit(500)
-            .pagination(function(response) {
+            .done(function(response) {
                 c.log('response', response);
                 var data;
                 for (data in response.data) {
                     if (response.data[data].type == 'Address') {
-                        var ip = response.data[data].indicators,
-                            geoIpUrl =  geoIpUrl + '/' + ip + '?callback=?';
+                        var ip = response.data[data].indicators;
+                            // geoIpUrl =  geoIpUrl + '/' + ip + '?callback=?';
                         
-	                    $.getJSON(geoIpUrl, function() {
+	                    // $.getJSON(geoIpUrl, function() {
+                        $.getJSON(geoIpUrl + '/' + ip + '?callback=?', function() {
 	                        console.log("success");
 	                    })
 	                    .always(function(data) {
@@ -1056,13 +1058,11 @@
                     }
                 }
             })
-            .done(function(response) {
-            })
             .error(function(response) {
                 var message =  'Group Retrieval failed. (' + response + ').';
                 statusAlert('danger', message);
             })
-            .retrieveAssociations({type: TYPE.INDICATOR});
+            .retrieveAssociations();
         
         setTimeout(function() {
             c.log('invalidate size');
@@ -1118,9 +1118,6 @@
                     .done(function(response) {
                         for (data in response.data) {
                             var ip = response.data[data].indicators;
-                            // geoIpUrl =  geoIpUrl + '/' + ip + '?callback=?';
-                            // c.log('geoIpUrl', geoIpUrl);
-
                             $.getJSON(geoIpUrl + '/' + ip + '?callback=?', function() {
                                     console.log("success");
                             })
@@ -1829,9 +1826,16 @@
     var retrieveIndicator = function() {
         c.log('retrieve indicator');
         var indicators = tc.indicators();
+
+        filter = new Filter(FILTER.AND);
+        // filter.on('summary', FILTER.EQ, 'www.google.com');
+        filter.on('rating', FILTER.GT, '1');
+        c.log('filters', filter.get())
+
         indicators.owner($('#Owner-select :selected').text())
                 .resultLimit(100)
-                .done(function(response) {
+                .filter(filter)
+                .done(function (response) {
                     if (response.data.length > 0) {
                         $('#Indicator-table').bootstrapTable('append', response.data);
                         $('#Indicator-content').append(JSON.stringify(response, null, 4));
@@ -1844,8 +1848,8 @@
                     var i;
                     for (i in response.data) {
                         var indicator = response.data[i],
-                            dateAdded = indicator.dateAdded.split('T')[0],
-                            lastModified = indicator.lastModified.split('T')[0];
+                                dateAdded = indicator.dateAdded.split('T')[0],
+                                lastModified = indicator.lastModified.split('T')[0];
 
                         if (dateAdded in dateArray) {
                             dateArray[dateAdded]['da']++;
@@ -1867,42 +1871,43 @@
                     }
 
                     var d,
-                        x = ['x'],
-                        data1 = ['added'],
-                        data2 = ['modified'];
+                            x = ['x'],
+                            data1 = ['added'],
+                            data2 = ['modified'];
 
                     for (d in dateArray) {
-                         var da = 0,
-                             dm = 0;
-                         x.push(d);
+                        var da = 0,
+                                dm = 0;
+                        x.push(d);
 
-                         if (dateArray[d].da) {
-                             da = dateArray[d].da;
-                         }
-                         if (dateArray[d].lm) {
-                             dm = dateArray[d].lm;
-                         }
+                        if (dateArray[d].da) {
+                            da = dateArray[d].da;
+                        }
+                        if (dateArray[d].lm) {
+                            dm = dateArray[d].lm;
+                        }
 
 
-                      data1.push(da);
-                      data2.push(dm);
-                 }
-                 c.log('x', x);
-                 c.log('data1', data1);
-                 c.log('data2', data2);
+                        data1.push(da);
+                        data2.push(dm);
+                    }
+                    c.log('x', x);
+                    c.log('data1', data1);
+                    c.log('data2', data2);
 
-                 indicatorChart([x, data1, data2]);
+                    indicatorChart([x, data1, data2]);
                 })
-                .error(function(response) {
-                    var message =  'Indicator Retrieval failed. (' + response.error + ').';
+                .error(function (response) {
+                    var message = 'Indicator Retrieval failed. (' + response.error + ').';
                     statusAlert('danger', message);
                 });
 
-        indicators.retrieve(function() {
-            while(indicators.hasNext()) {
+        indicators.retrieve(function () {
+            while (indicators.hasNext()) {
                 indicators.next();
             }
         });
+    }
 
     var retrieveOwner = function() {
         c.log('retrieve owners');
@@ -1922,7 +1927,7 @@
                 })
                 .retrieve();
     };
-    
+
     //
     // Retrieve Associations
     //
@@ -1944,7 +1949,7 @@
             })
             .retrieveAssociations();
     };
-    
+
     var retrieveIndicatorAssociations = function(params) {
         c.log('retrieve associations');
         tc.indicators()
@@ -1962,7 +1967,7 @@
             })
             .retrieveAssociations({type: params.type});
     };
-    
+
     var retrieveAttributes = function(params) {
         c.log('retrieve attributes');
         tc.groups()
@@ -1973,7 +1978,7 @@
             .done(function(response) {
                 var attrib,
                     panel = $('#attribute-panel-' + params.id);
-                    
+
                 for (attrib in response.data) {
                     panel.append('<p></p>')
                         .text(response.data[attrib].type + ' : ' + response.data[attrib].value);
@@ -1985,7 +1990,7 @@
             })
             .retrieveAttributes();
     };
-    
+
     var retrieveTags = function(params) {
         c.log('retrieve tags');
         var groups = tc.groups()
@@ -1996,7 +2001,7 @@
             .done(function(response) {
                 var tag,
                     panel = $('#tag-panel-' + params.id);
-                    
+
                 for (tag in response.data) {
                     panel.append('<h3></h3>')
                         .append($('<span></span>')
@@ -2010,7 +2015,7 @@
             })
             .retrieveTags();
     };
-    
+
     //
     // Upload
     //
@@ -2019,9 +2024,9 @@
         var document_table = $('#Document-table'),
             file_input = $('#Document-file'),
             selections =  document_table.bootstrapTable('getSelections');
-            
+
             c.log('file_input', file_input);
-        
+
         if (selections.length == 0) {
             c.warn('at least one document must be selected.');
             return;
@@ -2030,14 +2035,14 @@
             document_table.bootstrapTable('uncheckAll');
             return;
         }
-            
+
         file_input.click();
         file_input.on('change', function(){
             var file = file_input[0].files[0],
                 selection = selections[0],
                 id = selection.id,
                 fr = new FileReader();
-                
+
             fr.readAsText(file);
             fr.onload = function(data) {
                 c.log('fr.result', fr.result);
@@ -2055,39 +2060,64 @@
                     .commit();
             };
         });
-        
+
         c.groupEnd();
     });
-    
+
     $('#api-method a').click( function () {
         var apiUri = $('#api-uri').val(),
             body = $('#api-body').val(),
             method = $(this).text(),
-
-            // ro = new RequestObject(),
             ro = tc.requestObject(),
             formActivityLog = getParameterFromUri('createActivityLog', apiUri),
             formOwner = getParameterFromUri('owner', apiUri),
             formResultLimit = getParameterFromUri('resultLimit', apiUri),
             formResultStart = getParameterFromUri('resultStart', apiUri),
+            formFilters = getParameterFromUri('filters', apiUri),
             uri = apiUri.split("?")[0].replace('/', '');
-            
+        c.log('formFilters', formFilters);
         c.log('formOwner', formOwner);
-            
+
         var activityLog = formActivityLog || false,
             roOwner = formOwner || $('#Owner-select :selected').text(),
             resultLimit = formResultLimit || 500,
             resultStart = formResultStart || 0;
-            
+
         c.log('URI', apiUri);
         c.log('Method', $(this).text());
         c.log('activityLog', activityLog);
         c.log('owner', roOwner);
-        /*
-        */
-        
+
+/*
+Indicators:
+https://localhost:8443/api/v2/indicators?filters=summary=lmco.com
+https://localhost:8443/api/v2/indicators?filters=rating%3E3
+https://localhost:8443/api/v2/indicators/urls?filters=threatAssessConfidence%3E50
+https://localhost:8443/api/v2/indicators/addresses?filters=organization=mosso%20hosting
+https://localhost:8443/api/v2/indicators/hosts?filters=whoisActive=true
+
+Groups:
+https://localhost:8443/api/v2/groups?filters=name%5ETes
+https://localhost:8443/api/v2/groups/documents?filters=fileType=PDF
+
+Tags, SecurityLabels, Victims:
+https://localhost:8443/api/v2/securityLabels?filters=name=dictators
+https://localhost:8443/api/v2/victims?filters=name%5ETes
+https://localhost:8443/api/v2/tags?filters=weight%3E2
+
+Multiple Parameters (with implicit AND):
+https://localhost:8443/api/v2/indicators?filters=summary=lmco.com,dateAdded%3C20151015
+
+Multiple Parameters (with parameters OR’ed)
+https://localhost:8443/api/v2/indicators?filters=summary=lmco.com,dateAdded%3E20151015&orParams=true
+
+< %3C
+> %3E
+^ %5E
+*/
         ro.owner(roOwner)
             .createActivityLog(activityLog)
+            .addPayload('filters', formFilters)
             .done(function(response) {
                 c.log('api response', response);
                 $('#api-content').text(JSON.stringify(response, null, 4));
@@ -2123,7 +2153,7 @@
     
     var createMap = function(mapId) {
         c.log('createMap', mapId);
-            
+
     	// var map = L.map('map').setView([0, 0], 2);
     	var map = L.map(mapId).setView([0, 0], 2);
 
@@ -2137,7 +2167,7 @@
 
     	return map;
     };
-    
+
     var badgeCounts = function() {
         // Badge Counts (after owner selection)
         retrieveGroupCount('Adversary');
@@ -2164,7 +2194,7 @@
         var pane = $('.nav.navbar-nav li a[href="#' + type + '-pane"] span');
         pane.text(count);
     };
-    
+
     var tableActions = function(type) {
         $('#' + type + '-table')
         .on('sort.bs.table', function (e) {
@@ -2224,13 +2254,13 @@
                         .append($('<div></div>')
                             .addClass('panel panel-body')
                             .attr('id', 'tag-panel-' + id))));
-                
-                
+
+
                 retrieveAttributes({
                     groupType: TYPE.ADVERSARY,
                     id: id 
                 });
-            
+
                 retrieveTags({
                     groupType: TYPE.ADVERSARY,
                     id: id 
@@ -2275,7 +2305,7 @@
         tc.apiRequest(ro);
         c.groupEnd();
     }
-    
+
     function resourceCounts(uri, pane) {
         c.groupCollapsed('resourceCounts');
         manualRequest({
