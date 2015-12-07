@@ -1828,79 +1828,79 @@
         var indicators = tc.indicators();
 
         filter = new Filter(FILTER.AND);
-        // filter.on('summary', FILTER.EQ, 'www.google.com');
-        filter.on('rating', FILTER.GT, '1');
-        c.log('filters', filter.get())
+        filter.on('summary', FILTER.SW, 'www');
+        filter.on('rating', FILTER.GE, '1');
+        filter.on('confidence', FILTER.GT, '0');
 
         indicators.owner($('#Owner-select :selected').text())
-                .resultLimit(100)
-                .filter(filter)
-                .done(function (response) {
-                    if (response.data.length > 0) {
-                        $('#Indicator-table').bootstrapTable('append', response.data);
-                        $('#Indicator-content').append(JSON.stringify(response, null, 4));
-                    }
-                    setCount('Indicator', response.resultCount);
+            .resultLimit(100)
+            .filter(filter)
+            .done(function (response) {
+                if (response.data.length > 0) {
+                    $('#Indicator-table').bootstrapTable('append', response.data);
+                    $('#Indicator-content').append(JSON.stringify(response, null, 4));
+                }
+                setCount('Indicator', response.resultCount);
 
 
-                    // chart
-                    var dateArray = [];
-                    var i;
-                    for (i in response.data) {
-                        var indicator = response.data[i],
-                                dateAdded = indicator.dateAdded.split('T')[0],
-                                lastModified = indicator.lastModified.split('T')[0];
+                // chart
+                var dateArray = [];
+                var i;
+                for (i in response.data) {
+                    var indicator = response.data[i],
+                        dateAdded = indicator.dateAdded.split('T')[0],
+                        lastModified = indicator.lastModified.split('T')[0];
 
-                        if (dateAdded in dateArray) {
-                            dateArray[dateAdded]['da']++;
-                        } else {
-                            dateArray[dateAdded] = {
-                                da: 0,
-                                lm: 0
-                            };
-                        }
-
-                        if (lastModified in dateArray) {
-                            dateArray[lastModified].lm++;
-                        } else {
-                            dateArray[lastModified] = {
-                                da: 0,
-                                lm: 0
-                            };
-                        }
+                    if (dateAdded in dateArray) {
+                        dateArray[dateAdded]['da']++;
+                    } else {
+                        dateArray[dateAdded] = {
+                            da: 0,
+                            lm: 0
+                        };
                     }
 
-                    var d,
-                            x = ['x'],
-                            data1 = ['added'],
-                            data2 = ['modified'];
-
-                    for (d in dateArray) {
-                        var da = 0,
-                                dm = 0;
-                        x.push(d);
-
-                        if (dateArray[d].da) {
-                            da = dateArray[d].da;
-                        }
-                        if (dateArray[d].lm) {
-                            dm = dateArray[d].lm;
-                        }
-
-
-                        data1.push(da);
-                        data2.push(dm);
+                    if (lastModified in dateArray) {
+                        dateArray[lastModified].lm++;
+                    } else {
+                        dateArray[lastModified] = {
+                            da: 0,
+                            lm: 0
+                        };
                     }
-                    c.log('x', x);
-                    c.log('data1', data1);
-                    c.log('data2', data2);
+                }
 
-                    indicatorChart([x, data1, data2]);
-                })
-                .error(function (response) {
-                    var message = 'Indicator Retrieval failed. (' + response.error + ').';
-                    statusAlert('danger', message);
-                });
+                var d,
+                    x = ['x'],
+                    data1 = ['added'],
+                    data2 = ['modified'];
+
+                for (d in dateArray) {
+                    var da = 0,
+                        dm = 0;
+                    x.push(d);
+
+                    if (dateArray[d].da) {
+                        da = dateArray[d].da;
+                    }
+                    if (dateArray[d].lm) {
+                        dm = dateArray[d].lm;
+                    }
+
+
+                    data1.push(da);
+                    data2.push(dm);
+                }
+                c.log('x', x);
+                c.log('data1', data1);
+                c.log('data2', data2);
+
+                indicatorChart([x, data1, data2]);
+            })
+            .error(function (response) {
+                var message = 'Indicator Retrieval failed. (' + response.error + ').';
+                statusAlert('danger', message);
+            });
 
         indicators.retrieve(function () {
             while (indicators.hasNext()) {

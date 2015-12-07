@@ -110,7 +110,8 @@ var FILTER = {
     LT: '<',
     LE: '<=',
     NE: '!=',
-    OR: 'or'
+    OR: 'or',
+    SW: '^'
 };
 
 function indicatorHelper(prefix) {
@@ -155,7 +156,6 @@ function Filter(param) {
     this.on = function(field, operator, value) {
         filters += separator + field + operator + value;
         separator = ',';
-        c.log('ffffffffffffffffffffffffffffffffffilter', filters);
 
         return this;
     }
@@ -247,7 +247,6 @@ function RequestObject() {
     };
 
     this.filter = function(data) {
-        c.log('ddddddddddddddddddata', data.get());
         this.addPayload('filters', data.get().filters)
         this.addPayload('orParams', data.get().orParams)
         return this;
