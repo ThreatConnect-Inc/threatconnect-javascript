@@ -1827,14 +1827,14 @@
         c.log('retrieve indicator');
         var indicators = tc.indicators();
 
-        filter = new Filter(FILTER.AND);
-        filter.on('summary', FILTER.SW, 'www');
-        filter.on('rating', FILTER.GE, '1');
-        filter.on('confidence', FILTER.GT, '0');
+        // filter = new Filter(FILTER.AND);
+        // filter.on('summary', FILTER.SW, 'www');
+        // filter.on('rating', FILTER.GE, '1');
+        // filter.on('confidence', FILTER.GT, '0');
 
         indicators.owner($('#Owner-select :selected').text())
             .resultLimit(100)
-            .filter(filter)
+            // .filter(filter)
             .done(function (response) {
                 if (response.data.length > 0) {
                     $('#Indicator-table').bootstrapTable('append', response.data);
@@ -1912,6 +1912,7 @@
     var retrieveOwner = function() {
         c.log('retrieve owners');
         tc.owners()
+                .id(2)
                 .done(function(response) {
                     c.log('owner retrieve done');
                     $('#Owner-content').text(JSON.stringify(response, null, 4));
@@ -1925,7 +1926,7 @@
                     var message =  'Owner Retrieval failed. (' + response + ').';
                     statusAlert('danger', message);
                 })
-                .retrieve();
+                .retrieveMetrics();
     };
 
     //
@@ -2088,36 +2089,8 @@
         c.log('activityLog', activityLog);
         c.log('owner', roOwner);
 
-/*
-Indicators:
-https://localhost:8443/api/v2/indicators?filters=summary=lmco.com
-https://localhost:8443/api/v2/indicators?filters=rating%3E3
-https://localhost:8443/api/v2/indicators/urls?filters=threatAssessConfidence%3E50
-https://localhost:8443/api/v2/indicators/addresses?filters=organization=mosso%20hosting
-https://localhost:8443/api/v2/indicators/hosts?filters=whoisActive=true
-
-Groups:
-https://localhost:8443/api/v2/groups?filters=name%5ETes
-https://localhost:8443/api/v2/groups/documents?filters=fileType=PDF
-
-Tags, SecurityLabels, Victims:
-https://localhost:8443/api/v2/securityLabels?filters=name=dictators
-https://localhost:8443/api/v2/victims?filters=name%5ETes
-https://localhost:8443/api/v2/tags?filters=weight%3E2
-
-Multiple Parameters (with implicit AND):
-https://localhost:8443/api/v2/indicators?filters=summary=lmco.com,dateAdded%3C20151015
-
-Multiple Parameters (with parameters OR’ed)
-https://localhost:8443/api/v2/indicators?filters=summary=lmco.com,dateAdded%3E20151015&orParams=true
-
-< %3C
-> %3E
-^ %5E
-*/
         ro.owner(roOwner)
             .createActivityLog(activityLog)
-            .addPayload('filters', formFilters)
             .done(function(response) {
                 c.log('api response', response);
                 $('#api-content').text(JSON.stringify(response, null, 4));
@@ -2129,6 +2102,10 @@ https://localhost:8443/api/v2/indicators?filters=summary=lmco.com,dateAdded%3E20
             .requestMethod(method)
             .resultLimit(resultLimit)
             .resultStart(resultStart);
+
+        if (formFilters) {
+            ro.addPayload('filters', formFilters);
+        }
 
         if (method === 'POST' || method === 'PUT') {
             
@@ -2370,4 +2347,30 @@ POST:
 
 Splunk App:
 Source to Destination Map.
+
+Indicators:
+https://localhost:8443/api/v2/indicators?filters=summary=lmco.com
+https://localhost:8443/api/v2/indicators?filters=rating%3E3
+https://localhost:8443/api/v2/indicators/urls?filters=threatAssessConfidence%3E50
+https://localhost:8443/api/v2/indicators/addresses?filters=organization=mosso%20hosting
+https://localhost:8443/api/v2/indicators/hosts?filters=whoisActive=true
+
+Groups:
+https://localhost:8443/api/v2/groups?filters=name%5ETes
+https://localhost:8443/api/v2/groups/documents?filters=fileType=PDF
+
+Tags, SecurityLabels, Victims:
+https://localhost:8443/api/v2/securityLabels?filters=name=dictators
+https://localhost:8443/api/v2/victims?filters=name%5ETes
+https://localhost:8443/api/v2/tags?filters=weight%3E2
+
+Multiple Parameters (with implicit AND):
+https://localhost:8443/api/v2/indicators?filters=summary=lmco.com,dateAdded%3C20151015
+
+Multiple Parameters (with parameters OR’ed)
+https://localhost:8443/api/v2/indicators?filters=summary=lmco.com,dateAdded%3E20151015&orParams=true
+
+< %3C
+> %3E
+^ %5E
 -->

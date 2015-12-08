@@ -1324,7 +1324,22 @@ function Owners(authentication) {
             }
         });
     };
-    
+
+    this.retrieveMetrics = function(callback) {
+        if (this.rData.id) {
+            this.requestUri(this.ajax.requestUri + '/' + this.rData.id);
+        }
+        this.requestUri(this.ajax.requestUri + '/metrics');
+        this.requestMethod('GET');
+        this.settings.normalizer = normalize.default;
+
+        return this.apiRequest('next').done(function() {
+            if (callback) {
+                callback();
+            }
+        });
+    };
+
     c.groupEnd();
     return this;
 }
