@@ -566,6 +566,7 @@
                             <div id="Owner-toolbar" class="btn-group pull-right">
                                 <button type="button" class="btn btn-default" id="Owner-clear">Clear</button>
                                 <button type="button" class="btn btn-default" id="Owner-refresh">Refresh</button>
+                                <button type="button" class="btn btn-default" data-toggle="modal" data-target="#Owner-metric-modal">Metrics</button>
                                 <!--
                                 <button type="button" class="btn btn-default">Attributes</button>
                                 <button type="button" class="btn btn-default">Tags</button>
@@ -854,7 +855,26 @@
     
         </div>
     </div>
-    
+
+    <div id="Owner-metric-modal" class="modal fade" role="dialog">
+        <div class="modal-dialog modal-lg">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Metrics</h4>
+                </div>
+                <div class="modal-body">
+                    <div id="Owner-metric-content"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
 </body>
 
 <style>
@@ -997,6 +1017,9 @@
             });
         } else if (modalId === 'Group-map-modal') {
             
+        } else if (modalId === 'Owner-metric-modal') {
+            c.log('opened modal');
+            retrieveOwnerMetrics();
         }
     });
     
@@ -1912,7 +1935,6 @@
     var retrieveOwner = function() {
         c.log('retrieve owners');
         tc.owners()
-                .id(2)
                 .done(function(response) {
                     c.log('owner retrieve done');
                     $('#Owner-content').text(JSON.stringify(response, null, 4));
@@ -1921,6 +1943,20 @@
                         sortOrder: 'asc',
                         data: response.data
                     });
+                })
+                .error(function(response) {
+                    var message =  'Owner Retrieval failed. (' + response + ').';
+                    statusAlert('danger', message);
+                })
+                .retrieve();
+    };
+
+    var retrieveOwnerMetrics = function() {
+        c.log('retrieve owner metrics');
+        tc.owners()
+                .done(function(response) {
+                    c.log('owner stats retrieve done');
+                    $('#Owner-metric-content').text(JSON.stringify(response, null, 4));
                 })
                 .error(function(response) {
                     var message =  'Owner Retrieval failed. (' + response + ').';
@@ -2336,6 +2372,7 @@
 //        type: TYPE.GROUP
 //    });
 </script>
+</body>
 </html>
 
 <!--
