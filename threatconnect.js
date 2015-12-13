@@ -176,6 +176,7 @@ function RequestObject() {
 
     this.ajax = {
         async: true,
+        baseUri: 'v2',
         body: undefined,
         contentType: 'application/json; charset=UTF-8',
         requestMethod: 'GET',
@@ -206,6 +207,7 @@ function RequestObject() {
         nextCount: 0,
         nextCountMax: 10,
         normalizer: normalize.default,
+        normalizerType: undefined,
         pagination: false,
         previousCount: 0,
         previousCountMax: 10,
@@ -215,17 +217,13 @@ function RequestObject() {
         url: undefined,
     };
     
-    //
-    // authentication
-    //
+    /* authentication */
     this.setAuthentication = function(data) {
         this.authentication = data;
         return this;
     };
 
-    //
-    // payload
-    //
+    /* payload */
     this.addPayload = function(key, val) {
         // TODO: validate supported parameters
         this.payload[key] = val;
@@ -247,6 +245,8 @@ function RequestObject() {
     };
 
     this.filter = function(data) {
+        if (this.payload.filters) delete this.payload.filters;
+        if (this.payload.orParams) delete this.payload.orParams;
         this.addPayload('filters', data.get().filters);
         this.addPayload('orParams', data.get().orParams);
         return this;
@@ -274,17 +274,13 @@ function RequestObject() {
         return this;
     };
     
-    //
-    // headers
-    //
+    /* headers */
     this.addHeader = function(key, val) {
         this.headers[key] = val;
         return this;
     };
     
-    //
-    // ajax settings
-    //
+    /* ajax settings */
     this.async = function(data) {
         if (boolCheck('async', data)) {
             this.ajax.async = data;
@@ -320,9 +316,7 @@ function RequestObject() {
         return this;
     };
     
-    //
-    // functions
-    //
+    /* functions */
     this.done = function(data) {
         if (data) {
             if (functionCheck('done', data)) { this.callbacks.done = data; }
@@ -339,6 +333,11 @@ function RequestObject() {
     
     this.normalization = function(method) {
         this.settings.normalizer = method;
+        return this;
+    };
+    
+    this.normalizationType = function(data) {
+        this.settings.normalizerType = data;
         return this;
     };
     
@@ -402,9 +401,7 @@ function RequestObject() {
         return this;
     };
     
-    //
-    // response
-    //
+    /* response */
     this.data = function(data) {
         this.response.data = data;
         return this;
@@ -511,7 +508,7 @@ function RequestObject() {
                     _this.remaining(remaining);
 
                     var resultStart = getParameterFromUri('resultStart', this.url),
-                        normalizedData = _this.settings.normalizer(_this.settings.type, response.data),
+                        normalizedData = _this.settings.normalizer(_this.settings.normalizerType, response.data),
                         doneResponse = $.extend({
                             data: normalizedData,
                             remaining: remaining,
@@ -643,6 +640,7 @@ function Groups(authentication) {
     this.type = function(data) {
         if (data.type && data.uri) {
             this.settings.type = data;
+            this.settings.normalizerType = data;
         }
         return this;
     };
@@ -734,7 +732,8 @@ function Groups(authentication) {
     /* API ACTIONS */
     
     // Commit
-    this.commit = function() {
+    this.commit = function(callback) {
+        var _this = this;
 
         // validate required fields
         if (this.rData.requiredData.name) {
@@ -745,7 +744,7 @@ function Groups(authentication) {
             this.requestMethod('POST');
 
             this.requestUri([
-                this.ajax.requestUri,
+                this.ajax.baseUri,
                 this.settings.type.uri,
                 this.rData.id
             ].join('/'));
@@ -754,35 +753,12 @@ function Groups(authentication) {
                 this.requestMethod('PUT');
             }
             
-            /* create job */ 
-            //ro.owner(this.settings.api.owner)
-            //    .activityLog(this.settings.api.activityLog)
-            //    .body(body)
-            //    .done(this.settings.callbacks.done)
-            //    .error(this.settings.callbacks.error)
-            //    .helper(true)
-            //    .pagination(this.settings.callbacks.pagination)  // bcs - required for updates?
-            //    .normalization(this.settings.api.normalizer)
-            //    .requestUri(requestUri)
-            //    .requestMethod(method)
-            //    .type(this.settings.api.type);
-
             c.log('body', JSON.stringify(this.ajax.body, null, 4));
-            this.apiRequest({action: 'commit'});
-                //.done(function(data) {
-                // on done method commit attributes / tags
-                // var ro = new RequestObject();
-                // ro.owner(_this.settings.api.owner)
-                //     .activityLog(_this.settings.api.activityLog)
-                //     .body(body)
-                //     .done(_this.settings.callbacks.done)
-                //     .error(_this.settings.callbacks.error)
-                //     .helper(true)
-                //     // .pagination(_this.settings.callbacks.pagination)
-                //     .normalization(_this.settings.api.cNormalizer)
-                //     .requestUri(_this.settings.api.requestUri)
-                //     .requestMethod('POST');
-            // });
+            this.apiRequest({action: 'commit'})
+                .done(function(response) {
+                    _this.rData.id = response.data[_this.settings.type.dataField].id;
+                    if (callback) callback();
+                });
             
         } else {
             var errorMessage = 'Commit Failure: group name is required.';
@@ -792,17 +768,17 @@ function Groups(authentication) {
     };
     
     // Commit Associations
-    this.commitAssociation = function() {
+    this.commitAssociation = function(association) {
         /* /v2/groups/adversaries/101/groups/incidents/199 */
-
-        this.normalization(normalize.find(this.rData.associationType.type));
+        this.normalization(normalize.find(association.type.type));
+        c.log('rData', this.rData);
 
         this.requestUri([
             'v2',
             this.settings.type.uri,
             this.rData.id,
-            this.rData.associationType.uri,
-            this.rData.associationId,
+            association.type.uri,
+            association.id,
         ].join('/'));
         this.requestMethod('POST');
         c.log('this.ajax.requestUri', this.ajax.requestUri);
@@ -831,24 +807,6 @@ function Groups(authentication) {
         this.apiRequest('attribute');
     };
     
-    // Commit Tag
-    this.commitTag = function(tag) {
-        /* /v2/groups/<group type>/<ID>/tags/<tag> */
-        this.normalization(normalize.tags);
-
-        this.requestUri([
-            'v2',
-            this.settings.type.uri,
-            this.rData.id,
-            'tags',
-            tag
-        ].join('/'));
-        this.requestMethod('POST');
-        c.log('this.ajax.requestUri', this.ajax.requestUri);
-            
-        this.apiRequest('tag');
-    };
-    
     // Commit Security Label
     this.commitSecurityLabel = function(label) {
         /* /v2/groups/<group type>/<ID>/securityLabel/<label> */
@@ -860,6 +818,24 @@ function Groups(authentication) {
             this.rData.id,
             'securityLabels',
             label
+        ].join('/'));
+        this.requestMethod('POST');
+        c.log('this.ajax.requestUri', this.ajax.requestUri);
+            
+        this.apiRequest('tag');
+    };
+    
+    // Commit Tag
+    this.commitTag = function(tag) {
+        /* /v2/groups/<group type>/<ID>/tags/<tag> */
+        this.normalization(normalize.tags);
+
+        this.requestUri([
+            'v2',
+            this.settings.type.uri,
+            this.rData.id,
+            'tags',
+            tag
         ].join('/'));
         this.requestMethod('POST');
         c.log('this.ajax.requestUri', this.ajax.requestUri);
@@ -892,17 +868,15 @@ function Groups(authentication) {
     };
  
     // Delete Associations
-    this.deleteAssociation = function() {
+    this.deleteAssociation = function(association) {
         /* /v2/indicators/addresses/10.0.2.5/groups/incidents/119842 */
-
-        this.normalization(normalize.find(this.rData.associationType.type));
 
         this.requestUri([
             'v2',
             this.settings.type.uri,
             this.rData.id,
-            this.rData.associationType.uri,
-            this.rData.associationId,
+            association.type.uri,
+            association.id,
         ].join('/'));
         this.requestMethod('DELETE');
         c.log('this.ajax.requestUri', this.ajax.requestUri);
@@ -925,6 +899,24 @@ function Groups(authentication) {
         c.log('this.ajax.requestUri', this.ajax.requestUri);
             
         this.apiRequest('attribute');
+    };
+    
+    // Delete Security Label
+    this.deleteSecurityLabel = function(label) {
+        /* /v2/groups/<group type>/<ID>/securityLabel/<label> */
+        // this.normalization(normalize.securityLabels);
+
+        this.requestUri([
+            'v2',
+            this.settings.type.uri,
+            this.rData.id,
+            'securityLabels',
+            label
+        ].join('/'));
+        this.requestMethod('DELETE');
+        c.log('this.ajax.requestUri', this.ajax.requestUri);
+            
+        this.apiRequest('tag');
     };
     
     // Delete Tag
@@ -964,7 +956,7 @@ function Groups(authentication) {
     };
     
     // Retrieve Associations
-    this.retrieveAssociations = function() {
+    this.retrieveAssociations = function(association) {
         /* /v2/indicators/<indicator type>/<value>/groups */
         /* /v2/indicators/<indicator type>/<value>/groups/adversaries */
 
@@ -973,14 +965,22 @@ function Groups(authentication) {
         /* /v2/groups/adversaries/81/groups */
         /* /v2/groups/adversaries/81/groups/incidents */
 
-        this.normalization(normalize.find(this.rData.associationType.type));
+        this.normalization(normalize.find(association.type.type));
+        this.normalizationType(association.type);
 
+        c.log('this', this);
         this.requestUri([
             'v2',
             this.settings.type.uri,
             this.rData.id,
-            this.rData.associationType.uri,
+            association.type.uri,
         ].join('/'));
+        if (association.id) {
+            this.requestUri([
+                this.ajax.requestUri,
+                association.id
+            ].join('/'));
+        }
         c.log('this.ajax.requestUri', this.ajax.requestUri);
             
         this.apiRequest('associations');
@@ -1002,7 +1002,6 @@ function Groups(authentication) {
                 this.ajax.requestUri,
                 attributeId
             ].join('/'));
-            
         }
         c.log('requestUri', this.ajax.requestUri);
 
