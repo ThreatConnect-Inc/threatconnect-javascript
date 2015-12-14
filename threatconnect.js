@@ -1010,7 +1010,7 @@ function Groups(authentication) {
         this.settings.normalizer = normalize.tags;
 
         this.requestUri([
-            'v2',
+            this.ajax.baseUri,
             this.settings.type.uri,
             this.rData.id,
             'tags'
@@ -1026,7 +1026,7 @@ function Groups(authentication) {
         this.settings.normalizer = normalize.securityLabels;
 
         this.requestUri([
-            'v2',
+            this.ajax.baseUri,
             this.settings.type.uri,
             this.rData.id,
             'securityLabels'
@@ -1378,7 +1378,6 @@ function Indicators(authentication) {
             this.ajax.baseUri,
             this.settings.type.uri,
             this.iData.requiredData.summary,
-            // this.rData.id,
             association.type.uri,
         ].join('/'));
         if (association.id) {
@@ -1390,6 +1389,60 @@ function Indicators(authentication) {
         c.log('this.ajax.requestUri', this.ajax.requestUri);
             
         return this.apiRequest('associations');
+    };
+    
+    // Retrieve Attributes
+    this.retrieveAttributes = function(attributeId) {
+        /* /v2/indicators/<indicators type>/<indicator>/attributes */
+        this.settings.normalizer = normalize.attributes;
+
+        this.requestUri([
+            this.ajax.baseUri,
+            this.settings.type.uri,
+            this.iData.requiredData.summary,
+            'attributes',
+        ].join('/'));
+        if (intCheck('attributeId', attributeId)) {
+            this.requestUri([
+                this.ajax.requestUri,
+                attributeId
+            ].join('/'));
+        }
+        c.log('requestUri', this.ajax.requestUri);
+
+        return this.apiRequest('attribute');
+    };
+    
+    // Retrieve Security Labels
+    this.retrieveSecurityLabel = function() {
+        /* /v2/indicators/<indicators type>/<indicator>/securityLabel */
+        this.settings.normalizer = normalize.securityLabels;
+
+        this.requestUri([
+            this.ajax.baseUri,
+            this.settings.type.uri,
+            this.iData.requiredData.summary,
+            'securityLabels'
+        ].join('/'));
+        c.log('requestUri', this.ajax.requestUri);
+
+        return this.apiRequest('securityLabel');
+    };
+    
+    // Retrieve Tags
+    this.retrieveTags = function() {
+        /* /v2/indicators/<indicators type>/<indicator>/tags */
+        this.settings.normalizer = normalize.tags;
+
+        this.requestUri([
+            this.ajax.baseUri,
+            this.settings.type.uri,
+            this.iData.requiredData.summary,
+            'tags'
+        ].join('/'));
+        c.log('requestUri', this.ajax.requestUri);
+
+        return this.apiRequest('tags');
     };
     
     c.groupEnd();
