@@ -77,10 +77,28 @@ var TYPE = {
         'indicatorFields': ['summary'],
         'uri': 'indicators',
     },
+    MD5: {
+        'dataField': 'file',
+        'postField': 'md5',
+        'type': 'File',
+        'uri': 'indicators/files',
+    },
     OWNER: {
         'dataField': undefined,
         'type': 'Owner',
         'uri': 'owners',
+    },
+    SHA1: {
+        'dataField': 'file',
+        'postField': 'sha1',
+        'type': 'File',
+        'uri': 'indicators/files',
+    },
+    SHA256: {
+        'dataField': 'file',
+        'postField': 'sha256',
+        'type': 'File',
+        'uri': 'indicators/files',
     },
     SIGNATURE: {
         'dataField': 'signature',
@@ -486,7 +504,7 @@ function RequestObject() {
         var apiPromise = $.ajax(defaults)
             .done(function (response, textStatus, request) {
                 c.log('response', response);
-                // c.log('request.getAllResponseHeaders()', request.getAllResponseHeaders());
+                c.log('request.getAllResponseHeaders()', request.getAllResponseHeaders());
                 // c.log('this', this);
                 var currentCount = _this.settings.remaining,
                     // upload_pattern = /upload/,
@@ -537,6 +555,18 @@ function RequestObject() {
                     // upload
                     _this.response.body = undefined;  // bcs - body of files can be large
                     if (_this.callbacks.done) { _this.callbacks.done(_this.response); }
+                } else if (responseContentType == 'application/json') {
+                    // bulk download
+                    _this.response.data = response;
+                    
+                    if (_this.callbacks.done) {
+                        if (_this.settings.helper) {
+                            _this.response.data = _this.settings.normalizer(_this.settings.normalizerType, response);
+                            _this.callbacks.done(_this.response.data);
+                        } else {
+                            _this.callbacks.done(response);
+                        }
+                    }
                 } else {
                     c.warn('Nothing to do with API Response.');
                 }
@@ -589,6 +619,10 @@ function ThreatConnect(params) {
     
     this.indicators = function() {
         return new Indicators(this.authentication);
+    };
+    
+    this.indicatorsBatch = function() {
+        return new IndicatorsBatch(this.authentication);
     };
     
     this.owners = function() {
@@ -769,12 +803,12 @@ function Groups(authentication) {
     
     // Commit Associations
     this.commitAssociation = function(association) {
-        /* /v2/groups/adversaries/101/groups/incidents/199 */
+        /* /v2/groups/<group type>/<group id>/groups/<group type>/<group id> */
         this.normalization(normalize.find(association.type.type));
         c.log('rData', this.rData);
 
         this.requestUri([
-            'v2',
+            this.ajax.baseUri,
             this.settings.type.uri,
             this.rData.id,
             association.type.uri,
@@ -792,7 +826,7 @@ function Groups(authentication) {
         this.normalization(normalize.attributes);
 
         this.requestUri([
-            'v2',
+            this.ajax.baseUri,
             this.settings.type.uri,
             this.rData.id,
             'attributes'
@@ -813,7 +847,7 @@ function Groups(authentication) {
         this.normalization(normalize.securityLabels);
 
         this.requestUri([
-            'v2',
+            this.ajax.baseUri,
             this.settings.type.uri,
             this.rData.id,
             'securityLabels',
@@ -822,7 +856,7 @@ function Groups(authentication) {
         this.requestMethod('POST');
         c.log('this.ajax.requestUri', this.ajax.requestUri);
             
-        this.apiRequest('tag');
+        this.apiRequest('securityLabel');
     };
     
     // Commit Tag
@@ -831,7 +865,7 @@ function Groups(authentication) {
         this.normalization(normalize.tags);
 
         this.requestUri([
-            'v2',
+            this.ajax.baseUri,
             this.settings.type.uri,
             this.rData.id,
             'tags',
@@ -845,34 +879,25 @@ function Groups(authentication) {
     
     // Delete
     this.delete = function() {
+        /* /v2/groups/<group type>/<ID> */
+        
         this.requestUri([
             this.ajax.requestUri,
             this.settings.type.uri,
             this.rData.id
         ].join('/'));
 
-        //var ro = new RequestObject();
-        //ro.owner(this.settings.api.owner)
-        //    .activityLog(this.settings.api.activityLog)
-        //    .done(this.settings.callbacks.done)
-        //    .error(this.settings.callbacks.error)
-        //    .helper(true)
-        //    .id(this.settings.api.requestUriId)
-        //    .requestUri(requestUri)
-        //    .requestMethod('DELETE')
-        //    .resultLimit(this.settings.api.resultLimit)
-        //    .type(this.settings.api.type);
-        //c.log('body', ro);
-     
+        this.requestMethod('DELETE');
         this.apiRequest({action: 'delete'});
     };
  
     // Delete Associations
     this.deleteAssociation = function(association) {
-        /* /v2/indicators/addresses/10.0.2.5/groups/incidents/119842 */
+        /* /v2/groups/<group type>/<group id>/groups/<group type>/<group id> */
+        /* /v2/groups/<group type>/<group id>/indicators/<indicator type>/<indicator> */
 
         this.requestUri([
-            'v2',
+            this.ajax.baseUri,
             this.settings.type.uri,
             this.rData.id,
             association.type.uri,
@@ -889,7 +914,7 @@ function Groups(authentication) {
         /* /v2/groups/incidents/256/attributes/9 */
 
         this.requestUri([
-            'v2',
+            this.ajax.baseUri,
             this.settings.type.uri,
             this.rData.id,
             'attributes',
@@ -904,10 +929,9 @@ function Groups(authentication) {
     // Delete Security Label
     this.deleteSecurityLabel = function(label) {
         /* /v2/groups/<group type>/<ID>/securityLabel/<label> */
-        // this.normalization(normalize.securityLabels);
 
         this.requestUri([
-            'v2',
+            this.ajax.baseUri,
             this.settings.type.uri,
             this.rData.id,
             'securityLabels',
@@ -916,16 +940,15 @@ function Groups(authentication) {
         this.requestMethod('DELETE');
         c.log('this.ajax.requestUri', this.ajax.requestUri);
             
-        this.apiRequest('tag');
+        this.apiRequest('securityLabel');
     };
     
     // Delete Tag
     this.deleteTag = function(tag) {
         /* /v2/groups/<group type>/<ID>/tags/<tag> */
-        // this.normalization(normalize.tags);
 
         this.requestUri([
-            'v2',
+            this.ajax.baseUri,
             this.settings.type.uri,
             this.rData.id,
             'tags',
@@ -988,7 +1011,7 @@ function Groups(authentication) {
         this.settings.normalizer = normalize.attributes;
 
         this.requestUri([
-            'v2',
+            this.ajax.baseUri,
             this.settings.type.uri,
             this.rData.id,
             'attributes',
@@ -1046,21 +1069,404 @@ function Indicators(authentication) {
     RequestObject.call(this);
     
     this.authentication = authentication;
+    this.settings.helper = true,
+    this.settings.normalizer = normalize.indicators,
+    this.settings.type = TYPE.INDICATOR,
+    this.settings.normalizerType = TYPE.INDICATOR,
+    this.iData = {
+        indicator: undefined,
+        optionalData: {},
+        requiredData: {},
+        specificData: {
+            Address: {},
+            EmailAddress: {},
+            File: {},
+            Host: {},
+            URL: {}
+        },
+    };
+    
+    /* INDICATOR DATA REQUIRED */
+    this.indicator = function(data) {
+        // this.iData.requiredData.summary = data;
+        this.iData.indicator = data;
+        return this;
+    };
+    
+    this.type = function(data) {
+        if (data.type && data.uri) {
+            this.settings.type = data;
+            this.settings.normalizerType = data;
+        }
+        return this;
+    };
+    
+    /* INDICATOR DATA OPTIONAL */
+    this.confidence = function(data) {
+        if (intCheck('confidence', data)) {
+            this.iData.optionalData.confidence = data;
+        }
+        return this;
+    };
+    
+    this.description = function(data) {
+        if (typeof data === 'string') {
+            this.iData.optionalData.description = data;
+        } else {
+            c.error('Description must be a string.', data);
+        }
+        return this;
+    };
+    
+    this.rating = function(data) {
+        if (intCheck('rating', data)) {
+            this.iData.optionalData.rating = data;
+        } else {
+            c.error('Rating must be a Float.', data);
+        }
+        return this;
+    };
+    
+    /* INDICATOR DATA SPECIFIC */
+    
+    // file
+    this.description = function(data) {
+        this.iData.specificData.File.description = data;
+        return this;
+    };
+    
+    // host
+    this.dnsActive = function(data) {
+        if (boolCheck('dnsActive', data)) {
+            this.iData.specificData.Host.dnsActive = data;
+        }
+        return this;
+    };
+    
+    this.whoisActive = function(data) {
+        if (boolCheck('whoisActive', data)) {
+            this.iData.specificData.Host.whoisActive = data;
+        }
+        return this;
+    };
+    
+    // url
+    this.source = function(data) {
+        this.iData.specificData.URL.source = data;
+        return this;
+    };
+    
+    /* API ACTIONS */
+    
+    // Commit
+    this.commit = function(callback) {
+        // var _this = this;
+
+        // validate required fields
+        if (this.iData.indicator) {
+            
+            this.iData.requiredData[this.settings.type.postField] = this.iData.indicator;
+
+            // prepare body
+            var specificBody = this.iData.specificData[this.settings.type.dataField];
+            this.body($.extend(this.iData.requiredData, $.extend(this.iData.optionalData, specificBody)));
+            this.requestMethod('POST');
+
+            this.requestUri([
+                this.ajax.baseUri,
+                this.settings.type.uri,
+                // this.iData.requiredData.summary
+            ].join('/'));
+
+            // if (this.rData.id) {
+            //     this.requestMethod('PUT');
+            // }
+            
+            c.log('body', JSON.stringify(this.ajax.body, null, 4));
+            this.apiRequest({action: 'commit'})
+                .done(function(response) {
+                    if (callback) callback();
+                });
+            
+        } else {
+            var errorMessage = 'Commit Failure: indicator is required.';
+            console.error(errorMessage);
+            this.callbacks.error({error: errorMessage});
+        } 
+    };
+    
+    // Commit Associations
+    this.commitAssociation = function(association) {
+        /* /v2/indicators/<indicator type>/<indicator>/groups/incidents/199 */
+        this.normalization(normalize.find(association.type.type));
+        c.log('rData', this.rData);
+
+        this.requestUri([
+            this.ajax.baseUri,
+            this.settings.type.uri,
+            this.iData.indicator,
+            association.type.uri,
+            association.id,
+        ].join('/'));
+        this.requestMethod('POST');
+        c.log('this.ajax.requestUri', this.ajax.requestUri);
+            
+        this.apiRequest('associations');
+    };
+    
+    // Commit Attributes
+    this.commitAttribute = function(attribute) {
+        /* /v2/indicators/<indicator type>/<indicator>/attributes */
+        this.normalization(normalize.attributes);
+
+        this.requestUri([
+            this.ajax.baseUri,
+            this.settings.type.uri,
+            this.iData.indicator,
+            'attributes'
+        ].join('/'));
+        this.requestMethod('POST');
+        this.body({
+            type: attribute.type,
+            value: attribute.value
+        });
+        c.log('this.ajax.requestUri', this.ajax.requestUri);
+            
+        this.apiRequest('attribute');
+    };
+    
+    // Commit Security Label
+    this.commitSecurityLabel = function(label) {
+        /* /v2/indicators/<indicator type>/<indicator>/securityLabel/<label> */
+        this.normalization(normalize.securityLabels);
+
+        this.requestUri([
+            this.ajax.baseUri,
+            this.settings.type.uri,
+            this.iData.indicator,
+            'securityLabels',
+            label
+        ].join('/'));
+        this.requestMethod('POST');
+        c.log('this.ajax.requestUri', this.ajax.requestUri);
+            
+        this.apiRequest('securityLabel');
+    };
+    
+    // Commit Tag
+    this.commitTag = function(tag) {
+        /* /v2/indicators/<indicator type>/<indicator>/tags/<tag> */
+        this.normalization(normalize.tags);
+
+        this.requestUri([
+            this.ajax.baseUri,
+            this.settings.type.uri,
+            this.iData.indicator,
+            'tags',
+            tag
+        ].join('/'));
+        this.requestMethod('POST');
+        c.log('this.ajax.requestUri', this.ajax.requestUri);
+            
+        this.apiRequest('tag');
+    };
+    
+    // Delete
+    this.delete = function() {
+        /* /v2/indicators/<indicator type>/<indicator> */
+        this.requestUri([
+            this.ajax.requestUri,
+            this.settings.type.uri,
+            this.iData.indicator,
+        ].join('/'));
+
+        this.requestMethod('DELETE');
+        this.apiRequest({action: 'delete'});
+    };
+ 
+    // Delete Associations
+    this.deleteAssociation = function(association) {
+        /* /v2/indicators/<indicator type>/<indicator>/groups/<group type>/<group id> */
+
+        this.requestUri([
+            this.ajax.baseUri,
+            this.settings.type.uri,
+            this.iData.indicator,
+            association.type.uri,
+            association.id,
+        ].join('/'));
+        this.requestMethod('DELETE');
+        c.log('this.ajax.requestUri', this.ajax.requestUri);
+            
+        this.apiRequest('associations');
+    };
+    
+    // Delete Attributes
+    this.deleteAttribute = function(attributeId) {
+        /* /v2/indicators/<indicator type>/<indicator>/attributes/<attribute id> */
+
+        this.requestUri([
+            this.ajax.baseUri,
+            this.settings.type.uri,
+            this.iData.indicator,
+            'attributes',
+            attributeId
+        ].join('/'));
+        this.requestMethod('DELETE');
+        c.log('this.ajax.requestUri', this.ajax.requestUri);
+            
+        this.apiRequest('attribute');
+    };
+    
+    // Delete Security Label
+    this.deleteSecurityLabel = function(label) {
+        /* /v2/indicators/<indicator type>/<indicator>/securityLabel/<label> */
+
+        this.requestUri([
+            this.ajax.baseUri,
+            this.settings.type.uri,
+            this.iData.indicator,
+            'securityLabels',
+            label
+        ].join('/'));
+        this.requestMethod('DELETE');
+        c.log('this.ajax.requestUri', this.ajax.requestUri);
+            
+        this.apiRequest('securityLabel');
+    };
+    
+    // Delete Tag
+    this.deleteTag = function(tag) {
+        /* /v2/indicators/<indicator type>/<indicator>/tags/<tag> */
+
+        this.requestUri([
+            this.ajax.baseUri,
+            this.settings.type.uri,
+            this.iData.indicator,
+            'tags',
+            tag
+        ].join('/'));
+        this.requestMethod('DELETE');
+        c.log('this.ajax.requestUri', this.ajax.requestUri);
+            
+        this.apiRequest('tag');
+    };
+    
+    // retrieve
+    this.retrieve = function(callback) {
+        
+        this.ajax.requestUri += '/' + this.settings.type.uri;
+        if (this.iData.requiredData.summary) {
+            var indicator = this.iData.requiredData.summary;
+            if (this.settings.type.type == 'URL') {
+                indicator = encodeURIComponent(indicator);
+            }
+            this.ajax.requestUri += '/' + indicator;
+        }
+        this.settings.requestCount = this.payload.resultLimit;
+        
+        return this.apiRequest('next').done(function() {
+            if (callback) {
+                callback();
+            }
+        });
+    };
+    
+    // retrieve associations
+    this.retrieveAssociations = function(association) {
+        /* /v2/indicators/<indicator type>/<value>/groups */
+        /* /v2/indicators/<indicator type>/<value>/groups/adversaries */
+        
+        this.normalization(normalize.find(association.type.type));
+        this.normalizationType(association.type);
+        
+        this.requestUri([
+            this.ajax.baseUri,
+            this.settings.type.uri,
+            this.iData.requiredData.summary,
+            association.type.uri,
+        ].join('/'));
+        if (association.id) {
+            this.requestUri([
+                this.ajax.requestUri,
+                association.id
+            ].join('/'));
+        }
+        c.log('this.ajax.requestUri', this.ajax.requestUri);
+            
+        return this.apiRequest('associations');
+    };
+    
+    // Retrieve Attributes
+    this.retrieveAttributes = function(attributeId) {
+        /* /v2/indicators/<indicators type>/<indicator>/attributes */
+        this.settings.normalizer = normalize.attributes;
+
+        this.requestUri([
+            this.ajax.baseUri,
+            this.settings.type.uri,
+            this.iData.requiredData.summary,
+            'attributes',
+        ].join('/'));
+        if (intCheck('attributeId', attributeId)) {
+            this.requestUri([
+                this.ajax.requestUri,
+                attributeId
+            ].join('/'));
+        }
+        c.log('requestUri', this.ajax.requestUri);
+
+        return this.apiRequest('attribute');
+    };
+    
+    // Retrieve Security Labels
+    this.retrieveSecurityLabel = function() {
+        /* /v2/indicators/<indicators type>/<indicator>/securityLabel */
+        this.settings.normalizer = normalize.securityLabels;
+
+        this.requestUri([
+            this.ajax.baseUri,
+            this.settings.type.uri,
+            this.iData.requiredData.summary,
+            'securityLabels'
+        ].join('/'));
+        c.log('requestUri', this.ajax.requestUri);
+
+        return this.apiRequest('securityLabel');
+    };
+    
+    // Retrieve Tags
+    this.retrieveTags = function() {
+        /* /v2/indicators/<indicators type>/<indicator>/tags */
+        this.settings.normalizer = normalize.tags;
+
+        this.requestUri([
+            this.ajax.baseUri,
+            this.settings.type.uri,
+            this.iData.requiredData.summary,
+            'tags'
+        ].join('/'));
+        c.log('requestUri', this.ajax.requestUri);
+
+        return this.apiRequest('tags');
+    };
+    
+    c.groupEnd();
+    return this;
+}
+Indicators.prototype = Object.create(RequestObject.prototype);
+
+function IndicatorsBatch(authentication) {
+    c.group('Indicators');
+    RequestObject.call(this);
+    
+    this.authentication = authentication;
     this.batchBody = [],
     this.ajax.requestUri = 'v2',
     this.settings.helper = true,
     this.settings.normalizer = normalize.indicators,
     this.settings.type = TYPE.INDICATOR,
     this.settings.normalizerType = TYPE.INDICATOR,
-    // this.settings = {
-    //     api: {
-    //         // activityLog: false,             // false|true
-    //         // limit: undefined,
-    //         requestUriId: undefined,
-    //         // resultLimit: 500,
-    //         // owner: undefined,               // set twice due to batch
-    //     }
-    // },
     this.batch = {
         action: 'Create',               // Create|Delete
         attributeWriteType: 'Append',   // Append|Replace
@@ -1268,7 +1674,7 @@ function Indicators(authentication) {
             
             this.body($.extend({owner: this.payload.owner}, this.batch));
             this.normalization(normalize.default);  // bcs rename
-            this.requestUri('v2/batch');
+            this.requestUri(this.ajax.baseUri + '/batch');
             this.requestMethod('POST');
             this.done = this.callbacks.done;
             this.callbacks.done = undefined;
@@ -1281,7 +1687,7 @@ function Indicators(authentication) {
                     
                     _this.body(_this.batchBody);
                     _this.contentType('application/octet-stream');
-                    _this.requestUri('v2/batch/' + jobResponse.data.batchId);
+                    _this.requestUri(this.ajax.baseUri + '/batch/' + jobResponse.data.batchId);
                         
                     /* post data */
                     _this.apiRequest({action: 'commit'})
@@ -1290,7 +1696,7 @@ function Indicators(authentication) {
                             
                             _this.body(_this.batchBody);
                             _this.contentType('application/octet-stream');
-                            _this.requestUri('v2/batch/' + jobResponse.data.batchId);
+                            _this.requestUri(this.ajax.baseUri + '/batch/' + jobResponse.data.batchId);
                             _this.requestMethod('GET');
                             
                             var checkStatus = function() {
@@ -1307,7 +1713,7 @@ function Indicators(authentication) {
                                                 statusResponse.data.batchStatus.data = _this.batchBody;
                                                 if (statusResponse.data.batchStatus.errorCount > 0) {
                                                     
-                                                    _this.requestUri('v2/batch/' + jobResponse.data.batchId);
+                                                    _this.requestUri(this.ajax.baseUri + '/batch/' + jobResponse.data.batchId);
                                                     _this.requestMethod('GET');
                                                                 
                                                     /* get errors */
@@ -1347,115 +1753,30 @@ function Indicators(authentication) {
     };
     
     // retrieve
-    this.retrieve = function(callback) {
-        
-        this.ajax.requestUri += '/' + this.settings.type.uri;
-        if (this.iData.requiredData.summary) {
-            var indicator = this.iData.requiredData.summary;
-            if (this.settings.type.type == 'URL') {
-                indicator = encodeURIComponent(indicator);
-            }
-            this.ajax.requestUri += '/' + indicator;
-        }
-        this.settings.requestCount = this.payload.resultLimit;
-        
-        return this.apiRequest('next').done(function() {
-            if (callback) {
-                callback();
-            }
-        });
+    this.retrieve = function(format) {
+        this.requestUri(this.ajax.baseUri + '/indicators/bulk/' + format);
+        this.normalization(normalize.indicatorsBatch);
+        return this.apiRequest('next');
     };
     
-    // retrieve associations
-    this.retrieveAssociations = function(association) {
-        /* /v2/indicators/<indicator type>/<value>/groups */
-        /* /v2/indicators/<indicator type>/<value>/groups/adversaries */
-        
-        this.normalization(normalize.find(association.type.type));
-        this.normalizationType(association.type);
-        
-        this.requestUri([
-            this.ajax.baseUri,
-            this.settings.type.uri,
-            this.iData.requiredData.summary,
-            association.type.uri,
-        ].join('/'));
-        if (association.id) {
-            this.requestUri([
-                this.ajax.requestUri,
-                association.id
-            ].join('/'));
-        }
-        c.log('this.ajax.requestUri', this.ajax.requestUri);
-            
-        return this.apiRequest('associations');
-    };
-    
-    // Retrieve Attributes
-    this.retrieveAttributes = function(attributeId) {
-        /* /v2/indicators/<indicators type>/<indicator>/attributes */
-        this.settings.normalizer = normalize.attributes;
-
-        this.requestUri([
-            this.ajax.baseUri,
-            this.settings.type.uri,
-            this.iData.requiredData.summary,
-            'attributes',
-        ].join('/'));
-        if (intCheck('attributeId', attributeId)) {
-            this.requestUri([
-                this.ajax.requestUri,
-                attributeId
-            ].join('/'));
-        }
-        c.log('requestUri', this.ajax.requestUri);
-
-        return this.apiRequest('attribute');
-    };
-    
-    // Retrieve Security Labels
-    this.retrieveSecurityLabel = function() {
-        /* /v2/indicators/<indicators type>/<indicator>/securityLabel */
-        this.settings.normalizer = normalize.securityLabels;
-
-        this.requestUri([
-            this.ajax.baseUri,
-            this.settings.type.uri,
-            this.iData.requiredData.summary,
-            'securityLabels'
-        ].join('/'));
-        c.log('requestUri', this.ajax.requestUri);
-
-        return this.apiRequest('securityLabel');
-    };
-    
-    // Retrieve Tags
-    this.retrieveTags = function() {
-        /* /v2/indicators/<indicators type>/<indicator>/tags */
-        this.settings.normalizer = normalize.tags;
-
-        this.requestUri([
-            this.ajax.baseUri,
-            this.settings.type.uri,
-            this.iData.requiredData.summary,
-            'tags'
-        ].join('/'));
-        c.log('requestUri', this.ajax.requestUri);
-
-        return this.apiRequest('tags');
+    // retrieve batch status
+    this.retrieveBatchStatus = function() {
+        this.normalization(normalize.default)
+        this.requestUri(this.ajax.baseUri + '/indicators/bulk');
+        return this.apiRequest('next');
     };
     
     c.groupEnd();
     return this;
 }
-Indicators.prototype = Object.create(RequestObject.prototype);
+IndicatorsBatch.prototype = Object.create(RequestObject.prototype);
 
 function Owners(authentication) {
     c.group('Owners');
     RequestObject.call(this);
 
     this.authentication = authentication;
-    this.ajax.requestUri = 'v2/owners',
+    this.ajax.requestUri = this.ajax.baseUri + '/owners',
     this.settings.helper = true,
     this.settings.normalizer = normalize.owners,
     this.settings.type = TYPE.OWNER,
@@ -1511,10 +1832,10 @@ Owners.prototype = Object.create(RequestObject.prototype);
 function Tags(authentication) {
     c.group('Tags');
     RequestObject.call(this);
-    // /v2/tags
+    /* /v2/tags */
 
     this.authentication = authentication;
-    this.ajax.requestUri = 'v2/tags',
+    this.ajax.requestUri = this.ajax.baseUri + '/tags',
     this.settings.helper = true,
     this.settings.normalizer = normalize.tags,
     this.settings.type = TYPE.TAG,
@@ -1555,6 +1876,7 @@ function Tags(authentication) {
 }
 Tags.prototype = Object.create(RequestObject.prototype);
 
+// bcs - rework
 function Attributes(threatconnect) {
     c.group('Attributes');
     ThreatConnect.call(this, threatconnect);
@@ -1565,7 +1887,7 @@ function Attributes(threatconnect) {
             activityLog: false,             // false|true
             owner: undefined,
             resultLimit: 500,
-            requestUri: '/v2/attributes'
+            requestUri: this.ajax.baseUri + '/attributes'
         },
         callbacks: {
             done: undefined,
@@ -1647,6 +1969,7 @@ function Attributes(threatconnect) {
 }
 Attributes.prototype = Object.create(ThreatConnect.prototype);
 
+// bcs - rework
 ThreatConnect.prototype.upload = function() {
     c.group('upload');
     
@@ -1852,6 +2175,26 @@ var normalize = {
                 threatAssessConfidence: rvalue.threatAssessConfidence,
                 webLink: rvalue.webLink,
             });
+        });
+        
+        c.groupEnd();
+        return indicators;
+    },
+    indicatorsBatch: function(type, response) { 
+        c.group('normalize.indicatorsBatch', response);
+
+        response = response.indicator;
+
+        var indicators = [];
+        $.each(response, function(rkey, rvalue) {
+            if (rvalue && rvalue.length == 0) {
+                return;
+            }
+
+            rvalue.indicator = rvalue['summary'];
+            delete rvalue.summary;
+
+            indicators.push(rvalue);
         });
         
         c.groupEnd();
