@@ -341,9 +341,9 @@ function RequestObject() {
         return this;
     };
     
-    this.go = function() {
-        this.apiRequest({action: 'go'});
-    };
+    // this.go = function() {
+    //     this.apiRequest({action: 'go'});
+    // };
     
     this.hasNext = function() {
         c.log('hasNext requestCount', this.settings.requestCount);
@@ -412,10 +412,10 @@ function RequestObject() {
         return this;
     };
     
-     this.remaining = function(data) {
-         this.settings.remaining = data;
-         return this;
-     };
+    this.remaining = function(data) {
+        this.settings.remaining = data;
+        return this;
+    };
     
     //
     // api
@@ -507,8 +507,8 @@ function RequestObject() {
                     remaining = (remaining > 0) ? remaining : 0;
                     _this.remaining(remaining);
 
-                    var resultStart = getParameterFromUri('resultStart', this.url),
-                        normalizedData = _this.settings.normalizer(_this.settings.normalizerType, response.data),
+                    // var resultStart = getParameterFromUri('resultStart', this.url),
+                    var normalizedData = _this.settings.normalizer(_this.settings.normalizerType, response.data),
                         doneResponse = $.extend({
                             data: normalizedData,
                             remaining: remaining,
@@ -541,7 +541,6 @@ function RequestObject() {
                     c.warn('Nothing to do with API Response.');
                 }
             })
-            // .fail(function (response) {
             .fail(function (response, textStatus, request) {
                 c.log('response', response);
                 c.log('response.getAllResponseHeaders()', response.getAllResponseHeaders());
@@ -553,6 +552,7 @@ function RequestObject() {
                 }
             });
             
+        if (! this.payload.resultStart) this.resultStart(0);
         this.resultStart(this.payload.resultStart + this.payload.resultLimit);
         c.groupEnd();
         return apiPromise;
@@ -957,9 +957,6 @@ function Groups(authentication) {
     
     // Retrieve Associations
     this.retrieveAssociations = function(association) {
-        /* /v2/indicators/<indicator type>/<value>/groups */
-        /* /v2/indicators/<indicator type>/<value>/groups/adversaries */
-
         /* /v2/groups/adversaries/81/indicators */
         /* /v2/groups/adversaries/81/indicators/hosts */
         /* /v2/groups/adversaries/81/groups */
@@ -968,9 +965,8 @@ function Groups(authentication) {
         this.normalization(normalize.find(association.type.type));
         this.normalizationType(association.type);
 
-        c.log('this', this);
         this.requestUri([
-            'v2',
+            this.ajax.baseUri,
             this.settings.type.uri,
             this.rData.id,
             association.type.uri,
@@ -983,7 +979,7 @@ function Groups(authentication) {
         }
         c.log('this.ajax.requestUri', this.ajax.requestUri);
             
-        this.apiRequest('associations');
+        return this.apiRequest('associations');
     };
     
     // Retrieve Attributes
@@ -1055,6 +1051,7 @@ function Indicators(authentication) {
     this.settings.helper = true,
     this.settings.normalizer = normalize.indicators,
     this.settings.type = TYPE.INDICATOR,
+    this.settings.normalizerType = TYPE.INDICATOR,
     // this.settings = {
     //     api: {
     //         // activityLog: false,             // false|true
@@ -1088,9 +1085,7 @@ function Indicators(authentication) {
         },
     };
     
-    //
-    // Settings Batch
-    //
+    /* SETTINGS BATCH */
     this.action = function(data) {
         if (valueCheck('action', data, ['Create', 'Delete'])) {
             this.batch.haltOnError = data;
@@ -1112,9 +1107,7 @@ function Indicators(authentication) {
         return this;
     };
      
-    //
-    // Indicator Data - Required
-    //
+    /* INDICATOR DATA REQUIRED */
     this.indicator = function(data) {
         this.iData.requiredData.summary = data;
         return this;
@@ -1123,15 +1116,13 @@ function Indicators(authentication) {
     this.type = function(data) {
         if (data.type && data.uri) {
             this.settings.type = data;
+            this.settings.normalizerType = data;
             this.iData.requiredData.type = data.type;
         }
         return this;
     };
     
-    //
-    // Indicator Data - Optional
-    //
-    
+    /* INDICATOR DATA OPTIONAL */
     this.attributes = function(data) {
         // if (!this.iData.optionalData.attribute) {this.iData.optionalData.attribute = []}
         // if (typeof data === 'object' && data.length != 0) {
@@ -1183,20 +1174,15 @@ function Indicators(authentication) {
         return this;
     };
     
-    //
-    // Indicator Data - File Specific
-    //
-
-    // bcs ???
-    //this.description = function(data) {
-    //    this.iData.specificData.File.description = data;
-    //    return this;
-    //};
+    /* INDICATOR DATA SPECIFIC */
     
-    //
-    // Indicator Data - Host Specific
-    //
+    // file
+    this.description = function(data) {
+        this.iData.specificData.File.description = data;
+        return this;
+    };
     
+    // host
     this.dnsActive = function(data) {
         if (boolCheck('dnsActive', data)) {
             this.iData.specificData.Host.dnsActive = data;
@@ -1211,16 +1197,15 @@ function Indicators(authentication) {
         return this;
     };
     
-    //
-    // Indicator Data - Url Specific
-    //
-    
+    // url
     this.source = function(data) {
         this.iData.specificData.URL.source = data;
         return this;
     };
     
-    // Indicator Add (Batch)
+    /* BATCH */
+    
+    // add
     this.add = function() {
         var body = {},
             specificBody = {};
@@ -1242,7 +1227,37 @@ function Indicators(authentication) {
         return this;
     };
     
-    // Indicator Commit to API
+    this.init = function() {
+        this.batchBody = [];
+        this.iData = {
+            optionalData: {},
+            requiredData: {},
+            specificData: {
+                Address: {},
+                EmailAddress: {},
+                File: {},
+                Host: {},
+                URL: {}
+            },
+        };
+        
+        this.settings.callbacks.done = undefined;
+        this.settings.callbacks.pagination = undefined;
+        this.settings.callbacks.error = undefined;
+    };
+    
+    this.updateFrequency = function(params) {
+        if ((params.frequency * params.multiplier) < params.maxFrequency) {
+            params.frequency = params.frequency * params.multiplier;
+        } else {
+            params.frequency = params.maxFrequency;
+        }
+        params.timeout -= params.frequency;
+    };
+    
+    /* API ACTIONS */
+    
+    // commit
     this.commit = function() {
         var _this = this,
             message;
@@ -1331,6 +1346,7 @@ function Indicators(authentication) {
         return this;
     };
     
+    // retrieve
     this.retrieve = function(callback) {
         
         this.ajax.requestUri += '/' + this.settings.type.uri;
@@ -1343,107 +1359,37 @@ function Indicators(authentication) {
         }
         this.settings.requestCount = this.payload.resultLimit;
         
-        // return this.apiRequest('next');
         return this.apiRequest('next').done(function() {
             if (callback) {
                 callback();
             }
         });
-        
-        // reset
-        // this.batchBody = [];
-        // this.iData.optionalData = {};
-        // this.iData.requiredData = {};
-        // this.iData.specificData = {};
-        
-        // this.settings.callbacks.done = undefined;
-        // this.settings.callbacks.pagination = undefined;
-        // this.settings.callbacks.error = undefined;
     };
     
-    this.retrieveAssociations = function(params) {
-        // /v2/indicators/<indicator type>/<value>/groups
+    // retrieve associations
+    this.retrieveAssociations = function(association) {
+        /* /v2/indicators/<indicator type>/<value>/groups */
+        /* /v2/indicators/<indicator type>/<value>/groups/adversaries */
         
-        c.log('params', params);
-        var normalizer,
-            requestUri = 'v2/indicators',
-            method = 'GET';
-            
-        if (params.type.type) {
-            normalizer = normalize.find(params.type.type);
-            /*
-            if (params.type.type == 'Group') {
-                normalizer = normalize.groups;
-            } else if (params.type.type == 'Indicator') {
-                normalizer = normalize.indicators;
-            }
-            */
-        }
+        this.normalization(normalize.find(association.type.type));
+        this.normalizationType(association.type);
         
-        var requestUri = [
-            requestUri,
-            this.settings.api.type.uri,
+        this.requestUri([
+            this.ajax.baseUri,
+            this.settings.type.uri,
             this.iData.requiredData.summary,
-            params.type.uri
-        ].join('/');
-        c.log('requestUri', requestUri);
-        return;
-        
-        if (this.settings.api.type) {
-            requestUri += '/' + this.settings.api.type.uri;
-            if (this.iData.requiredData.summary) {
-                requestUri += '/' + this.iData.requiredData.summary;
-            }
+            // this.rData.id,
+            association.type.uri,
+        ].join('/'));
+        if (association.id) {
+            this.requestUri([
+                this.ajax.requestUri,
+                association.id
+            ].join('/'));
         }
-     
-        var ro = new RequestObject();
-        ro.helper(true)
-            .done(this.settings.callbacks.done)
-            .error(this.settings.callbacks.error)
-            .limit(this.settings.api.limit)
-            .normalization(normalizer)
-            .owner(this.settings.api.owner)
-            .pagination(this.settings.callbacks.pagination)
-            .requestMethod(method)
-            .requestUri(requestUri)
-            .resultLimit(this.settings.api.resultLimit)
-            .type(this.settings.api.type);
-        c.log('ro', ro);
-     
-        this.apiRequest(ro);
-        
-        // clear
-        // this.init();
-        
-        return this;
-    };
-    
-    this.init = function() {
-        this.batchBody = [];
-        this.iData = {
-            optionalData: {},
-            requiredData: {},
-            specificData: {
-                Address: {},
-                EmailAddress: {},
-                File: {},
-                Host: {},
-                URL: {}
-            },
-        };
-        
-        this.settings.callbacks.done = undefined;
-        this.settings.callbacks.pagination = undefined;
-        this.settings.callbacks.error = undefined;
-    };
-    
-    this.updateFrequency = function(params) {
-        if ((params.frequency * params.multiplier) < params.maxFrequency) {
-            params.frequency = params.frequency * params.multiplier;
-        } else {
-            params.frequency = params.maxFrequency;
-        }
-        params.timeout -= params.frequency;
+        c.log('this.ajax.requestUri', this.ajax.requestUri);
+            
+        return this.apiRequest('associations');
     };
     
     c.groupEnd();
@@ -1465,7 +1411,7 @@ function Owners(authentication) {
         optionalData: {},
     };
 
-    // Optional
+    /* OPTIONAL */
     this.id = function(data) {
         if (intCheck('id', data)) {
             this.rData.id = data;
@@ -1473,9 +1419,7 @@ function Owners(authentication) {
         return this;
     };
 
-    //
-    // Retrieve Owners
-    //
+    /* Retrieve Owners */
     this.retrieve = function(callback) {
         if (this.rData.id) {
             this.requestUri(this.ajax.requestUri + '/' + this.rData.id);
@@ -1489,7 +1433,7 @@ function Owners(authentication) {
         });
     };
 
-    this.retrieveMetrics = function(callback) {
+    this.retrieveMetrics = function() {
         if (this.rData.id) {
             this.requestUri(this.ajax.requestUri + '/' + this.rData.id);
         }
@@ -1497,11 +1441,13 @@ function Owners(authentication) {
         this.requestMethod('GET');
         this.settings.normalizer = normalize.default;
 
-        return this.apiRequest('next').done(function() {
-            if (callback) {
-                callback();
-            }
-        });
+        // return this.apiRequest('next').done(function() {
+        //     if (callback) {
+        //         callback();
+        //     }
+        // });
+        
+        return this.apiRequest('owner');
     };
 
     c.groupEnd();
@@ -1515,38 +1461,32 @@ function Tags(authentication) {
     // /v2/tags
 
     this.authentication = authentication;
-    this.ajax.requestUri = 'v2',
+    this.ajax.requestUri = 'v2/tags',
     this.settings.helper = true,
     this.settings.normalizer = normalize.tags,
     this.settings.type = TYPE.TAG,
     this.rData = {
         id: undefined,
         indicator: undefined,
+        name: undefined,
         optionalData: {},
     };
 
-    // Optional
-    //this.id = function(data) {
-    //    if (intCheck('id', data)) {
-    //        this.rData.id = data;
-    //    }
-    //    return this;
-    //};
-    //
-    //this.indicator = function(data) {
-    //    this.rData.indicator = data;
-    //    return this;
-    //};
 
-    //
-    // Retrieve Tag
-    //
+    /* OPTIONAL */
+    this.name = function(data) {
+        this.rData.name = data;
+        return this;
+    };
+    
+    /* API ACTIONS */
+    
+    // retrieve
     this.retrieve = function(callback) {
-        this.requestUri('v2/tags')
-        if (this.rData.id) {
-            this.requestUri(this.ajax.requestUri + '/' + this.rData.id);
-        } else if (this.rData.indicator) {
-            this.requestUri(this.ajax.requestUri + '/' + this.rData.id);
+        /* /v2/tags/<tag name> */
+        
+        if (this.rData.name) {
+            this.requestUri(this.ajax.requestUri + '/' + this.rData.name);
         }
         this.requestMethod('GET');
 
