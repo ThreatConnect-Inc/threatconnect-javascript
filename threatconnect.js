@@ -504,7 +504,7 @@ function RequestObject() {
         var apiPromise = $.ajax(defaults)
             .done(function (response, textStatus, request) {
                 c.log('response', response);
-                c.log('request.getAllResponseHeaders()', request.getAllResponseHeaders());
+                // c.log('request.getAllResponseHeaders()', request.getAllResponseHeaders());
                 // c.log('this', this);
                 var currentCount = _this.settings.remaining,
                     // upload_pattern = /upload/,
@@ -668,6 +668,7 @@ function Groups(authentication) {
     /* SETTINGS API */
     this.id = function(data) {
         this.rData.id = data;
+        this.response.id = data;
         return this;
     };
 
@@ -1355,7 +1356,11 @@ function Indicators(authentication) {
     // retrieve
     this.retrieve = function(callback) {
         
-        this.ajax.requestUri += '/' + this.settings.type.uri;
+        // this.ajax.requestUri += '/' + this.settings.type.uri;
+        this.requestUri([
+            this.ajax.baseUri,
+            this.settings.type.uri
+        ].join('/'));
         if (this.iData.requiredData.summary) {
             var indicator = this.iData.requiredData.summary;
             if (this.settings.type.type == 'URL') {
@@ -1687,7 +1692,7 @@ function IndicatorsBatch(authentication) {
                     
                     _this.body(_this.batchBody);
                     _this.contentType('application/octet-stream');
-                    _this.requestUri(this.ajax.baseUri + '/batch/' + jobResponse.data.batchId);
+                    _this.requestUri(_this.ajax.baseUri + '/batch/' + jobResponse.data.batchId);
                         
                     /* post data */
                     _this.apiRequest({action: 'commit'})
@@ -1696,7 +1701,7 @@ function IndicatorsBatch(authentication) {
                             
                             _this.body(_this.batchBody);
                             _this.contentType('application/octet-stream');
-                            _this.requestUri(this.ajax.baseUri + '/batch/' + jobResponse.data.batchId);
+                            _this.requestUri(_this.ajax.baseUri + '/batch/' + jobResponse.data.batchId);
                             _this.requestMethod('GET');
                             
                             var checkStatus = function() {
@@ -1713,7 +1718,7 @@ function IndicatorsBatch(authentication) {
                                                 statusResponse.data.batchStatus.data = _this.batchBody;
                                                 if (statusResponse.data.batchStatus.errorCount > 0) {
                                                     
-                                                    _this.requestUri(this.ajax.baseUri + '/batch/' + jobResponse.data.batchId);
+                                                    _this.requestUri(_this.ajax.baseUri + '/batch/' + jobResponse.data.batchId);
                                                     _this.requestMethod('GET');
                                                                 
                                                     /* get errors */
@@ -1793,7 +1798,9 @@ function Owners(authentication) {
         return this;
     };
 
-    /* Retrieve Owners */
+    /* API ACTIONS */
+    
+    // Retrieve Owners
     this.retrieve = function(callback) {
         if (this.rData.id) {
             this.requestUri(this.ajax.requestUri + '/' + this.rData.id);
@@ -1807,6 +1814,7 @@ function Owners(authentication) {
         });
     };
 
+    // Retrieve Owners Metrics
     this.retrieveMetrics = function() {
         if (this.rData.id) {
             this.requestUri(this.ajax.requestUri + '/' + this.rData.id);

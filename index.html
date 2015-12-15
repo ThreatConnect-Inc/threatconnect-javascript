@@ -461,7 +461,9 @@
                     <ul class="nav nav-tabs">
                         <li class="active"><a data-toggle="tab" href="#Indicator-table-tab">Data Table</a></li>
                         <li><a data-toggle="tab" href="#Indicator-raw">Raw Data</a></li>
+                        <!--
                         <li><a data-toggle="tab" href="#Indicator-chart">Add/Modified Chart</a></li>
+                        -->
                         <li><a data-toggle="tab" href="#map-tab">(IP/Host) Map</a></li>
                     </ul>
                     <div class="tab-content">
@@ -1214,14 +1216,13 @@
     
     $('#Adversary-commit').click(function(e){
         c.log('commiting adversary');
-        // e.stopPropagation();
         commitGroup({type: TYPE.ADVERSARY});
         return false;
     });
     
     $('#Adversary-delete').click(function(e){
         c.log('deleteing adversaries');
-        deleteAdversary();
+        deleteGroup({type: TYPE.ADVERSARY});
     });
     
     $('#Adversary-refresh').click(function(e){
@@ -1239,14 +1240,13 @@
     
     $('#Document-commit').click(function(e){
         c.log('commiting Document');
-        // commitDocument();
         commitGroup({type: TYPE.DOCUMENT});
         return false;
     });
     
     $('#Document-delete').click(function(e){
         c.log('deleteing Documents');
-        deleteDocument();
+        deleteGroup({type: TYPE.DOCUMENT});
     });
     
     $('#Document-refresh').click(function(e){
@@ -1270,7 +1270,7 @@
     
     $('#Email-delete').click(function(e){
         c.log('deleteing emails');
-        deleteEmail();
+        deleteGroup({type: TYPE.EMAIL});
     });
     
     $('#Email-refresh').click(function(e){
@@ -1300,14 +1300,13 @@
     
     $('#Incident-commit').click(function(e){
         c.log('commiting incidents');
-        // commitIncident();
         commitGroup({type: TYPE.INCIDENT});
         return false;
     });
     
     $('#Incident-delete').click(function(e){
         c.log('deleteing incidents');
-        deleteIncident();
+        deleteGroup({type: TYPE.INCIDENT});
     });
     
     $('#Incident-refresh').click(function(e){
@@ -1357,26 +1356,26 @@
     //
     var commitGroup = function(params) {
         var groups = tc.groups(),
-            groupType = params.type.type,
-            name = $('#' + groupType + '-name').val();
+            groupType = params.type,
+            name = $('#' + groupType.type + '-name').val();
 
         groups.owner($('#Owner-select :selected').text())
             .type(params.type)
             .name(name)
             .done(function(response) {
                 if (response.status === "Success") {
-                    message =  groupType + ' ' + name + ' was successfully committed.';
+                    message =  groupType.type + ' ' + name + ' was successfully committed.';
                     statusAlert('success', message);
-                    increaseCount(groupType);
+                    increaseCount(groupType.type);
 
                     if (response.data.length > 0) {
                         c.log('done response', response);
-                        $('#' + groupType + '-table').bootstrapTable('append', response.data);
+                        $('#' + groupType.type + '-table').bootstrapTable('append', response.data);
                     }
                 }
             })
             .error(function(response) {
-                var message =  groupType + ' failed to commit (' + response.error + ').';
+                var message =  groupType.type + ' failed to commit (' + response.error + ').';
                 statusAlert('danger', message);
             });
 
@@ -1410,137 +1409,8 @@
                 c.warn('Invalid type provided.', params.type);
         }
         groups.commit();
-        $('#' + groupType + '-modal').modal('hide');
+        $('#' + groupType.type + '-modal').modal('hide');
     };
-
-//    var commitAdversary = function() {
-//        var message,
-//            name = $('#Adversary-name').val();
-//
-//        tc.groups()
-//            .owner($('#Owner-select :selected').text())
-//            .type(TYPE.ADVERSARY)
-//            .name(name)
-//            .done(function(response) {
-//                if (response.status === "Success") {
-//                    message =  'Adversary ' + name + ' was successfully committed.';
-//                    statusAlert('success', message);
-//                    increaseCount('Adversary');
-//                }
-//            })
-//            .error(function(response) {
-//                var message =  'Adversary failed to commit (' + response.error + ').';
-//                statusAlert('danger', message);
-//            })
-//            .pagination(function(response) {
-//                if (response.data.length > 0) {
-//                    c.log('pagination response', response);
-//                    $('#Adversary-table').bootstrapTable('append', response.data);
-//                }
-//            })
-//            .commit();
-//        $('#Adversary-modal').modal('hide');
-//    };
-    
-//    var commitDocument = function() {
-//        var message,
-//            name = $('#Document-name').val(),
-//            fileName = $('#file-name').val(),
-//            fileSize = $('#file-size').val();
-//
-//        tc.groups()
-//            .owner($('#Owner-select :selected').text())
-//            .type(TYPE.DOCUMENT)
-//            .name(name)
-//            .fileName(fileName)
-//            .fileSize(fileSize)
-//            .done(function(response) {
-//                if (response.status === "Success") {
-//                    message =  'Document ' + name + ' was successfully committed.';
-//                    statusAlert('success', message);
-//                    increaseCount('Document');
-//                }
-//            })
-//            .error(function(response) {
-//                message =  'Document failed to commit. (' + response.error + ').';
-//                statusAlert('danger', message);
-//            })
-//            .pagination(function(response) {
-//                if (response.data.length > 0) {
-//                    $('#Document-table').bootstrapTable('append', response.data);
-//                }
-//            })
-//            .commit();
-//        $('#Document-modal').modal('hide');
-//    };
-    
-//    var commitEmail = function() {
-//        var message,
-//            name = $('#Email-name').val(),
-//            emailBody = $('#Email-body').val(),
-//            emailFrom = $('#Email-from').val(),
-//            emailHeader = $('#Email-header').val(),
-//            emailScore = $('#Email-score').val(),
-//            emailSubject = $('#Email-subject').val(),
-//            emailTo = $('#Email-to').val();
-//
-//        tc.emails()
-//            .owner($('#Owner-select :selected').text())
-//            .type(TYPE.EMAIL)
-//            .name(name)
-//            .emailBody(emailBody)
-//            .emailFrom(emailFrom)
-//            .emailHeader(emailHeader)
-//            .emailScore(emailScore)
-//            .emailSubject(emailSubject)
-//            .emailTo(emailTo)
-//            .done(function(response) {
-//                if (response.status === "Success") {
-//                    message =  'Email ' + name + ' was successfully committed.';
-//                    statusAlert('success', message);
-//                    increaseCount('Email');
-//                }
-//            })
-//            .error(function(response) {
-//                message =  'Email failed to commit. (' + response.error + ').';
-//                statusAlert('danger', message);
-//            })
-//            .pagination(function(response) {
-//                if (response.data.length > 0) {
-//                    $('#Email-table').bootstrapTable('append', response.data);
-//                }
-//            })
-//            .commit();
-//        $('#Email-modal').modal('hide');
-//    };
-    
-//    var commitIncident = function() {
-//        var message,
-//            name = $('#Incident-name').val();
-//
-//        tc.incidents()
-//            .owner($('#Owner-select :selected').text())
-//            .type(TYPE.INCIDENT)
-//            .name(name)
-//            .done(function(response) {
-//                if (response.status === "Success") {
-//                    message =  'Incident ' + name + ' was successfully committed.';
-//                    statusAlert('success', message);
-//                    increaseCount('Incident');
-//                }
-//            })
-//            .error(function(response) {
-//                var message =  'Incident failed to commit. (' + response.error + ').';
-//                statusAlert('danger', message);
-//            })
-//            .pagination(function(response) {
-//                if (response.data.length > 0) {
-//                    $('#Incident-table').bootstrapTable('append', response.data);
-//                }
-//            })
-//            .commit();
-//        $('#Incident-modal').modal('hide');
-//    };
     
     var commitIndicator = function() {
         var message,
@@ -1661,147 +1531,183 @@
             .commit();
     };
     
-    //
-    // Delete
-    //
-    var deleteAdversary = function() {
-        var message,
-            adversary_table = $('#Adversary-table'),
-            selection,
-            selections = adversary_table.bootstrapTable('getSelections');
+    /* Delete */
+    
+    var deleteGroup = function(params) {
+        var groupType = params.type
+            groupTable = $('#' + groupType.type + '-table'),
+            selections = groupTable.bootstrapTable('getSelections');
+        var message;
             
         for (selection in selections) {
             selection = selections[selection];
+            
             tc.groups()
                 .owner($('#Owner-select :selected').text())
-                .type(TYPE.ADVERSARY)
+                .type(groupType)
                 .id(selection.id)
                 .done(function(response) {
                     c.log('response', response);
                     if (response.status === 'Success') {
-                        adversary_table.bootstrapTable('remove', {
+                        groupTable.bootstrapTable('remove', {
                             field: 'id',
                             values: [response.id]
                         });
-                        message =  'Adversary ' + response.id + ' was successfully deleted.';
+                        message =  groupType.type + ' ' + response.id + ' was successfully deleted.';
                         statusAlert('success', message);
-                        decreaseCount('Adversary');
+                        decreaseCount(groupType.type);
                         
                     } else {
-                        message =  'Adversary ' + response.id + ' failed to deleted.';
+                        message =  groupType.type + ' ' + response.id + ' failed to deleted.';
                         statusAlert('danger', message);
                     }
                 })
                 .error(function(response) {
-                    message =  'Adversary ID ' + response.id + ' failed to delete. (' + response.error + ').';
+                    message =  groupType.type + ' ID ' + response.id + ' failed to delete. (' + response.error + ').';
                     statusAlert('danger', message);
                 })
                 .delete();
         }
     };
     
-    var deleteDocument = function() {
-        var message,
-            document_table = $('#Document-table'),
-            selection,
-            selections =  document_table.bootstrapTable('getSelections');
+    // var deleteAdversary = function() {
+    //     var message,
+    //         adversary_table = $('#Adversary-table'),
+    //         selection,
+    //         selections = adversary_table.bootstrapTable('getSelections');
             
-        for (selection in selections) {
-            selection = selections[selection];
-            tc.groups()
-                .owner($('#Owner-select :selected').text())
-                .type(TYPE.DOCUMENT)
-                .id(selection.id)
-                .done(function(response) {
-                    if (response.status === 'Success') {
-                        document_table.bootstrapTable('remove', {
-                            field: 'id',
-                            values: [response.id]
-                        });
-                        message =  'Document ' + response.id + ' was successfully deleted.';
-                        statusAlert('success', message);
-                        decreaseCount('Document');
+    //     for (selection in selections) {
+    //         selection = selections[selection];
+    //         tc.groups()
+    //             .owner($('#Owner-select :selected').text())
+    //             .type(TYPE.ADVERSARY)
+    //             .id(selection.id)
+    //             .done(function(response) {
+    //                 c.log('response', response);
+    //                 if (response.status === 'Success') {
+    //                     adversary_table.bootstrapTable('remove', {
+    //                         field: 'id',
+    //                         values: [response.id]
+    //                     });
+    //                     message =  'Adversary ' + response.id + ' was successfully deleted.';
+    //                     statusAlert('success', message);
+    //                     decreaseCount('Adversary');
                         
-                    } else {
-                        message =  'Document ' + response.id + ' failed to deleted.';
-                        statusAlert('danger', message);
-                    }
-                })
-                .error(function(response) {
-                    message =  'Indicator ID ' + response.id + ' failed to delete. (' + response.error + ').';
-                    statusAlert('danger', message);
-                })
-                .delete();
-        }
-    };
+    //                 } else {
+    //                     message =  'Adversary ' + response.id + ' failed to deleted.';
+    //                     statusAlert('danger', message);
+    //                 }
+    //             })
+    //             .error(function(response) {
+    //                 message =  'Adversary ID ' + response.id + ' failed to delete. (' + response.error + ').';
+    //                 statusAlert('danger', message);
+    //             })
+    //             .delete();
+    //     }
+    // };
     
-    var deleteEmail = function() {
-        var message,
-            email_table = $('#Email-table'),
-            selection,
-            selections =  email_table.bootstrapTable('getSelections');
+    // var deleteDocument = function() {
+    //     var message,
+    //         document_table = $('#Document-table'),
+    //         selection,
+    //         selections =  document_table.bootstrapTable('getSelections');
             
-        for (selection in selections) {
-            selection = selections[selection];
-            tc.groups()
-                .owner($('#Owner-select :selected').text())
-                .type(TYPE.EMAIL)
-                .id(selection.id)
-                .done(function(response) {
-                    if (response.status === 'Success') {
-                        email_table.bootstrapTable('remove', {
-                            field: 'id',
-                            values: [response.id]
-                        });
-                        message =  'Email ' + response.id + ' was successfully deleted.';
-                        statusAlert('success', message);
-                        decreaseCount('Email');
-                    } else {
-                        message =  'Email ' + response.id + ' failed to deleted.';
-                        statusAlert('danger', message);
-                    }
-                })
-                .error(function(response) {
-                    message =  'Email ID ' + response.id + ' failed to delete. (' + response.error + ').';
-                    statusAlert('danger', message);
-                })
-                .delete();
-        }
-    };
+    //     for (selection in selections) {
+    //         selection = selections[selection];
+    //         tc.groups()
+    //             .owner($('#Owner-select :selected').text())
+    //             .type(TYPE.DOCUMENT)
+    //             .id(selection.id)
+    //             .done(function(response) {
+    //                 if (response.status === 'Success') {
+    //                     document_table.bootstrapTable('remove', {
+    //                         field: 'id',
+    //                         values: [response.id]
+    //                     });
+    //                     message =  'Document ' + response.id + ' was successfully deleted.';
+    //                     statusAlert('success', message);
+    //                     decreaseCount('Document');
+                        
+    //                 } else {
+    //                     message =  'Document ' + response.id + ' failed to deleted.';
+    //                     statusAlert('danger', message);
+    //                 }
+    //             })
+    //             .error(function(response) {
+    //                 message =  'Indicator ID ' + response.id + ' failed to delete. (' + response.error + ').';
+    //                 statusAlert('danger', message);
+    //             })
+    //             .delete();
+    //     }
+    // };
     
-    var deleteIncident = function() {
-        var message,
-            incident_table = $('#Incident-table'),
-            selection,
-            selections =  incident_table.bootstrapTable('getSelections');
+    // var deleteEmail = function() {
+    //     var message,
+    //         email_table = $('#Email-table'),
+    //         selection,
+    //         selections =  email_table.bootstrapTable('getSelections');
             
-        for (selection in selections) {
-            selection = selections[selection];
-            tc.incidents()
-                .owner($('#Owner-select :selected').text())
-                .type(TYPE.INCIDENT)
-                .id(selection.id)
-                .done(function(response) {
-                    if (response.status === 'Success') {
-                        incident_table.bootstrapTable('remove', {
-                            field: 'id',
-                            values: [response.id]
-                        });
-                        message =  'Incident ' + response.id + ' was successfully deleted.';
-                        statusAlert('success', message);
-                        decreaseCount('Email');
-                    } else {
-                        message =  'Incident ' + response.id + ' failed to deleted.';
-                        statusAlert('danger', message);
-                    }
-                })
-                .error(function(response) {
-                    var message =  'Incident ID ' + response.id + ' failed to delete. (' + response.error + ').';
-                    statusAlert('danger', message);
-                })
-                .delete();
-        }
-    };
+    //     for (selection in selections) {
+    //         selection = selections[selection];
+    //         tc.groups()
+    //             .owner($('#Owner-select :selected').text())
+    //             .type(TYPE.EMAIL)
+    //             .id(selection.id)
+    //             .done(function(response) {
+    //                 if (response.status === 'Success') {
+    //                     email_table.bootstrapTable('remove', {
+    //                         field: 'id',
+    //                         values: [response.id]
+    //                     });
+    //                     message =  'Email ' + response.id + ' was successfully deleted.';
+    //                     statusAlert('success', message);
+    //                     decreaseCount('Email');
+    //                 } else {
+    //                     message =  'Email ' + response.id + ' failed to deleted.';
+    //                     statusAlert('danger', message);
+    //                 }
+    //             })
+    //             .error(function(response) {
+    //                 message =  'Email ID ' + response.id + ' failed to delete. (' + response.error + ').';
+    //                 statusAlert('danger', message);
+    //             })
+    //             .delete();
+    //     }
+    // };
+    
+    // var deleteIncident = function() {
+    //     var message,
+    //         incident_table = $('#Incident-table'),
+    //         selection,
+    //         selections =  incident_table.bootstrapTable('getSelections');
+            
+    //     for (selection in selections) {
+    //         selection = selections[selection];
+    //         tc.incidents()
+    //             .owner($('#Owner-select :selected').text())
+    //             .type(TYPE.INCIDENT)
+    //             .id(selection.id)
+    //             .done(function(response) {
+    //                 if (response.status === 'Success') {
+    //                     incident_table.bootstrapTable('remove', {
+    //                         field: 'id',
+    //                         values: [response.id]
+    //                     });
+    //                     message =  'Incident ' + response.id + ' was successfully deleted.';
+    //                     statusAlert('success', message);
+    //                     decreaseCount('Email');
+    //                 } else {
+    //                     message =  'Incident ' + response.id + ' failed to deleted.';
+    //                     statusAlert('danger', message);
+    //                 }
+    //             })
+    //             .error(function(response) {
+    //                 var message =  'Incident ID ' + response.id + ' failed to delete. (' + response.error + ').';
+    //                 statusAlert('danger', message);
+    //             })
+    //             .delete();
+    //     }
+    // };
     
     var deleteIndicator = function() {};
         
@@ -1865,60 +1771,7 @@
                 }
                 setCount('Indicator', response.resultCount);
 
-
-                // chart
-                var dateArray = [];
-                var i;
-                for (i in response.data) {
-                    var indicator = response.data[i],
-                        dateAdded = indicator.dateAdded.split('T')[0],
-                        lastModified = indicator.lastModified.split('T')[0];
-
-                    if (dateAdded in dateArray) {
-                        dateArray[dateAdded]['da']++;
-                    } else {
-                        dateArray[dateAdded] = {
-                            da: 0,
-                            lm: 0
-                        };
-                    }
-
-                    if (lastModified in dateArray) {
-                        dateArray[lastModified].lm++;
-                    } else {
-                        dateArray[lastModified] = {
-                            da: 0,
-                            lm: 0
-                        };
-                    }
-                }
-
-                var d,
-                    x = ['x'],
-                    data1 = ['added'],
-                    data2 = ['modified'];
-
-                for (d in dateArray) {
-                    var da = 0,
-                        dm = 0;
-                    x.push(d);
-
-                    if (dateArray[d].da) {
-                        da = dateArray[d].da;
-                    }
-                    if (dateArray[d].lm) {
-                        dm = dateArray[d].lm;
-                    }
-
-
-                    data1.push(da);
-                    data2.push(dm);
-                }
-                c.log('x', x);
-                c.log('data1', data1);
-                c.log('data2', data2);
-
-                indicatorChart([x, data1, data2]);
+                // genChart(response);
             })
             .error(function (response) {
                 var message = 'Indicator Retrieval failed. (' + response.error + ').';
@@ -2244,6 +2097,62 @@
             .attr('id', id)
             .text(name);
         return iSpan[0].outerHTML;
+    };
+    
+    var genChart = function(response) {
+        // chart
+        var dateArray = [];
+        var i;
+        for (i in response.data) {
+            var indicator = response.data[i],
+                dateAdded = indicator.dateAdded.split('T')[0],
+                lastModified = indicator.lastModified.split('T')[0];
+
+            if (dateAdded in dateArray) {
+                dateArray[dateAdded]['da']++;
+            } else {
+                dateArray[dateAdded] = {
+                    da: 0,
+                    lm: 0
+                };
+            }
+
+            if (lastModified in dateArray) {
+                dateArray[lastModified].lm++;
+            } else {
+                dateArray[lastModified] = {
+                    da: 0,
+                    lm: 0
+                };
+            }
+        }
+
+        var d,
+            x = ['x'],
+            data1 = ['added'],
+            data2 = ['modified'];
+
+        for (d in dateArray) {
+            var da = 0,
+                dm = 0;
+            x.push(d);
+
+            if (dateArray[d].da) {
+                da = dateArray[d].da;
+            }
+            if (dateArray[d].lm) {
+                dm = dateArray[d].lm;
+            }
+
+
+            data1.push(da);
+            data2.push(dm);
+        }
+        c.log('x', x);
+        c.log('data1', data1);
+        c.log('data2', data2);
+
+        indicatorChart([x, data1, data2]);
     };
     
     var detailView = function() {
