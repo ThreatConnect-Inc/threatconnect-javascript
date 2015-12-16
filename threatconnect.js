@@ -1837,6 +1837,160 @@ function Owners(authentication) {
 }
 Owners.prototype = Object.create(RequestObject.prototype);
 
+function Spaces(authentication) {
+    c.group('Spaces');
+    RequestObject.call(this);
+    
+    this.authentication = authentication;
+    this.ajax.requestUri = this.ajax.baseUri + '/owners',
+    this.settings.helper = true,
+    this.settings.normalizer = normalize.owners,
+    this.settings.type = TYPE.OWNER,
+    this.sData = {
+        stateParams: {},
+        stateText: {},
+    };
+
+    /* OPTIONAL */
+    
+    // state optional
+    this.stateParams = function(data) {
+        this.sData.stateParams = data;
+        return this;
+    };
+    
+    // state optional
+    this.expireDays = function(data) {
+        // this.sData.expireDays = data;
+        this.addPayload('expireDays', data);
+        return this;
+    };
+    
+    /* REQUIRED */
+    
+    // state required
+    this.stateText = function(data) {
+        this.sData.stateText = data;
+        return this;
+    };
+
+    /* API ACTIONS */
+    
+    // retrieve file
+    this.retrieveFile = function(fileName) {
+        /* GET - /v2/exchange/spaces/<element id>/file */
+        /* GET - /v2/exchange/spaces/<element id>/file/<fileName> */
+        
+        this.requestUri([
+            '/v2/exchange/spaces',
+            this.elementId,
+            '/state'
+        ].join('/'));
+        if (fileName) {
+            this.requestUri([
+                this.ajax.requestUri,
+                fileName
+            ].join('/'));
+        }
+        this.requestMethod('GET');
+
+        return this.apiRequest('file');
+    };
+    
+    // retrieve job
+    this.retrieveJob = function() {
+        /* GET - /v2/exchange/spaces/<element id>/job */
+        
+        this.requestUri([
+            '/v2/exchange/spaces',
+            this.elementId,
+            '/job'
+        ].join('/'));
+        this.requestMethod('GET');
+
+        return this.apiRequest('state');
+    };
+    
+    // retrieve state
+    this.retrieveState = function() {
+        /* GET - /v2/exchange/spaces/<element id>/state */
+        
+        this.requestUri([
+            '/v2/exchange/spaces',
+            this.elementId,
+            '/state'
+        ].join('/'));
+        this.requestMethod('GET');
+
+        return this.apiRequest('state');
+    };
+    
+    // commit file
+    this.commitFile = function(fileName) {
+        /* POST - /v2/exchange/spaces/<element id>/file/<fileName> */
+        
+        this.requestUri([
+            '/v2/exchange/spaces',
+            this.elementId,
+            '/state',
+            fileName
+        ].join('/'));
+        this.requestMethod('POST');
+
+        return this.apiRequest('file');
+    };
+    
+    // commit job
+    this.commitJob = function() {
+        /* POST - /v2/exchange/spaces/<element id>/job */
+        /* POST - /v2/exchange/spaces/<element id>/job/execute */
+        
+        this.requestUri([
+            '/v2/exchange/spaces',
+            this.elementId,
+            '/job'
+        ].join('/'));
+        var post = $.extend(this.sData.stateParams, this.sData.stateText);
+        this.body(post);
+        this.requestMethod('POST');
+        return this.apiRequest('state');
+    };
+    
+    // commit state
+    this.commitState = function() {
+        /* POST - /v2/exchange/spaces/<element id>/state */
+        
+        this.requestUri([
+            '/v2/exchange/spaces',
+            this.elementId,
+            '/state'
+        ].join('/'));
+        var post = $.extend(this.sData.stateParams, this.sData.stateText);
+        this.body(post);
+        this.requestMethod('POST');
+        return this.apiRequest('state');
+    };
+    
+    // delete file
+    this.deleteFile = function(fileName) {
+        /* DELETE - /v2/exchange/spaces/<element id>/file/<fileName> */
+        
+        this.requestUri([
+            '/v2/exchange/spaces',
+            this.elementId,
+            '/state',
+            fileName
+        ].join('/'));
+        this.requestMethod('DELETE');
+
+        return this.apiRequest('file');
+    };
+
+    c.groupEnd();
+    return this;
+}
+Spaces.prototype = Object.create(RequestObject.prototype);
+
 function Tags(authentication) {
     c.group('Tags');
     RequestObject.call(this);

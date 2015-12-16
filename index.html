@@ -76,6 +76,9 @@
                     <li><a data-toggle="tab" href="#Indicator-pane">
                         Indicators <span class="label label-primary label-as-badge"></span>
                     </a></li> 
+                    <li><a data-toggle="tab" href="#Threat-pane">
+                        Threats <span class="label label-primary label-as-badge"></span>
+                    </a></li> 
                     <li><a data-toggle="tab" href="#Owner-pane">Owners </a></li> 
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
@@ -145,27 +148,10 @@
                     <div class="tab-content">
                         
                         <div id="Adversary-table-tab" class="tab-pane fade in active">
-                            <!--
-                                   
-                                   data-card-view="true"
-                                   data-page-list="[10, 25, 50, 100, ALL]"
-                                   data-show-pagination-switch="true"
-                                   
-                                   // broke
-                                   data-show-footer="true"
-                                   
-                                   
-                                   // ??
-                                   data-side-pagination="server"
-                                   data-detail-formatter="groupData"
-                                   
-                            -->
                             <table id="Adversary-table"
                                    data-cache="false"
-                                   
                                    data-detail-view="true"
                                    data-minimum-count-columns="2"
-                                   
                                    data-height="543"
                                    data-id-field="id"
                                    data-search="true"
@@ -198,14 +184,8 @@
                             <button type="button" class="btn btn-danger" id="Adversary-delete">Delete</button>
                             <button type="button" class="btn btn-default" id="Adversary-clear">Clear</button>
                             <button type="button" class="btn btn-default" id="Adversary-refresh">Refresh</button>
-                            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#Group-Association-modal">Group Associations</button>
-                            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#Group-Association-modal">Indicator Associations</button>
-                            <!--
-                            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#Attribute-modal">Attributes</button>
-                            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#Tag-modal">Tags</button>
-                            <button type="button" class="btn btn-default">Attributes</button>
-                            <button type="button" class="btn btn-default">Tags</button>
-                            -->
+                            <button type="button" class="btn btn-default" data-id="Adversary" data-toggle="modal" data-target="#Group-Association-modal">Group Associations</button>
+                            <button type="button" class="btn btn-default" data-id="Adversary" data-toggle="modal" data-target="#Group-Association-modal">Indicator Associations</button>
                         </div>
         
                         <div id="Adversary-raw" class="tab-pane fade">
@@ -262,10 +242,8 @@
                             <button type="button" class="btn btn-default" id="Document-clear">Clear</button>
                             <button type="button" class="btn btn-default" id="Document-refresh">Refresh</button>
                             <button type="button" class="btn btn-primary" id="Document-upload">Upload</button>
-                            <!--
-                            <button type="button" class="btn btn-default">Attributes</button>
-                            <button type="button" class="btn btn-default">Tags</button>
-                            -->
+                            <button type="button" class="btn btn-default" data-id="Document" data-toggle="modal" data-target="#Group-Association-modal">Group Associations</button>
+                            <button type="button" class="btn btn-default" data-id="Document" data-toggle="modal" data-target="#Group-Association-modal">Indicator Associations</button>
                         </div>
         
                         <div id="Document-raw" class="tab-pane fade">
@@ -321,6 +299,8 @@
                             <button type="button" class="btn btn-danger" id="Email-delete">Delete</button>
                             <button type="button" class="btn btn-default" id="Email-clear">Clear</button>
                             <button type="button" class="btn btn-default" id="Email-refresh">Refresh</button>
+                            <button type="button" class="btn btn-default" data-id="Email" data-toggle="modal" data-target="#Group-Association-modal">Group Associations</button>
+                            <button type="button" class="btn btn-default" data-id="Email" data-toggle="modal" data-target="#Group-Association-modal">Indicator Associations</button>
                             <!--
                             <button type="button" class="btn btn-default">Attributes</button>
                             <button type="button" class="btn btn-default">Tags</button>
@@ -439,6 +419,8 @@
                             <button type="button" class="btn btn-danger" id="Incident-delete">Delete</button>
                             <button type="button" class="btn btn-default" id="Incident-clear">Clear</button>
                             <button type="button" class="btn btn-default" id="Incident-refresh">Refresh</button>
+                            <button type="button" class="btn btn-default" data-id="Incident" data-toggle="modal" data-target="#Group-Association-modal">Group Associations</button>
+                            <button type="button" class="btn btn-default" data-id="Incident" data-toggle="modal" data-target="#Group-Association-modal">Indicator Associations</button>
                             <!--
                             <button type="button" class="btn btn-default">Attributes</button>
                             <button type="button" class="btn btn-default">Tags</button>
@@ -523,6 +505,66 @@
                             <div class="container fill">
                                 <div id="map"></div> 
                             </div>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-pane" id="Threat-pane" data="Threat" data-id="#Threat-table">
+            <div class="panel panel-default">
+                <div class="panel-body">
+        
+                    <ul class="nav nav-tabs">
+                        <li class="active"><a data-toggle="tab" href="#Threat-table-tab">Data Table</a></li>
+                        <li><a data-toggle="tab" href="#Threat-raw">Raw Data</a></li>
+                    </ul>
+                    <div class="tab-content">
+                        
+                        <div id="Threat-table-tab" class="tab-pane fade in active">
+                            <table id="Threat-table"
+                                   data-cache="false"
+                                   data-height="543"
+                                   data-search="true"
+                                   data-striped="true"
+                                   data-select-item-name="toolbar1"
+                                   data-toggle="table"
+                                   data-toolbar="#Threat-toolbar"
+                                   data-pagination="true"
+                                   data-show-columns="true"
+                                   data-show-refresh="false"
+                                   data-show-toggle="true"
+                                   data-sort-name="id"
+                                   data-sort-order="desc">
+                                <thead>
+                                    <tr>
+                                        <th data-field="state" data-checkbox="true">Item ID</th>
+                                        <th data-field="id" data-align="right" data-sortable="true">ID</th>
+                                        <th data-field="name" data-align="center" data-sortable="true" data-editable="true">Name</th>
+                                        <th data-field="ownerName" data-align="center">Owner</th>
+                                        <th data-field="dateAdded" data-align="center">Date Added</th>
+                                        <th data-field="webLink" data-align="center">Web Link</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+        
+                        <div id="Threat-toolbar" class="btn-group pull-right">
+                            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#Threat-modal">Add</button>
+                            <button type="button" class="btn btn-danger" id="Threat-delete">Delete</button>
+                            <button type="button" class="btn btn-default" id="Threat-clear">Clear</button>
+                            <button type="button" class="btn btn-default" id="Threat-refresh">Refresh</button>
+                            <button type="button" class="btn btn-default" data-id="Threat" data-toggle="modal" data-target="#Group-Association-modal">Group Associations</button>
+                            <button type="button" class="btn btn-default" data-id="Threat" data-toggle="modal" data-target="#Group-Association-modal">Indicator Associations</button>
+                            <!--
+                            <button type="button" class="btn btn-default">Attributes</button>
+                            <button type="button" class="btn btn-default">Tags</button>
+                            -->
+                        </div>
+        
+                        <div id="Threat-raw" class="tab-pane fade">
+                            <pre id="Threat-content"></pre>
                         </div>
                         
                     </div>
@@ -819,6 +861,32 @@
     
         </div>
     </div>
+    
+    <div id="Threat-modal" class="modal fade" role="dialog">
+        <div class="modal-dialog modal-lg">
+    
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Add Threat</h4>
+                </div>
+                <div class="modal-body">
+                    <form role="form">
+                        <div class="form-group">
+                            <label for="Threat-name">Threat Name</label>
+                            <input type="input" class="form-control" id="Threat-name">
+                        </div>
+                        <button id="Threat-commit" type="submit" class="btn btn-default">Submit</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+    
+        </div>
+    </div>
         
     <div id="Attribute-modal" class="modal fade" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -989,34 +1057,50 @@
     });
     
     // Modal Show     
-    $('.modal').on('show.bs.modal', function(){
+    $('.modal').on('show.bs.modal', function(e, params){
         var modalId = $(this).attr('id');
-        c.log($(this).parent());
-        var selections =  $('#Adversary-table').bootstrapTable('getSelections');
-        c.log('selections', selections);
+        c.log('modalId', modalId);
+        
+        // var group = $(e.relatedTarget).data('id');
+        // var groupType = TYPE[group.toUpperCase()];
+        // var groupTable = $('#' + group + '-table');
+        // var selections = groupTable.bootstrapTable('getSelections');
+        // c.log('selections', selections);
         
         if (modalId === 'Group-Association-modal') {
+            var group = $(e.relatedTarget).data('id');
+            var groupType = TYPE[group.toUpperCase()];
+            var groupTable = $('#' + group + '-table');
+            var selections = groupTable.bootstrapTable('getSelections');
+            c.log('selections', selections);
+            
             retrieveGroupAssociations({
-                groupType: TYPE.ADVERSARY,
+                groupType: groupType,
                 associationType: TYPE.GROUP,
                 id: selections[0].id
             });
         } else if (modalId === 'Indicator-Association-modal') {
+            var group = $(e.relatedTarget).data('id');
+            var groupType = TYPE[group.toUpperCase()];
+            var groupTable = $('#' + group + '-table');
+            var selections = groupTable.bootstrapTable('getSelections');
+            c.log('selections', selections);
+            
             retrieveGroupAssociations({
                 groupType: TYPE.ADVERSARY,
                 associationType: TYPE.INDICATOR,
                 id: selections[0].id
             });
-        } else if (modalId === 'Attribute-modal') {
-            retrieveAttributes({
-                groupType: TYPE.ADVERSARY,
-                id: selections[0].id
-            });
-        } else if (modalId === 'Tag-modal') {
-            retrieveTags({
-                groupType: TYPE.ADVERSARY,
-                id: selections[0].id
-            });
+        // } else if (modalId === 'Attribute-modal') {
+        //     retrieveAttributes({
+        //         groupType: TYPE.ADVERSARY,
+        //         id: selections[0].id
+        //     });
+        // } else if (modalId === 'Tag-modal') {
+        //     retrieveTags({
+        //         groupType: TYPE.ADVERSARY,
+        //         id: selections[0].id
+        //     });
         } else if (modalId === 'Group-map-modal') {
             
         } else if (modalId === 'Owner-metric-modal') {
@@ -1096,7 +1180,7 @@
     });
     
     // Tab Hide
-    $('a[data-toggle="tab"]').on('hide.bs.tab', function (e) {
+    $('a[data-toggle="tab"]').on('hide.bs.tab', function(e) {
         console.log('e', $($(e.target).attr('href')).data('id'));
         var prevTab = $(e.target).attr('href'),
             prevId = $(prevTab).data('id');
@@ -1105,7 +1189,7 @@
     });
     
     // Tab Show
-    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
         
         c.log('tab', $(this).attr('href'));
         
@@ -1115,23 +1199,20 @@
         if ($(this).attr('href') === '#Home') {
             // do nothing for now
         } else if ($(this).attr('href') === '#Adversary-pane') {
-            // retrieveAdversary();
-            retrieveGroup(TYPE.ADVERSARY);
+            retrieveGroup({type: TYPE.ADVERSARY});
         } else if ($(this).attr('href') === '#Document-pane') {
-            // retrieveDocument();
-            retrieveGroup(TYPE.DOCUMENT);
+            retrieveGroup({type: TYPE.DOCUMENT});
         } else if ($(this).attr('href') === '#Email-pane') {
-            // retrieveEmail();
-            retrieveGroup(TYPE.EMAIL);
+            retrieveGroup({type: TYPE.EMAIL});
         } else if ($(this).attr('href') === '#Group-pane') {
-            // retrieveGroup();
-            retrieveGroup(TYPE.GROUP);
+            retrieveGroup({type: TYPE.GROUP});
         } else if ($(this).attr('href') === '#Incident-pane') {
-            // retrieveIncident();
-            retrieveGroup(TYPE.INCIDENT);
+            retrieveGroup({type: TYPE.INCIDENT});
         } else if ($(this).attr('href') === '#Indicator-pane') {
             retrieveIndicator();
             map = createMap('map');
+        } else if ($(this).attr('href') === '#Threat-pane') {
+            retrieveGroup({type: TYPE.THREAT});
         } else if ($(this).attr('href') === '#map-tab') {
             var data;
             map.invalidateSize(false);
@@ -1208,6 +1289,11 @@
         return false;
     });
 
+    // $('#Adversary-table').on('sort.bs.table', function(e) {
+    //     c.log('sorted');
+    //     enableForm();
+    // }); 
+    
     // adversary
     $('#Adversary-clear').click(function() {
         c.log('clearing adversary table');
@@ -1229,7 +1315,7 @@
         c.log('refreshing adversaries');
         $('#Adversary-table').bootstrapTable('removeAll');
         // retrieveAdversary();
-        retrieveGroup(TYPE.ADVERSARY)
+        retrieveGroup({type: TYPE.ADVERSARY})
     });
     
     // document
@@ -1253,7 +1339,7 @@
         c.log('refreshing Documents');
         $('#Document-table').bootstrapTable('removeAll');
         // retrieveDocument();
-        retrieveGroup(TYPE.DOCUMENT)
+        retrieveGroup({type: TYPE.DOCUMENT})
     });
     
     // email
@@ -1277,7 +1363,7 @@
         c.log('refreshing emails');
         $('#Email-table').bootstrapTable('removeAll');
         // retrieveEmail();
-        retrieveGroup(TYPE.EMAIL);
+        retrieveGroup({type: TYPE.EMAIL});
     });
     
     // group
@@ -1289,7 +1375,7 @@
     $('#Group-refresh').click(function(e){
         c.log('refreshing groups');
         $('#Group-table').bootstrapTable('removeAll');
-        retrieveGroup(TYPE.GROUP);
+        retrieveGroup({type: TYPE.GROUP});
     });
     
     // incident
@@ -1313,7 +1399,7 @@
         c.log('refreshing incidents');
         $('#Incident-table').bootstrapTable('removeAll');
         // retrieveIncident();
-        retrieveGroup(TYPE.INCIDENT);
+        retrieveGroup({type: TYPE.INCIDENT});
     });
     
     // indicator
@@ -1351,9 +1437,31 @@
         retrieveOwner();
     });
     
-    //
-    // Commit
-    //
+    // threat
+    $('#Threat-clear').click(function(){
+        c.log('clearing incident table');
+        $('#Threat-table').bootstrapTable('removeAll');
+    });
+    
+    $('#Threat-commit').click(function(e){
+        c.log('commiting incidents');
+        commitGroup({type: TYPE.THREAT});
+        return false;
+    });
+    
+    $('#Threat-delete').click(function(e){
+        c.log('deleteing incidents');
+        deleteGroup({type: TYPE.THREAT});
+    });
+    
+    $('#Threat-refresh').click(function(e){
+        c.log('refreshing incidents');
+        $('#Threat-table').bootstrapTable('removeAll');
+        retrieveGroup({type: TYPE.THREAT});
+    });
+    
+    /* Commit */
+    
     var commitGroup = function(params) {
         var groups = tc.groups(),
             groupType = params.type,
@@ -1457,79 +1565,101 @@
         $('#Indicator-modal').modal('hide');
     };
     
-    //
-    // Update
-    //
-    var updateAdversary = function(params) {
-        var message;
-        
-        tc.groups()
-            .owner($('#Owner-select :selected').text())
-            .type(TYPE.ADVERSARY)
-            .id(params.id)
-            .name(params.name)
-            .done(function(response) {
-                if (response.status === "Success") {
-                    message =  'Adversary ' + params.name + ' was successfully updated.';
-                    statusAlert('success', message);
-                }
-            })
-            .error(function(response) {
-                var message =  'Adversary failed to update. (' + response.error + ').';
-                statusAlert('danger', message);
-            })
-            .commit();
-        $('#Adversary-modal').modal('hide');
-    };
+    /* Update */
     
-    var updateDocument = function(params) {
-        var message;
-        
-        tc.groups()
-            .owner($('#Owner-select :selected').text())
-            .type(TYPE.DOCUMENT)
-            .id(params.id)
+    var updateGroup = function(params) {
+        var groups = tc.groups(),
+            groupType = params.type,
+            name = $('#' + groupType.type + '-name').val();
+
+        groups.owner($('#Owner-select :selected').text())
+            .type(params.type)
             .name(params.name)
+            .id(params.id)
             .done(function(response) {
                 if (response.status === "Success") {
-                    message =  'Document ' + params.name + ' was successfully updated.';
+                    c.log('updated', response);
+                    message =  groupType.type + ' ' + params.id + ' was successfully updated.';
                     statusAlert('success', message);
                 }
             })
             .error(function(response) {
-                var message =  'Document Update failed. (' + response + ').';
-                if (response.error) {
-                    message =  'Document Update failed. (' + response.error + ').';
-                }
+                var message =  groupType.type + ' failed to update (' + response.error + ').';
                 statusAlert('danger', message);
             })
             .commit();
     };
     
-    var updateIncident = function(params) {
-        var message;
+    // var updateAdversary = function(params) {
+    //     var message;
         
-        tc.groups()
-            .owner($('#Owner-select :selected').text())
-            .type(TYPE.INCIDENT)
-            .id(params.id)
-            .name(params.name)
-            .done(function(response) {
-                if (response.status === "Success") {
-                    message =  'Incident ' + params.name + ' was successfully updated.';
-                    statusAlert('success', message);
-                }
-            })
-            .error(function(response) {
-                c.log('error', response);
-                var message =  'Incident Update failed. (' + response + ').';
-                if (response.error) {
-                    message =  'Incident Update failed. (' + response.error + ').';
-                }
-                statusAlert('danger', message);
-            })
-            .commit();
-    };
+    //     tc.groups()
+    //         .owner($('#Owner-select :selected').text())
+    //         .type(TYPE.ADVERSARY)
+    //         .id(params.id)
+    //         .name(params.name)
+    //         .done(function(response) {
+    //             if (response.status === "Success") {
+    //                 message =  'Adversary ' + params.name + ' was successfully updated.';
+    //                 statusAlert('success', message);
+    //             }
+    //         })
+    //         .error(function(response) {
+    //             var message =  'Adversary failed to update. (' + response.error + ').';
+    //             statusAlert('danger', message);
+    //         })
+    //         .commit();
+    //     $('#Adversary-modal').modal('hide');
+    // };
+    
+    // var updateDocument = function(params) {
+    //     var message;
+        
+    //     tc.groups()
+    //         .owner($('#Owner-select :selected').text())
+    //         .type(TYPE.DOCUMENT)
+    //         .id(params.id)
+    //         .name(params.name)
+    //         .done(function(response) {
+    //             if (response.status === "Success") {
+    //                 message =  'Document ' + params.name + ' was successfully updated.';
+    //                 statusAlert('success', message);
+    //             }
+    //         })
+    //         .error(function(response) {
+    //             var message =  'Document Update failed. (' + response + ').';
+    //             if (response.error) {
+    //                 message =  'Document Update failed. (' + response.error + ').';
+    //             }
+    //             statusAlert('danger', message);
+    //         })
+    //         .commit();
+    // };
+    
+    // var updateIncident = function(params) {
+    //     var message;
+        
+    //     tc.groups()
+    //         .owner($('#Owner-select :selected').text())
+    //         .type(TYPE.INCIDENT)
+    //         .id(params.id)
+    //         .name(params.name)
+    //         .done(function(response) {
+    //             if (response.status === "Success") {
+    //                 message =  'Incident ' + params.name + ' was successfully updated.';
+    //                 statusAlert('success', message);
+    //             }
+    //         })
+    //         .error(function(response) {
+    //             c.log('error', response);
+    //             var message =  'Incident Update failed. (' + response + ').';
+    //             if (response.error) {
+    //                 message =  'Incident Update failed. (' + response.error + ').';
+    //             }
+    //             statusAlert('danger', message);
+    //         })
+    //         .commit();
+    // };
     
     /* Delete */
     
@@ -1570,175 +1700,32 @@
         }
     };
     
-    // var deleteAdversary = function() {
-    //     var message,
-    //         adversary_table = $('#Adversary-table'),
-    //         selection,
-    //         selections = adversary_table.bootstrapTable('getSelections');
-            
-    //     for (selection in selections) {
-    //         selection = selections[selection];
-    //         tc.groups()
-    //             .owner($('#Owner-select :selected').text())
-    //             .type(TYPE.ADVERSARY)
-    //             .id(selection.id)
-    //             .done(function(response) {
-    //                 c.log('response', response);
-    //                 if (response.status === 'Success') {
-    //                     adversary_table.bootstrapTable('remove', {
-    //                         field: 'id',
-    //                         values: [response.id]
-    //                     });
-    //                     message =  'Adversary ' + response.id + ' was successfully deleted.';
-    //                     statusAlert('success', message);
-    //                     decreaseCount('Adversary');
-                        
-    //                 } else {
-    //                     message =  'Adversary ' + response.id + ' failed to deleted.';
-    //                     statusAlert('danger', message);
-    //                 }
-    //             })
-    //             .error(function(response) {
-    //                 message =  'Adversary ID ' + response.id + ' failed to delete. (' + response.error + ').';
-    //                 statusAlert('danger', message);
-    //             })
-    //             .delete();
-    //     }
-    // };
-    
-    // var deleteDocument = function() {
-    //     var message,
-    //         document_table = $('#Document-table'),
-    //         selection,
-    //         selections =  document_table.bootstrapTable('getSelections');
-            
-    //     for (selection in selections) {
-    //         selection = selections[selection];
-    //         tc.groups()
-    //             .owner($('#Owner-select :selected').text())
-    //             .type(TYPE.DOCUMENT)
-    //             .id(selection.id)
-    //             .done(function(response) {
-    //                 if (response.status === 'Success') {
-    //                     document_table.bootstrapTable('remove', {
-    //                         field: 'id',
-    //                         values: [response.id]
-    //                     });
-    //                     message =  'Document ' + response.id + ' was successfully deleted.';
-    //                     statusAlert('success', message);
-    //                     decreaseCount('Document');
-                        
-    //                 } else {
-    //                     message =  'Document ' + response.id + ' failed to deleted.';
-    //                     statusAlert('danger', message);
-    //                 }
-    //             })
-    //             .error(function(response) {
-    //                 message =  'Indicator ID ' + response.id + ' failed to delete. (' + response.error + ').';
-    //                 statusAlert('danger', message);
-    //             })
-    //             .delete();
-    //     }
-    // };
-    
-    // var deleteEmail = function() {
-    //     var message,
-    //         email_table = $('#Email-table'),
-    //         selection,
-    //         selections =  email_table.bootstrapTable('getSelections');
-            
-    //     for (selection in selections) {
-    //         selection = selections[selection];
-    //         tc.groups()
-    //             .owner($('#Owner-select :selected').text())
-    //             .type(TYPE.EMAIL)
-    //             .id(selection.id)
-    //             .done(function(response) {
-    //                 if (response.status === 'Success') {
-    //                     email_table.bootstrapTable('remove', {
-    //                         field: 'id',
-    //                         values: [response.id]
-    //                     });
-    //                     message =  'Email ' + response.id + ' was successfully deleted.';
-    //                     statusAlert('success', message);
-    //                     decreaseCount('Email');
-    //                 } else {
-    //                     message =  'Email ' + response.id + ' failed to deleted.';
-    //                     statusAlert('danger', message);
-    //                 }
-    //             })
-    //             .error(function(response) {
-    //                 message =  'Email ID ' + response.id + ' failed to delete. (' + response.error + ').';
-    //                 statusAlert('danger', message);
-    //             })
-    //             .delete();
-    //     }
-    // };
-    
-    // var deleteIncident = function() {
-    //     var message,
-    //         incident_table = $('#Incident-table'),
-    //         selection,
-    //         selections =  incident_table.bootstrapTable('getSelections');
-            
-    //     for (selection in selections) {
-    //         selection = selections[selection];
-    //         tc.incidents()
-    //             .owner($('#Owner-select :selected').text())
-    //             .type(TYPE.INCIDENT)
-    //             .id(selection.id)
-    //             .done(function(response) {
-    //                 if (response.status === 'Success') {
-    //                     incident_table.bootstrapTable('remove', {
-    //                         field: 'id',
-    //                         values: [response.id]
-    //                     });
-    //                     message =  'Incident ' + response.id + ' was successfully deleted.';
-    //                     statusAlert('success', message);
-    //                     decreaseCount('Email');
-    //                 } else {
-    //                     message =  'Incident ' + response.id + ' failed to deleted.';
-    //                     statusAlert('danger', message);
-    //                 }
-    //             })
-    //             .error(function(response) {
-    //                 var message =  'Incident ID ' + response.id + ' failed to delete. (' + response.error + ').';
-    //                 statusAlert('danger', message);
-    //             })
-    //             .delete();
-    //     }
-    // };
-    
     var deleteIndicator = function() {};
         
-    //
-    // Retrieve
-    //
-    var retrieveGroup = function(type) {
+    /* Retrieve */
+    var retrieveGroup = function(params) {
         c.log('retrieveGroup');
         var groups = tc.groups(),
-            groupType = type.type;
+            groupType = params.type;
 
         groups.owner($('#Owner-select :selected').text())
-                .type(type)
+                .type(groupType)
                 .resultLimit(500)
                 .done(function(response) {
-                    c.log(groupType + ' retrieve done', response);
+                    c.log(groupType.type + ' retrieve done', response);
                     var d;
                     // raw data
-                    $('#' + groupType + '-content').append(JSON.stringify(response, null, 4));
+                    $('#' + groupType.type + '-content').append(JSON.stringify(response, null, 4));
 
                     // data table
                     if (response.data.length > 0) {
-                        $('#' + groupType + '-table').bootstrapTable('append', response.data);
+                        $('#' + groupType.type + '-table').bootstrapTable('append', response.data);
                     }
                     detailView();
-                    enableForm();
+                    enableForm({type: groupType});
+                    tableActions({type: groupType});
 
                     // setCount('Adversary', response.resultCount);
-                    // tableActions('Adversary');
-                    // enableForm('Adversary');
-                    // detailView();
                 })
                 .error(function(response) {
                     var message =  groupType + ' Retrieval failed. (' + response.error + ').';
@@ -1807,26 +1794,23 @@
     var retrieveOwnerMetrics = function() {
         c.log('retrieve owner metrics');
         tc.owners()
-                .done(function(response) {
-                    c.log('owner stats retrieve done');
-                    $('#Owner-metric-content').text(JSON.stringify(response, null, 4));
-                })
-                .error(function(response) {
-                    var message =  'Owner Retrieval failed. (' + response + ').';
-                    statusAlert('danger', message);
-                })
-                .retrieveMetrics();
+            .done(function(response) {
+                c.log('owner stats retrieve done');
+                $('#Owner-metric-content').text(JSON.stringify(response, null, 4));
+            })
+            .error(function(response) {
+                var message =  'Owner Retrieval failed. (' + response + ').';
+                statusAlert('danger', message);
+            })
+            .retrieveMetrics();
     };
 
-    //
-    // Retrieve Associations
-    //
+    /* Retrieve Associations */
     var retrieveGroupAssociations = function(params) {
         c.log('retrieve associations');
         tc.groups()
             .owner($('#Owner-select :selected').text())
             .type(params.groupType)
-            .associationType(params.associationType)
             .id(params.id)
             .resultLimit(500)
             .done(function(response) {
@@ -1837,7 +1821,9 @@
                 var message = 'Association Retrieval failed. (' + response + ').';
                 statusAlert('danger', message);
             })
-            .retrieveAssociations();
+            .retrieveAssociations({
+                type: params.associationType
+            });
     };
 
     var retrieveIndicatorAssociations = function(params) {
@@ -1855,7 +1841,9 @@
                 var message = 'Association Retrieval failed. (' + response + ').';
                 statusAlert('danger', message);
             })
-            .retrieveAssociations({type: params.type});
+            .retrieveAssociations({
+                type: params.associationType
+            });
     };
 
     var retrieveAttributes = function(params) {
@@ -2042,6 +2030,7 @@
         retrieveGroupCount('Group');
         retrieveGroupCount('Incident');
         retrieveIndicatorCount('Indicator');
+        retrieveGroupCount('Threat');
     };
     
     var increaseCount = function(type) {
@@ -2061,43 +2050,48 @@
         pane.text(count);
     };
 
-    var tableActions = function(type) {
-        $('#' + type + '-table')
+    var tableActions = function(params) {
+        $('#' + params.type.type + '-table')
         .on('sort.bs.table', function (e) {
             setTimeout(function() {
-                enableForm(type);
+                enableForm(params);
             }, 200);
         })
         .on('page-change.bs.table', function (e, size, number) {
             setTimeout(function() {
-                enableForm(type);
+                enableForm(params);
             }, 200);
         });
     };
     
-    var enableForm = function(type) {
-//        $('.editName').editable();
-//        $('.editName').on('save', function(e, params){
-//            var updateMethod = window['update' + type];
-//            updateMethod({
-//                name: params.newValue,
-//                id: $(this)[0].id
-//            });
-//        });
-
-        // $('.editable-submit').click(function() {
-        $('.editable-submit').on('save', function(e, params) {
-            console.log('BBBBBBBBBBBBBBBBBCCCCCCCCCCCCCCCSSSSSSSSSSSSSSSSSSS edit');
-        })
+    var enableForm = function(params) {
+        var type = params.type;
+        
+        // bcs - need to remove all other save actions first
+        $('.editable').on('save', function(data, params) {
+            var name = params.newValue;
+            // bcs - cleanup
+            var id = $($($(this))[0]).data('pk');
+            // c.log('id deal', $($($(this))[0]) );
+            // c.log('name', name);
+            // c.log('id', id);
+            // c.log('type', type);
+            
+            updateGroup({
+                type: type,
+                name: name,
+                id: id
+            });
+        });
     };
     
-    var genEditSpan = function(id, name) {
-        var iSpan = $('<span></span>')
-            .addClass('editName')
-            .attr('id', id)
-            .text(name);
-        return iSpan[0].outerHTML;
-    };
+    // var genEditSpan = function(id, name) {
+    //     var iSpan = $('<span></span>')
+    //         .addClass('editName')
+    //         .attr('id', id)
+    //         .text(name);
+    //     return iSpan[0].outerHTML;
+    // };
     
     var genChart = function(response) {
         // chart
@@ -2275,11 +2269,6 @@
             .retrieve();
     }
 
-//    retrieveIndicatorAssociations({
-//        indicatorType: TYPE.ADDRESS,
-//        indicator: '74.121.142.111',
-//        type: TYPE.GROUP
-//    });
 </script>
 </body>
 </html>
