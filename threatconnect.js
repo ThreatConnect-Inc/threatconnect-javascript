@@ -283,6 +283,7 @@ function RequestObject() {
     this.resultLimit = function(data) {
         if (rangeCheck('resultLimit', data, 1, 500)) {
             this.addPayload('resultLimit', data);
+            this.settings.requestCount = 500;  // bcs
         }
         return this;
     };
@@ -628,6 +629,10 @@ function ThreatConnect(params) {
     this.owners = function() {
         return new Owners(this.authentication);
     };
+    
+    this.spaces = function() {
+        return new Spaces(this.authentication);
+    };
 
     this.requestObject = function() {
         var ro = new RequestObject();
@@ -643,9 +648,10 @@ function ThreatConnect(params) {
 function Groups(authentication) {
     c.group('Group');
     RequestObject.call(this);
-
+    
     this.authentication = authentication;
     this.ajax.requestUri = 'v2',
+    this.resultLimit(500);
     this.settings.helper = true,
     this.settings.normalizer = normalize.groups,
     this.settings.type = TYPE.GROUP,
