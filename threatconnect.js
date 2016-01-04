@@ -151,6 +151,24 @@ function getParameterByName(name) {
         
     return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
 }
+
+function getParameterArrayByName(name) {
+	name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    
+	var results = {};
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)");
+    var result;
+    var i = 0;
+    
+    var qs = location.search;
+    
+    while(result = regex.exec(qs)) {
+    	results[i++] = (result === null ? "" : decodeURIComponent(result[1].replace(/\+/g, " ")));
+    	qs = qs.substring(result.index + result[0].length);
+    }
+        
+    return results;
+}
     
 function getParameterFromUri(name, uri) {
     name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
