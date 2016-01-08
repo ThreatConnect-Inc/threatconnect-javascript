@@ -1742,8 +1742,6 @@ function IndicatorsBatch(authentication) {
             this.normalization(normalize.default);  // bcs rename
             this.requestUri(this.ajax.baseUri + '/batch');
             this.requestMethod('POST');
-            this.done = this.callbacks.done;
-            this.callbacks.done = undefined;
             
             /* create job */ 
             this.apiRequest({action: 'commit'})
@@ -1792,7 +1790,7 @@ function IndicatorsBatch(authentication) {
                                                             } else {
                                                             	statusResponse.data.batchStatus.errors = errorResponse;
                                                             }
-                                                            _this.settings.callbacks.done(statusResponse.data.batchStatus);
+                                                            _this.callbacks.done(statusResponse.data.batchStatus);
                                                         });
                                                 } else {
                                                     _this.done(statusResponse.data.batchStatus);
