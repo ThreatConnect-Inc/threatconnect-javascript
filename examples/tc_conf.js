@@ -13,8 +13,7 @@
 */
 
 var apiSettings = {
-    apiId: '11111111111111111111',
-    apiSec: 'Thr3@tC0nn3ct1sth3b3stT1P1nTH3W0rld@ndth@t1$@f@ct',
-    apiUrl: 'https://api.threatconnect.com'
-    // apiUrl: 'https://myapp.threatconnect.com/api'
+    apiId: '80139273637620589570',
+    apiSec: 'TCpl5xUATf6Hw$kP8KUajwX?0H8BmqeqnimIB7q95df8Eay?%LkLsEQ0eFT1nXQw',
+    apiUrl: 'https://ti.sumx.us/api'
 };

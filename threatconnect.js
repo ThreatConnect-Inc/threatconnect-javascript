@@ -12,7 +12,7 @@
  =============================================================================
 */
 
-/* global CryptoJS, TYPE */
+/* global CryptoJS, threatconnect, TYPE */
 
 var c = console;
 
@@ -586,6 +586,10 @@ function RequestObject() {
                             _this.callbacks.done(response);
                         }
                     }
+                } else if (responseContentType == 'text/plain') {
+                    // signature download
+                    _this.response.data = response;
+                    if (_this.callbacks.done) { _this.callbacks.done(_this.response); }
                 } else {
                     c.warn('Nothing to do with API Response.');
                 }
@@ -628,10 +632,6 @@ function ThreatConnect(params) {
         return false;
     }
     
-    this.attributes = function() {
-        return new Attributes(this.authentication);
-    };
-    
     this.groups = function() {
         return new Groups(this.authentication);
     };
@@ -648,14 +648,18 @@ function ThreatConnect(params) {
         return new Owners(this.authentication);
     };
     
-    this.spaces = function() {
-        return new Spaces(this.authentication);
-    };
-
     this.requestObject = function() {
         var ro = new RequestObject();
         ro.setAuthentication(this.authentication);
         return ro;
+    };
+    
+    this.securityLabel = function() {
+        return new SecurityLabels(this.authentication);
+    };
+    
+    this.spaces = function() {
+        return new Spaces(this.authentication);
     };
 
     this.tags = function() {
@@ -746,9 +750,10 @@ function Groups(authentication) {
     
     /* TYPE SPECIFIC PARAMETERS */
     
-    //document
+    // document / signature
     this.fileName = function(data) {
         this.rData.specificData.document.fileName = data;
+        this.rData.specificData.signature.fileName = data;
         return this;
     };
  
@@ -785,6 +790,17 @@ function Groups(authentication) {
  
     this.emailTo = function(data) {
         this.rData.specificData.email.to = data;
+        return this;
+    };
+    
+    // signature
+    this.fileType = function(data) {
+        this.rData.specificData.signature.fileType = data;
+        return this;
+    };
+    
+    this.fileText = function(data) {
+        this.rData.specificData.signature.fileText = data;
         return this;
     };
     
@@ -1082,6 +1098,45 @@ function Groups(authentication) {
         c.log('requestUri', this.ajax.requestUri);
 
         return this.apiRequest('securityLabel');
+    };
+    
+    // Download
+    this.download = function(params) {
+        // this.contentType('application/octet-stream');
+        this.requestMethod('GET');
+        this.requestUri([
+            this.ajax.baseUri,
+            this.settings.type.uri,
+            this.rData.id,
+            'download'
+        ].join('/'));
+
+        this.apiRequest({action: 'get'});
+    };
+    
+    // Upload
+    this.upload = function(params) {
+        
+        this.body(params.body);
+        this.contentType('application/octet-stream');
+        this.requestMethod('POST');
+        this.requestUri([
+            this.ajax.baseUri,
+            this.settings.type.uri,
+            this.rData.id,
+            'upload'
+        ].join('/'));
+
+        if (params.update) {
+            this.requestMethod('PUT');
+        }
+        
+        c.log('body', JSON.stringify(this.ajax.body, null, 4));
+        this.apiRequest({action: 'commit'});
+        //    .done(function(response) {
+        //        if (callback) callback();
+        //    });
+        
     };
     
     c.groupEnd();
@@ -2067,12 +2122,8 @@ function Tags(authentication) {
     this.settings.normalizer = normalize.tags,
     this.settings.type = TYPE.TAG,
     this.rData = {
-        id: undefined,
-        indicator: undefined,
         name: undefined,
-        optionalData: {},
     };
-
 
     /* OPTIONAL */
     this.name = function(data) {
@@ -2103,105 +2154,65 @@ function Tags(authentication) {
 }
 Tags.prototype = Object.create(RequestObject.prototype);
 
-// bcs - rework
-function Attributes(threatconnect) {
-    c.group('Attributes');
-    ThreatConnect.call(this, threatconnect);
-    
-    var ro = new RequestObject();
-    this.settings = {
-        api: {
-            activityLog: false,             // false|true
-            owner: undefined,
-            resultLimit: 500,
-            requestUri: this.ajax.baseUri + '/attributes'
-        },
-        callbacks: {
-            done: undefined,
-            error: undefined,
-            pagination: undefined,
-        },
-    },
+function SecurityLabels(authentication) {
+    c.group('SecurityLabels');
+    RequestObject.call(this);
+    /* /v2/attributes */
+
+    this.authentication = authentication;
+    this.ajax.requestUri = this.ajax.baseUri + '/securityLabels',
+    this.settings.helper = true,
+    this.settings.normalizer = normalize.securityLabels,
+    this.settings.type = TYPE.SECURITY_LABELS,
     this.rData = {
-        optionalData: {},
+        name: undefined,
     };
- 
-    //
-    // Settings API
-    //
-    this.resultLimit = function(data) {
-        if (0 > data <= 500) {
-            this.settings.api.resultLimit = data;
-        } else {
-            console.warn('Invalid Result Count (' + data + ').');
-        }
-        return this;
-    };
- 
-    this.owner = function(data) {
-        this.settings.api.owner = data;
+    
+    /* OPTIONAL */
+    this.name = function(data) {
+        this.rData.name = data;
         return this;
     };
     
-    //
-    // Settings Callbacks
-    //
-    this.done = function(data) {
-        if (functionCheck('done', data)) {
-            this.settings.callbacks.done = data;
-        }
-        return this;
-    };
-    
-    this.error = function(data) {
-        if (functionCheck('error', data)) {
-            this.settings.callbacks.error = data;
-        }
-        return this;
-    };
-    
-    this.pagination = function(data) {
-        if (functionCheck('pagination', data)) {
-            this.settings.callbacks.pagination = data;
-        }
-        return this;
-    };
- 
     //
     // Retrieve Group
     //
-    this.retrieve = function(params) {
-        if (params) {
-            if (params.id) {
-                this.settings.api.requestUri = this.settings.api.requestUri + '/' + params.id; 
-            }
+    this.retrieve = function(callback) {
+        if (this.rData.name) {
+            this.requestUri(this.ajax.requestUri + '/' + this.rData.name);
         }
-        ro.helper(true)
-            .done(this.settings.callbacks.done)
-            .error(this.settings.callbacks.error)
-            .normalization(normalize.attributes)
-            .owner(this.settings.api.owner)
-            .pagination(this.settings.callbacks.pagination)
-            .requestUri(this.settings.api.requestUri)
-            .requestMethod('GET');
-        c.log('ro', ro);
+        this.requestMethod('GET');
      
-        this.apiRequest(ro);
-        
-        return this;
+        return this.apiRequest('next').done(function() {
+            if (callback) {
+                callback();
+            }
+        });
     };
     
     c.groupEnd();
     return this;
 }
-Attributes.prototype = Object.create(ThreatConnect.prototype);
+SecurityLabels.prototype = Object.create(RequestObject.prototype);
 
 // bcs - rework
-ThreatConnect.prototype.upload = function() {
-    c.group('upload');
+function Upload(authentication) {
+    c.group('Upload');
+    RequestObject.call(this);
+    /* /v2/groups/documents */
     
-    var ro = new RequestObject(),
-        settings = {
+    this.authentication = authentication;
+    this.ajax.requestUri = this.ajax.baseUri + '/securityLabels',
+    this.settings.helper = true,
+    this.settings.normalizer = normalize.securityLabels,
+    this.settings.type = TYPE.SECURITY_LABELS,
+    this.rData = {
+        name: undefined,
+    };
+
+    /*
+    var ro = new RequestObject();
+    this.settings = {
             api: {
                 activityLog: false,             // false|true
                 method: 'GET',
@@ -2220,44 +2231,7 @@ ThreatConnect.prototype.upload = function() {
             requiredData: {},
             specificData: {},
         };
- 
-    //
-    // Settings API
-    //
-    this.owner = function(data) {
-        settings.api.owner = data;
-        return this;
-    };
- 
-    //
-    // Settings Callbacks
-    //
-    this.done = function(data) {
-        if (typeof data === 'function') {
-            settings.callbacks.done = data;
-        } else {
-            c.error('Callback "done()" must be a function.');
-        }
-        return this;
-    };
-    
-    this.error = function(data) {
-        if (typeof data === 'function') {
-            settings.callbacks.error = data;
-        } else {
-            c.error('Callback "error()" must be a function.');
-        }
-        return this;
-    };
-    
-    this.pagination = function(data) {
-        if (typeof data === 'function') {
-            settings.callbacks.pagination = data;
-        } else {
-            c.error('Callback "pagination()" must be a function.');
-        }
-        return this;
-    };
+    */
  
     //
     // Group Data - Required
