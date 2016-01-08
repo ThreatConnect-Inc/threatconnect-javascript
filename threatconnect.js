@@ -572,7 +572,7 @@ function RequestObject() {
                     if (_this.callbacks.done) { _this.callbacks.done(_this.response); }
                 } else if (response.status == 'Success') {
                     // upload
-                    _this.response.body = undefined;  // bcs - body of files can be large
+                    _this.response.body = undefined;  // bcs - remove because body of files can be large
                     if (_this.callbacks.done) { _this.callbacks.done(_this.response); }
                 } else if (responseContentType == 'application/json') {
                     // bulk download
@@ -1572,6 +1572,46 @@ function Indicators(authentication) {
         return this.apiRequest('tags');
     };
     
+    // dnsResolutions
+    this.dnsResolutions = function() {
+        /* /v2/indicators/hosts/<hostname>/dnsResolutions */
+        if (this.settings.type == TYPE.HOST) {
+            this.settings.normalizer = normalize.dnsResolutions;
+    
+            this.requestUri([
+                this.ajax.baseUri,
+                this.settings.type.uri,
+                this.iData.indicator,
+                'dnsResolutions'
+            ].join('/'));
+            c.log('requestUri', this.ajax.requestUri);
+    
+            return this.apiRequest('dnsResolutions');
+        } else {
+            this.callbacks.error('This method is only supported for Host Indicators.');
+        }
+    };
+    
+    // fileOccurrences
+    this.fileOccurrences = function() {
+        /* /v2/indicators/files/<hash>/fileOccurrences */
+        if (this.settings.type == TYPE.FILE) {
+            this.settings.normalizer = normalize.fileOccurrences;
+    
+            this.requestUri([
+                this.ajax.baseUri,
+                this.settings.type.uri,
+                this.iData.indicator,
+                'fileOccurrences'
+            ].join('/'));
+            c.log('requestUri', this.ajax.requestUri);
+    
+            return this.apiRequest('fileOccurrences');
+        } else {
+            this.callbacks.error('This method is only supported for File Indicators.');
+        }
+    };
+    
     c.groupEnd();
     return this;
 }
@@ -2195,91 +2235,6 @@ function SecurityLabels(authentication) {
 }
 SecurityLabels.prototype = Object.create(RequestObject.prototype);
 
-// bcs - rework
-function Upload(authentication) {
-    c.group('Upload');
-    RequestObject.call(this);
-    /* /v2/groups/documents */
-    
-    this.authentication = authentication;
-    this.ajax.requestUri = this.ajax.baseUri + '/securityLabels',
-    this.settings.helper = true,
-    this.settings.normalizer = normalize.securityLabels,
-    this.settings.type = TYPE.SECURITY_LABELS,
-    this.rData = {
-        name: undefined,
-    };
-
-    /*
-    var ro = new RequestObject();
-    this.settings = {
-            api: {
-                activityLog: false,             // false|true
-                method: 'GET',
-                requestUri: 'v2/groups/documents',
-                resultLimit: 500
-            },
-            callbacks: {
-                done: undefined,
-                error: undefined,
-                pagination: undefined,
-            },
-        },
-        rData = {
-            optionalData: {},
-            deleteData: {},
-            requiredData: {},
-            specificData: {},
-        };
-    */
- 
-    //
-    // Group Data - Required
-    //
-    
-    this.body = function(data) {
-        rData.requiredData.body = data;
-        return this;
-    };
-    
-    this.id = function(data) {
-        rData.requiredData.id = data;
-        return this;
-    };
-    
-    //
-    // Group Actions
-    //
-    
-    this.commit = function() {
-        // c.log('commit');
-        
-        // validate required fields
-        if (rData.requiredData.body && settings.api.owner) {
-            var uri = settings.api.requestUri + '/' + rData.requiredData.id + '/upload';
-            
-            /* create job */ 
-            ro.owner(settings.api.owner)
-                .body(rData.requiredData.body)
-                .contentType('application/octet-stream')
-                .done(settings.callbacks.done)
-                .error(settings.callbacks.error)
-                .helper(true)
-                .normalization(normalize.default)
-                .requestUri(uri)
-                .requestMethod('POST');
-            c.log('body', rData.requiredData.body);
-            this.apiRequest(ro);
-            
-        } else {
-            console.error('Commit Failure: Body is required.');
-        } 
-    };
-    
-    c.groupEnd();
-    return this;
-};
-
 var normalize = {
     attributes: function(ro, response) { 
         c.group('normalize.attributes');
@@ -2296,6 +2251,18 @@ var normalize = {
         }
         c.groupEnd();
         return attributes;
+    },
+    dnsResolutions: function(type, response) {
+        // bcs - Complete this
+        c.group('normalize.dnsResolutions');
+        c.groupEnd();
+        return response;
+    },
+    fileOccurrences: function(type, response) {
+        // bcs - Complete this
+        c.group('normalize.fileOccurrences');
+        c.groupEnd();
+        return response;
     },
     groups: function(type, response) {
         c.group('normalize.groups');
