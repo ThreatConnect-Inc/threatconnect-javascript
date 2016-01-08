@@ -1787,7 +1787,11 @@ function IndicatorsBatch(authentication) {
                                                         .done(function(errorResponse) {
                                                             c.log('errorResponse', errorResponse);
                                                                     
-                                                            statusResponse.data.batchStatus.errors = JSON.parse(errorResponse);
+                                                            if(typeof errorResponse === "string") {
+                                                            	statusResponse.data.batchStatus.errors = JSON.parse(errorResponse);
+                                                            } else {
+                                                            	statusResponse.data.batchStatus.errors = errorResponse;
+                                                            }
                                                             _this.settings.callbacks.done(statusResponse.data.batchStatus);
                                                         });
                                                 } else {
