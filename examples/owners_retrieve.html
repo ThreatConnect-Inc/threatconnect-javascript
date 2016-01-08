@@ -1,0 +1,55 @@
+<html>
+
+<head>
+    <title>ThreatConnect Javascript SDK - Owners Retrieve</title>
+
+    <!-- JQuery -->
+    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+
+    <!-- HMAC -->
+    <script src="./../libs/core.js" type="text/javascript"></script>
+    <script src="./../libs/sha256.js" type="text/javascript"></script>
+    <script src="./../libs/hmac.js" type="text/javascript"></script>
+    <script src="./../libs/enc-base64.js" type="text/javascript"></script>
+
+    <!-- Creds -->
+    <script src="./tc_conf.js" type="text/javascript"></script>
+
+    <!-- ThreatConnect -->
+    <script src="./../threatconnect.js" type="text/javascript"></script>
+
+    <script>
+        /* global getParameterByName, ThreatConnect, TYPE */
+
+        var tcSpaceElementId = getParameterByName('tcSpaceElementId'); // spaces mode if spaceElementId defined
+
+        if (tcSpaceElementId) {
+            var apiSettings = {
+                apiToken: getParameterByName('tcToken'),
+                apiUrl: getParameterByName('tcApiPath')
+            };
+        }
+
+        var tc = new ThreatConnect(apiSettings);
+
+        tc.owners()
+            .done(function(response) {
+                console.log('response', response);
+                $('#response-content').append(JSON.stringify(response, null, 4));
+            })
+            .error(function(response) {
+                console.log('error response', response);
+                $('#response-content').append(JSON.stringify(response, null, 4));
+            })
+            .retrieve();
+    </script>
+
+</head>
+
+<body>
+    <div>
+        <pre id="response-content"></pre>
+    </div>
+</body>
+
+</html>

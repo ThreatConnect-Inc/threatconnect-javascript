@@ -1224,8 +1224,10 @@
                     .done(function(response) {
                         for (data in response.data) {
                             var ip = response.data[data].indicators;
+                            var lookupUrl = geoIpUrl + '/' + ip + '?callback=?';
                             $.getJSON(geoIpUrl + '/' + ip + '?callback=?', function() {
-                                    console.log("success");
+                                
+                               console.log('success', lookupUrl);
                             })
                             .always(function(data) {
                                 console.log("complete", data);
@@ -1249,39 +1251,39 @@
                 }
             });
 
-            var indicators = tc.indicators();
-            indicators.owner($('#Owner-select :selected').text())
-                    .type(TYPE.HOST)
-                    .resultLimit(500)
-                    .done(function(response) {
-                        for (data in response.data) {
-                            var host = response.data[data].indicators;
-                            geoIpUrl =  'https://freegeoip.net/json/' + host + '?callback=';
+            // var indicators = tc.indicators();
+            // indicators.owner($('#Owner-select :selected').text())
+            //         .type(TYPE.HOST)
+            //         .resultLimit(500)
+            //         .done(function(response) {
+            //             for (data in response.data) {
+            //                 var host = response.data[data].indicators;
+            //                 geoIpUrl =  'https://freegeoip.net/json/' + host + '?callback=';
 
-                            $.getJSON(geoIpUrl, function() {
-                                        console.log("success");
-                            })
-                            .always(function(data) {
-                                console.log("complete", data);
-                                if (data.latitude && data.longitude) {
-                                    L.marker([data.latitude, data.longitude])
-                                    .addTo(map)
-                                    .bindPopup(data.ip)
-                                    .openPopup();
-                                }
-                            });
-                        }
-                    })
-                    .error(function(response) {
-                        var message =  'Indicator Retrieval failed. (' + response.error + ').';
-                        statusAlert('danger', message);
-                    });
+            //                 $.getJSON(geoIpUrl, function() {
+            //                             console.log("success");
+            //                 })
+            //                 .always(function(data) {
+            //                     console.log("complete", data);
+            //                     if (data.latitude && data.longitude) {
+            //                         L.marker([data.latitude, data.longitude])
+            //                         .addTo(map)
+            //                         .bindPopup(data.ip)
+            //                         .openPopup();
+            //                     }
+            //                 });
+            //             }
+            //         })
+            //         .error(function(response) {
+            //             var message =  'Indicator Retrieval failed. (' + response.error + ').';
+            //             statusAlert('danger', message);
+            //         });
 
-            indicators.retrieve(function() {
-                while(indicators.hasNext()) {
-                    indicators.next();
-                }
-            });
+            // indicators.retrieve(function() {
+            //     while(indicators.hasNext()) {
+            //         indicators.next();
+            //     }
+            // });
 
         } else if ($(this).attr('href') === '#Owner-pane') {
             retrieveOwner();
@@ -1707,6 +1709,9 @@
         c.log('retrieveGroup');
         var groups = tc.groups(),
             groupType = params.type;
+            
+        // clear content from previous load
+        $('#' + groupType.type + '-content').text('');
 
         groups.owner($('#Owner-select :selected').text())
                 .type(groupType)

@@ -1242,6 +1242,27 @@ function Indicators(authentication) {
         this.apiRequest('attribute');
     };
     
+    // Commit Occurrence
+    this.commitObservations = function(params) {
+        /* /v2/indicators/<indicator type>/<indicator>/observation */
+        // this.normalization(normalize.observation);
+
+        this.requestUri([
+            this.ajax.baseUri,
+            this.settings.type.uri,
+            this.iData.indicator,
+            'observations'
+        ].join('/'));
+        this.requestMethod('POST');
+        this.body({
+            count: params.count,
+            dateObserved: params.dateObserved
+        });
+        c.log('this.ajax.requestUri', this.ajax.requestUri);
+            
+        this.apiRequest('attribute');
+    };
+    
     // Commit Security Label
     this.commitSecurityLabel = function(label) {
         /* /v2/indicators/<indicator type>/<indicator>/securityLabel/<label> */
@@ -1367,8 +1388,8 @@ function Indicators(authentication) {
             this.ajax.baseUri,
             this.settings.type.uri
         ].join('/'));
-        if (this.iData.requiredData.summary) {
-            var indicator = this.iData.requiredData.summary;
+        if (this.iData.indicator) {
+            var indicator = this.iData.indicator;
             if (this.settings.type.type == 'URL') {
                 indicator = encodeURIComponent(indicator);
             }
@@ -1394,7 +1415,7 @@ function Indicators(authentication) {
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
-            this.iData.requiredData.summary,
+            this.iData.indicator,
             association.type.uri,
         ].join('/'));
         if (association.id) {
@@ -1416,7 +1437,7 @@ function Indicators(authentication) {
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
-            this.iData.requiredData.summary,
+            this.iData.indicator,
             'attributes',
         ].join('/'));
         if (intCheck('attributeId', attributeId)) {
@@ -1430,6 +1451,22 @@ function Indicators(authentication) {
         return this.apiRequest('attribute');
     };
     
+    // Retrieve Observations
+    this.retrieveObservations = function(attributeId) {
+        /* /v2/indicators/<indicators type>/<indicator>/observations */
+        this.settings.normalizer = normalize.observations;
+
+        this.requestUri([
+            this.ajax.baseUri,
+            this.settings.type.uri,
+            this.iData.indicator,
+            'observations',
+        ].join('/'));
+        c.log('requestUri', this.ajax.requestUri);
+
+        return this.apiRequest('attribute');
+    };
+    
     // Retrieve Security Labels
     this.retrieveSecurityLabel = function() {
         /* /v2/indicators/<indicators type>/<indicator>/securityLabel */
@@ -1438,7 +1475,7 @@ function Indicators(authentication) {
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
-            this.iData.requiredData.summary,
+            this.iData.indicator,
             'securityLabels'
         ].join('/'));
         c.log('requestUri', this.ajax.requestUri);
@@ -1454,7 +1491,7 @@ function Indicators(authentication) {
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
-            this.iData.requiredData.summary,
+            this.iData.indicator,
             'tags'
         ].join('/'));
         c.log('requestUri', this.ajax.requestUri);
@@ -2367,6 +2404,22 @@ var normalize = {
         
         c.groupEnd();
         return indicators;
+    },
+    observations: function(ro, response) { 
+        c.group('normalize.observations');
+        var observations = [];
+
+        if (response) {
+            observations = response.observation;
+                
+            if (Object.prototype.toString.call( observations ) != '[object Array]') {
+                observations = [observations];
+            }
+            c.log('observations', observations);
+            
+        }
+        c.groupEnd();
+        return observations;
     },
     owners: function(type, response) {
         c.group('normalize.owners');
