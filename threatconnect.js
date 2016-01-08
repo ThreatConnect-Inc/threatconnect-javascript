@@ -1742,6 +1742,8 @@ function IndicatorsBatch(authentication) {
             this.normalization(normalize.default);  // bcs rename
             this.requestUri(this.ajax.baseUri + '/batch');
             this.requestMethod('POST');
+            this.done = this.callbacks.done;
+            this.callbacks.done = undefined;
             
             /* create job */ 
             this.apiRequest({action: 'commit'})
@@ -1777,7 +1779,7 @@ function IndicatorsBatch(authentication) {
                                                 statusResponse.data.batchStatus.data = _this.batchBody;
                                                 if (statusResponse.data.batchStatus.errorCount > 0) {
                                                     
-                                                    _this.requestUri(_this.ajax.baseUri + '/batch/' + jobResponse.data.batchId);
+                                                    _this.requestUri(_this.ajax.baseUri + '/batch/' + jobResponse.data.batchId + '/errors/');
                                                     _this.requestMethod('GET');
                                                                 
                                                     /* get errors */
@@ -1790,7 +1792,7 @@ function IndicatorsBatch(authentication) {
                                                             } else {
                                                             	statusResponse.data.batchStatus.errors = errorResponse;
                                                             }
-                                                            _this.callbacks.done(statusResponse.data.batchStatus);
+                                                            _this.done(statusResponse.data.batchStatus);
                                                         });
                                                 } else {
                                                     _this.done(statusResponse.data.batchStatus);
