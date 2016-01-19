@@ -12,7 +12,7 @@
  =============================================================================
 */
 
-/* global CryptoJS, threatconnect, TYPE */
+/* global CryptoJS, TYPE */
 
 var c = console;
 
@@ -793,6 +793,12 @@ function Groups(authentication) {
         return this;
     };
     
+    // incident
+    this.eventDate = function(data) {
+        this.rData.specificData.incident.eventDate = data;
+        return this;
+    };
+    
     // signature
     this.fileType = function(data) {
         this.rData.specificData.signature.fileType = data;
@@ -1537,7 +1543,23 @@ function Indicators(authentication) {
         ].join('/'));
         c.log('requestUri', this.ajax.requestUri);
 
-        return this.apiRequest('attribute');
+        return this.apiRequest('observations');
+    };
+    
+    // Retrieve ObservationCount
+    this.retrieveObservationCount = function(attributeId) {
+        /* /v2/indicators/<indicators type>/<indicator>/observationCount */
+        this.settings.normalizer = normalize.observationCount;
+
+        this.requestUri([
+            this.ajax.baseUri,
+            this.settings.type.uri,
+            this.iData.indicator,
+            'observationCount',
+        ].join('/'));
+        c.log('requestUri', this.ajax.requestUri);
+
+        return this.apiRequest('observationCount');
     };
     
     // Retrieve Security Labels
