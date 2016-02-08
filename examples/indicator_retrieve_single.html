@@ -34,7 +34,9 @@
         var indicators = tc.indicators();
 
         indicators.owner('Example Community')
-            // .type(TYPE.HOST)
+            .type(TYPE.ADDRESS)
+            .indicator('10.20.30.40')
+            .includeAdditional(true)     // include observationCount and faslePositiveCount
             .resultLimit(5)
             .done(function(response) {
                 console.log('response', response);

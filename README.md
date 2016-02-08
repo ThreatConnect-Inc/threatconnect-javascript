@@ -1,2 +1,2 @@
-# threatconnect-javascript
-Javascript SDK for the V2 ThreatConnect API
+# ThreatConnect JavaScript SDK
+Javascript SDK for the V2 of the ThreatConnect API

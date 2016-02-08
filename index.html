@@ -985,11 +985,15 @@
         geoIpUrl = 'https://geoip.sumx.us/geoip';
 
     if ( tcSpaceElementId ) {
+        var server = window.location.protocol + "//" + window.location.host;
+        c.log('server', server);
         apiSettings = {
             apiToken: getParameterByName('tcToken'),
-            apiUrl: getParameterByName('tcApiPath')
+            apiUrl: getParameterByName('tcApiPath'),
+            proxyServer: server
         };
     } else {
+
         apiSettings = {
             apiId: '80139273637620589570',
             apiSec: 'TCpl5xUATf6Hw$kP8KUajwX?0H8BmqeqnimIB7q95df8Eay?%LkLsEQ0eFT1nXQw',
@@ -1757,6 +1761,7 @@
             .resultLimit(100)
             // .filter(filter)
             .done(function (response) {
+                console.log('response', response);
                 if (response.data.length > 0) {
                     $('#Indicator-table').bootstrapTable('append', response.data);
                     $('#Indicator-content').append(JSON.stringify(response, null, 4));

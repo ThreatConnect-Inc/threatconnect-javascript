@@ -44,7 +44,7 @@
                 console.log('error response', response);
             })
             .retrieve(function() {
-                if (groups.hasNext()) {
+                while(groups.hasNext()) {
                     groups.next();
                 }
             });
