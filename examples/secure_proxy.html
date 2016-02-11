@@ -34,7 +34,7 @@
             sp = tc.secureProxy();
 
         sp.method('GET')
-            .url('freegeoip.net/json/github.com')
+            .url('http://freegeoip.net/json/github.com')
             .done(function(response) {
                 console.log('response', response);
                 $('#response-content').append(JSON.stringify(response, null, 4));
