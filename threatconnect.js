@@ -252,14 +252,10 @@ function RequestObject() {
     };
     
     /* secureProxy */
-    /*
     this.secureProxy = function(url) {
-        if (this.authentication.proxyServer) {
-            return this.authentication.proxyServer + '/secureProxy?_targetUrl=' + encodeURIComponent(url);
-        }
-        return url;
+        var secureProxyUrl = this.authentication.apiUrl.replace(/api$/, 'secureProxy?_targetUrl=');
+        return secureProxyUrl + encodeURIComponent(url);
     };
-    */
     
     /* authentication */
     this.setAuthentication = function(data) {
@@ -514,8 +510,9 @@ function RequestObject() {
         // jQuery ajax does not allow query string paramaters and body to
         // be used at the same time.  The url has to rebuilt manually.
         // first api call will always be synchronous to get resultCount
-        var apiUrl = this.ajax.requestMethod === 'GET' ? [this.authentication.apiUrl, this.ajax.requestUri].join('/') : this.settings.url.href,
-            defaults = {
+        
+        // var apiUrl = this.ajax.requestMethod === 'GET' ? [this.authentication.apiUrl, this.ajax.requestUri].join('/') : this.settings.url.href;
+        var defaults = {
             aysnc: false,
             url: this.ajax.requestMethod === 'GET' ? [this.authentication.apiUrl, this.ajax.requestUri].join('/') : this.settings.url.href,
             data: this.ajax.requestMethod === 'GET' ? this.payload : this.ajax.body,
@@ -624,13 +621,13 @@ function ThreatConnect(params) {
             'apiId': params.apiId,
             'apiSec': params.apiSec,
             'apiUrl': params.apiUrl,
-            'proxyServer': undefined
+            // 'proxyServer': undefined
         };
     } else if (params.apiToken && params.apiUrl) {
         this.authentication = {
             'apiToken': params.apiToken,
             'apiUrl': params.apiUrl,
-            'proxyServer': params.proxyServer
+            // 'proxyServer': params.proxyServer
         };
     } else {
         console.error('Required authentication parameters were not provided.');
@@ -657,6 +654,10 @@ function ThreatConnect(params) {
         var ro = new RequestObject();
         ro.setAuthentication(this.authentication);
         return ro;
+    };
+    
+    this.secureProxy = function() {
+        return new SecureProxy(this.authentication);
     };
     
     this.securityLabel = function() {
@@ -2233,6 +2234,93 @@ function SecurityLabels(authentication) {
     return this;
 }
 SecurityLabels.prototype = Object.create(RequestObject.prototype);
+
+function SecureProxy(authentication) {
+    RequestObject.call(this);
+    
+    this.authentication = authentication;
+    this.defaults = {
+        aysnc: true,
+        contentType: undefined,
+        data: undefined,
+        headers: {},
+        // headers: {
+        //     'authorization': 'TC-Token ' + this.authentication.apiToken
+        // },
+        method: 'GET',
+        url: undefined
+    };
+    // bcsx
+    
+    this.async = function(data) {
+        if (boolCheck('async', data)) {
+            this.defaults.async = data;
+        }
+        return this;
+    };
+    
+    this.body = function(data) {
+        this.defaults.data = data;
+        return this;
+    };
+    
+    this.contentType = function(data) {
+        this.defaults.contentType = data;
+        return this;
+    };
+    
+    this.header = function(key, val) {
+        this.defaults.headers[key] = val;
+        return this;
+    };
+    
+    this.method = function(data) {
+        if (valueCheck('method', data, ['DELETE', 'GET', 'POST', 'PUT'])) {
+            this.defaults.method = data;
+        }
+        return this;
+    };
+    
+    this.url = function(data) {
+        this.defaults.url = this.secureProxy(data);
+        return this;
+    };
+    
+    this.request = function() {
+        var _this = this;
+        console.log('this.defaults', this.defaults);
+        
+        $.ajax(this.defaults)
+            .done(function (response, textStatus, request) {
+                _this.callbacks.done(response);
+             })
+            .fail(function() {
+                var message = {error: 'Request Failed.'};
+                _this.callbacks.error(message);
+            });
+    };
+    
+    this.delete = function() {
+        this.defaults.method = 'DELETE';
+        this.request();
+    };
+    
+    this.get = function() {
+        this.defaults.method = 'GET';
+        this.request();
+    };
+    
+    this.post = function() {
+        this.defaults.method = 'POST';
+        this.request();
+    };
+    
+    this.put = function() {
+        this.defaults.method = 'PUT';
+        this.request();
+    };
+}
+SecureProxy.prototype = Object.create(RequestObject.prototype);
 
 var normalize = {
     attributes: function(ro, response) { 
