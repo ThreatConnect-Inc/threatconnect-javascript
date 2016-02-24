@@ -213,6 +213,7 @@ function RequestObject() {
         baseUri: 'v2',
         body: undefined,
         contentType: 'application/json; charset=UTF-8',
+        formData: undefined,
         requestMethod: 'GET',
         requestUri: undefined,
     },
@@ -224,7 +225,7 @@ function RequestObject() {
     this.headers = {},
     this.payload = {
         // createActivityLog: 'false',
-        // resultLimit: 500,
+        resultLimit: 500,
         // resultStart: 0
     },
     this.response = {
@@ -341,6 +342,11 @@ function RequestObject() {
     this.contentType = function(data) {
         // TODO: validate content type
         this.ajax.contentType = data;
+        return this;
+    };
+    
+    this.formData = function(data) {
+        this.ajax.formData = data;
         return this;
     };
     
@@ -511,16 +517,29 @@ function RequestObject() {
         // be used at the same time.  The url has to rebuilt manually.
         // first api call will always be synchronous to get resultCount
         
+        var requestData;
+        if (this.ajax.requestMethod == 'GET') {
+            requestData = this.payload;
+        } else {
+            if (this.ajax.formData) {
+                requestData = this.ajax.formData;
+            } else {
+                requestData = this.ajax.body;
+            }
+        }
+        
         // var apiUrl = this.ajax.requestMethod === 'GET' ? [this.authentication.apiUrl, this.ajax.requestUri].join('/') : this.settings.url.href;
         var defaults = {
             aysnc: false,
             url: this.ajax.requestMethod === 'GET' ? [this.authentication.apiUrl, this.ajax.requestUri].join('/') : this.settings.url.href,
-            data: this.ajax.requestMethod === 'GET' ? this.payload : this.ajax.body,
+            // data: this.ajax.requestMethod === 'GET' ? this.payload : this.ajax.body,
+            data: requestData,
             // data: this.ajax.requestMethod === 'GET' ? {} : this.ajax.body,
             headers: this.headers,
             crossDomain: false,
             method: this.ajax.requestMethod,
-            contentType: this.ajax.contentType,
+            contentType: this.ajax.formData ? false : this.ajax.contentType,
+            processData: this.ajax.formData ? false: true,
         };
         
         var apiPromise = $.ajax(defaults)
@@ -1028,6 +1047,7 @@ function Groups(authentication) {
         /* /v2/groups/adversaries/81/groups/incidents */
 
         this.normalization(normalize.find(association.type.type));
+        // this.normalization(normalize.find(association.type));
         this.normalizationType(association.type);
 
         this.requestUri([
@@ -2013,6 +2033,15 @@ function Spaces(authentication) {
         stateParams: {},
         stateText: {},
     };
+    
+    /* REQUIRED */
+    
+    this.elementId = function(data) {
+        if (intCheck('elementId', data)) {
+            this.spaceElementId = data;
+        }
+        return this;
+    };
 
     /* OPTIONAL */
     
@@ -2024,7 +2053,6 @@ function Spaces(authentication) {
     
     // state optional
     this.expireDays = function(data) {
-        // this.sData.expireDays = data;
         this.addPayload('expireDays', data);
         return this;
     };
@@ -2045,9 +2073,9 @@ function Spaces(authentication) {
         /* GET - /v2/exchange/spaces/<element id>/file/<fileName> */
         
         this.requestUri([
-            '/v2/exchange/spaces',
-            this.elementId,
-            '/state'
+            'v2/exchange/spaces',
+            this.spaceElementId,
+            'file'
         ].join('/'));
         if (fileName) {
             this.requestUri([
@@ -2065,9 +2093,9 @@ function Spaces(authentication) {
         /* GET - /v2/exchange/spaces/<element id>/job */
         
         this.requestUri([
-            '/v2/exchange/spaces',
-            this.elementId,
-            '/job'
+            'v2/exchange/spaces',
+            this.spaceElementId,
+            'job'
         ].join('/'));
         this.requestMethod('GET');
 
@@ -2079,9 +2107,9 @@ function Spaces(authentication) {
         /* GET - /v2/exchange/spaces/<element id>/state */
         
         this.requestUri([
-            '/v2/exchange/spaces',
-            this.elementId,
-            '/state'
+            'v2/exchange/spaces',
+            this.spaceElementId,
+            'state'
         ].join('/'));
         this.requestMethod('GET');
 
@@ -2093,12 +2121,14 @@ function Spaces(authentication) {
         /* POST - /v2/exchange/spaces/<element id>/file/<fileName> */
         
         this.requestUri([
-            '/v2/exchange/spaces',
-            this.elementId,
-            '/state',
+            'v2/exchange/spaces',
+            this.spaceElementId,
+            'file',
             fileName
         ].join('/'));
         this.requestMethod('POST');
+        //this.contentType('application/octet-stream');
+        this.contentType('multipart/form-data');
 
         return this.apiRequest('file');
     };
@@ -2109,9 +2139,9 @@ function Spaces(authentication) {
         /* POST - /v2/exchange/spaces/<element id>/job/execute */
         
         this.requestUri([
-            '/v2/exchange/spaces',
-            this.elementId,
-            '/job'
+            'v2/exchange/spaces',
+            this.spaceElementId,
+            'job'
         ].join('/'));
         // var post = $.extend(this.sData.stateParams, this.sData.stateText);
         var post = extend(this.sData.stateParams, this.sData.stateText);
@@ -2125,9 +2155,9 @@ function Spaces(authentication) {
         /* POST - /v2/exchange/spaces/<element id>/state */
         
         this.requestUri([
-            '/v2/exchange/spaces',
-            this.elementId,
-            '/state'
+            'v2/exchange/spaces',
+            this.spaceElementId,
+            'state'
         ].join('/'));
         // var post = $.extend(this.sData.stateParams, this.sData.stateText);
         var post = extend(this.sData.stateParams, this.sData.stateText);
@@ -2141,9 +2171,9 @@ function Spaces(authentication) {
         /* DELETE - /v2/exchange/spaces/<element id>/file/<fileName> */
         
         this.requestUri([
-            '/v2/exchange/spaces',
-            this.elementId,
-            '/state',
+            'v2/exchange/spaces',
+            this.spaceElementId,
+            'file',
             fileName
         ].join('/'));
         this.requestMethod('DELETE');
