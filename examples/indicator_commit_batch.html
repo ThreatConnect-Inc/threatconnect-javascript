@@ -39,8 +39,10 @@
             .attributeWriteType('Append')
             .haltOnError(false)
             .done(function(response) {
-                console.log('response', response);
-                $('#response-content').append(JSON.stringify(response, null, 4));
+                if (response.status == "Complete") {
+                    console.log('response', response);
+                    $('#response-content').append(JSON.stringify(response, null, 4));
+                }
             })
             .error(function(response) {
                 console.log('error response', response);

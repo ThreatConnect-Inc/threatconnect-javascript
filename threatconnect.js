@@ -845,8 +845,8 @@ function Groups(authentication) {
 
             // prepare body
             var specificBody = this.rData.specificData[this.settings.type.dataField];
-            // this.body($.extend(this.rData.requiredData, $.extend(this.rData.optionalData, specificBody)));
-            this.body(extend(this.rData.requiredData, extend(this.rData.optionalData, specificBody)));
+            this.body($.extend(this.rData.requiredData, $.extend(this.rData.optionalData, specificBody)));
+            // this.body(extend(this.rData.requiredData, extend(this.rData.optionalData, specificBody)));
             this.requestMethod('POST');
 
             this.requestUri([
@@ -886,7 +886,7 @@ function Groups(authentication) {
         ].join('/'));
         this.requestMethod('POST');
             
-        this.apiRequest('associations');
+        return this.apiRequest('associations');
     };
     
     // Commit Attributes
@@ -906,7 +906,7 @@ function Groups(authentication) {
             value: attribute.value
         });
             
-        this.apiRequest('attribute');
+        return this.apiRequest('attribute');
     };
     
     // Commit Security Label
@@ -923,7 +923,7 @@ function Groups(authentication) {
         ].join('/'));
         this.requestMethod('POST');
             
-        this.apiRequest('securityLabel');
+        return this.apiRequest('securityLabel');
     };
     
     // Commit Tag
@@ -940,7 +940,7 @@ function Groups(authentication) {
         ].join('/'));
         this.requestMethod('POST');
             
-        this.apiRequest('tag');
+        return this.apiRequest('tag');
     };
     
     // Delete
@@ -954,7 +954,7 @@ function Groups(authentication) {
         ].join('/'));
 
         this.requestMethod('DELETE');
-        this.apiRequest({action: 'delete'});
+        return this.apiRequest({action: 'delete'});
     };
  
     // Delete Associations
@@ -971,7 +971,7 @@ function Groups(authentication) {
         ].join('/'));
         this.requestMethod('DELETE');
             
-        this.apiRequest('associations');
+        return this.apiRequest('associations');
     };
     
     // Delete Attributes
@@ -987,7 +987,7 @@ function Groups(authentication) {
         ].join('/'));
         this.requestMethod('DELETE');
             
-        this.apiRequest('attribute');
+        return this.apiRequest('attribute');
     };
     
     // Delete Security Label
@@ -1003,7 +1003,7 @@ function Groups(authentication) {
         ].join('/'));
         this.requestMethod('DELETE');
             
-        this.apiRequest('securityLabel');
+        return this.apiRequest('securityLabel');
     };
     
     // Delete Tag
@@ -1019,7 +1019,7 @@ function Groups(authentication) {
         ].join('/'));
         this.requestMethod('DELETE');
             
-        this.apiRequest('tag');
+        return this.apiRequest('tag');
     };
     
     // Retrieve
@@ -1128,7 +1128,7 @@ function Groups(authentication) {
             'download'
         ].join('/'));
 
-        this.apiRequest({action: 'get'});
+        return this.apiRequest({action: 'get'});
     };
     
     // Upload
@@ -1148,7 +1148,7 @@ function Groups(authentication) {
             this.requestMethod('PUT');
         }
         
-        this.apiRequest({action: 'commit'});
+        return this.apiRequest({action: 'commit'});
         //    .done(function(response) {
         //        if (callback) callback();
         //    });
@@ -1266,8 +1266,8 @@ function Indicators(authentication) {
 
             // prepare body
             var specificBody = this.iData.specificData[this.settings.type.dataField];
-            // this.body($.extend(this.iData.requiredData, $.extend(this.iData.optionalData, specificBody)));
-            this.body(extend(this.iData.requiredData, extend(this.iData.optionalData, specificBody)));
+            this.body($.extend(this.iData.requiredData, $.extend(this.iData.optionalData, specificBody)));
+            // this.body(extend(this.iData.requiredData, extend(this.iData.optionalData, specificBody)));
             this.requestMethod('POST');
 
             this.requestUri([
@@ -1306,7 +1306,7 @@ function Indicators(authentication) {
         ].join('/'));
         this.requestMethod('POST');
             
-        this.apiRequest('associations');
+        return this.apiRequest('associations');
     };
     
     // Commit Attributes
@@ -1326,7 +1326,7 @@ function Indicators(authentication) {
             value: attribute.value
         });
             
-        this.apiRequest('attribute');
+        return this.apiRequest('attribute');
     };
     
     // Commit False Positive
@@ -1342,7 +1342,7 @@ function Indicators(authentication) {
         ].join('/'));
         this.requestMethod('POST');
             
-        this.apiRequest('falsePositive');
+        return this.apiRequest('falsePositive');
     };
     
     // Commit Occurrence
@@ -1362,7 +1362,7 @@ function Indicators(authentication) {
             dateObserved: params.dateObserved
         });
             
-        this.apiRequest('attribute');
+        return this.apiRequest('attribute');
     };
     
     // Commit Security Label
@@ -1379,7 +1379,7 @@ function Indicators(authentication) {
         ].join('/'));
         this.requestMethod('POST');
             
-        this.apiRequest('securityLabel');
+        return this.apiRequest('securityLabel');
     };
     
     // Commit Tag
@@ -1396,7 +1396,7 @@ function Indicators(authentication) {
         ].join('/'));
         this.requestMethod('POST');
             
-        this.apiRequest('tag');
+        return this.apiRequest('tag');
     };
     
     // Delete
@@ -1409,7 +1409,7 @@ function Indicators(authentication) {
         ].join('/'));
 
         this.requestMethod('DELETE');
-        this.apiRequest({action: 'delete'});
+        return this.apiRequest({action: 'delete'});
     };
  
     // Delete Associations
@@ -1425,7 +1425,7 @@ function Indicators(authentication) {
         ].join('/'));
         this.requestMethod('DELETE');
             
-        this.apiRequest('associations');
+        return this.apiRequest('associations');
     };
     
     // Delete Attributes
@@ -1441,7 +1441,7 @@ function Indicators(authentication) {
         ].join('/'));
         this.requestMethod('DELETE');
             
-        this.apiRequest('attribute');
+        return this.apiRequest('attribute');
     };
     
     // Delete Security Label
@@ -1457,7 +1457,7 @@ function Indicators(authentication) {
         ].join('/'));
         this.requestMethod('DELETE');
             
-        this.apiRequest('securityLabel');
+        return this.apiRequest('securityLabel');
     };
     
     // Delete Tag
@@ -1473,7 +1473,7 @@ function Indicators(authentication) {
         ].join('/'));
         this.requestMethod('DELETE');
             
-        this.apiRequest('tag');
+        return this.apiRequest('tag');
     };
     
     // retrieve
@@ -1807,12 +1807,12 @@ function IndicatorsBatch(authentication) {
             specificBody = {};
         
         if (this.iData.requiredData.summary && this.iData.requiredData.type) {
-            // body = $.extend(this.iData.requiredData, this.iData.optionalData);
-            body = extend(this.iData.requiredData, this.iData.optionalData);
+            body = $.extend(this.iData.requiredData, this.iData.optionalData);
+            // body = extend(this.iData.requiredData, this.iData.optionalData);
             
             specificBody = this.iData.specificData[this.iData.requiredData.type],
-                body = extend(body, specificBody);
-                // body = $.extend(body, specificBody);
+                // body = extend(body, specificBody);
+                body = $.extend(body, specificBody);
                 
             this.batchBody.push(body);
             
@@ -1863,8 +1863,8 @@ function IndicatorsBatch(authentication) {
         // validate required fields
         if (this.payload.owner && this.batchBody.length != 0) {
             
-            // this.body($.extend({owner: this.payload.owner}, this.batch));
-            this.body(extend({owner: this.payload.owner}, this.batch));
+            this.body($.extend({owner: this.payload.owner}, this.batch));
+            // this.body(extend({owner: this.payload.owner}, this.batch));
             this.normalization(normalize.default);  // bcs rename
             this.requestUri(this.ajax.baseUri + '/batch');
             this.requestMethod('POST');
@@ -2143,8 +2143,8 @@ function Spaces(authentication) {
             this.spaceElementId,
             'job'
         ].join('/'));
-        // var post = $.extend(this.sData.stateParams, this.sData.stateText);
-        var post = extend(this.sData.stateParams, this.sData.stateText);
+        var post = $.extend(this.sData.stateParams, this.sData.stateText);
+        // var post = extend(this.sData.stateParams, this.sData.stateText);
         this.body(post);
         this.requestMethod('POST');
         return this.apiRequest('state');
@@ -2159,8 +2159,8 @@ function Spaces(authentication) {
             this.spaceElementId,
             'state'
         ].join('/'));
-        // var post = $.extend(this.sData.stateParams, this.sData.stateText);
-        var post = extend(this.sData.stateParams, this.sData.stateText);
+        var post = $.extend(this.sData.stateParams, this.sData.stateText);
+        // var post = extend(this.sData.stateParams, this.sData.stateText);
         this.body(post);
         this.requestMethod('POST');
         return this.apiRequest('state');
