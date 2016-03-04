@@ -700,6 +700,7 @@ function Groups(authentication) {
     this.resultLimit(500);
     this.settings.helper = true,
     this.settings.normalizer = normalize.groups,
+    this.settings.normalizerType = TYPE.GROUP,
     this.settings.type = TYPE.GROUP,
     this.rData = {
         id: undefined,
@@ -723,7 +724,7 @@ function Groups(authentication) {
         this.response.id = data;
         return this;
     };
-
+    
     this.type = function(data) {
         if (data.type && data.uri) {
             this.settings.type = data;
@@ -1856,7 +1857,7 @@ function IndicatorsBatch(authentication) {
     /* API ACTIONS */
     
     // commit
-    this.commit = function() {
+    this.commit = function(callback) {
         var _this = this,
             message;
             
@@ -1919,6 +1920,7 @@ function IndicatorsBatch(authentication) {
                                                 } else {
                                                     _this.done(statusResponse.data.batchStatus);
                                                 }
+                                                if (callback) callback();
                                             } else if (_this.status.timeout <= 0) {
                                                 _this.callbacks.error({
                                                      error: 'Status check reach timeout value.'
@@ -1935,7 +1937,7 @@ function IndicatorsBatch(authentication) {
                 })
                 .fail(function() {
                     message = {error: 'Failed to configure indicator job.'};
-                    _this.settings.callbacks.error(message);
+                    _this.callbacks.error(message);
                 });
         } else {
             console.error('Commit Failure: batch owner and indicators are required.');
@@ -2211,7 +2213,10 @@ function Tags(authentication) {
         /* /v2/tags/<tag name> */
         
         if (this.rData.name) {
-            this.requestUri(this.ajax.requestUri + '/' + this.rData.name);
+            this.requestUri([
+                this.ajax.requestUri,
+                this.rData.name
+                ].join('/'));
         }
         this.requestMethod('GET');
 
@@ -2220,6 +2225,52 @@ function Tags(authentication) {
                 callback();
             }
         });
+    };
+    
+    // retrieveIndicators
+    this.retrieveIndicators = function(indicatorType) {
+        /* /v2/tags/<tag name>/indicators */
+        this.settings.normalizer = normalize.indicators;
+        this.normalizationType(indicatorType);
+        
+        if (this.rData.name) {
+            this.requestUri([
+                this.ajax.requestUri,
+                this.rData.name,
+            ].join('/'));
+        }
+        if (indicatorType) {
+            this.requestUri([
+                this.ajax.requestUri,
+                indicatorType.uri
+            ].join('/'));
+        }
+        this.requestMethod('GET');
+
+        return this.apiRequest('next');
+    };
+    
+    // retrieveGroups
+    this.retrieveGroups = function(groupType) {
+        /* /v2/tags/<tag name>/groups */
+        this.settings.normalizer = normalize.groups;
+        this.normalizationType(groupType);
+        
+        if (this.rData.name) {
+            this.requestUri([
+                this.ajax.requestUri,
+                this.rData.name,
+            ].join('/'));
+        }
+        if (groupType) {
+            this.requestUri([
+                this.ajax.requestUri,
+                groupType.uri
+            ].join('/'));
+        }
+        this.requestMethod('GET');
+
+        return this.apiRequest('next');
     };
     
     return this;
@@ -2280,7 +2331,6 @@ function SecureProxy(authentication) {
         method: 'GET',
         url: undefined
     };
-    // bcsx
     
     this.async = function(data) {
         if (boolCheck('async', data)) {
@@ -2536,14 +2586,15 @@ var normalize = {
     find: function(type) {
 
         switch (type) {
-            case TYPE.GROUP.type:
             case TYPE.ADVERSARY.type:
+            case TYPE.DOCUMENT.type:
             case TYPE.EMAIL.type:
+            case TYPE.GROUP.type:
             case TYPE.INCIDENT.type:
             case TYPE.SIGNATURE.type:
             case TYPE.THREAT.type:
                 return this.groups;
-
+                break;
             case TYPE.INDICATOR.type:
             case TYPE.ADDRESS.type:
             case TYPE.EMAIL_ADDRESS.type:
@@ -2551,6 +2602,7 @@ var normalize = {
             case TYPE.HOST.type:
             case TYPE.URL.type:
                 return this.indicators;
+                break;
             default:
                 console.warn('Invalid type provided.');
         }

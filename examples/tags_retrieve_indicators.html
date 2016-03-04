@@ -1,7 +1,7 @@
 <html>
 
 <head>
-    <title>ThreatConnect Javascript SDK - Indicator Commit All Example</title>
+    <title>ThreatConnect Javascript SDK - Tags Retrieve Indicators</title>
 
     <!-- JQuery -->
     <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
@@ -31,11 +31,10 @@
         }
 
         var tc = new ThreatConnect(apiSettings);
-        var indicators = tc.indicators();
 
-        indicators.owner('Example Community')
-            .indicator('11.21.31.41')
-            .type(TYPE.ADDRESS)
+        tc.tags()
+            .owner('Example Community')
+            .name('Example')
             .done(function(response) {
                 console.log('response', response);
                 $('#response-content').append(JSON.stringify(response, null, 4));
@@ -44,18 +43,12 @@
                 console.log('error response', response);
                 $('#response-content').append(JSON.stringify(response, null, 4));
             })
-            .commit(function() {
-                indicators.commitAssociation({
-                    type: TYPE.INCIDENT,
-                    id: 544
-                });
-                indicators.commitAttribute({
-                    type: 'Description',
-                    value: 'Example Description.'
-                });
-                indicators.commitTag('Example');
-                indicators.commitSecurityLabel('TLP Red');
-            });
+            .retrieveIndicators(TYPE.INDICATOR);
+            // .retrieveIndicators(TYPE.ADDRESS);
+            // .retrieveIndicators(TYPE.EMAIL_ADDRESS);
+            // .retrieveIndicators(TYPE.FILE);
+            // .retrieveIndicators(TYPE.HOST);
+            // .retrieveIndicators(TYPE.URL);
     </script>
 </head>
 
