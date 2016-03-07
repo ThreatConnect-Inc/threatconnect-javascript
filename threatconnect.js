@@ -114,6 +114,41 @@ var TYPE = {
         'indicatorFields': ['text'],
         'type': 'URL',
         'uri': 'indicators/urls',
+    },
+    VICTIM: {
+        'dataField': 'victim',
+        'type': 'Victim',
+        'uri': 'victims',
+    },
+    VICTIM_ASSET: {
+        'dataField': 'victimAsset',
+        'type': 'VictimAsset',
+        'uri': 'victimAssets',
+    },
+    VICTIM_ASSET_EMAIL_ADDRESSES: {
+        'dataField': 'victimEmailAddress',
+        'type': 'EmailAddress',
+        'uri': 'victimAssets/emailAddresses',
+    },
+    VICTIM_ASSET_NETWORK_ACCOUNTS: {
+        'dataField': 'victimNetworkAccount',
+        'type': 'NetworkAccount',
+        'uri': 'victimAssets/networkAccounts',
+    },
+    VICTIM_ASSET_PHONE_NUMBERS: {
+        'dataField': 'victimPhone',
+        'type': 'Phone',
+        'uri': 'victimAssets/phoneNumbers',
+    },
+    VICTIM_ASSET_SOCAIL_NETWORKS: {
+        'dataField': 'victimSocialNetwork',
+        'type': 'SocialNetwork',
+        'uri': 'victimAssets/socialNetworks',
+    },
+    VICTIM_ASSET_WEBSITES: {
+        'dataField': 'victimWebSite',
+        'type': 'WebSite',
+        'uri': 'victimAssets/webSites',
     }
 };
 
@@ -689,6 +724,10 @@ function ThreatConnect(params) {
 
     this.tags = function() {
         return new Tags(this.authentication);
+    };
+    
+    this.victims = function() {
+        return new Victims(this.authentication);
     };
 }
 
@@ -2230,6 +2269,11 @@ function Tags(authentication) {
     // retrieveIndicators
     this.retrieveIndicators = function(indicatorType) {
         /* /v2/tags/<tag name>/indicators */
+        
+        if (!indicatorType) {
+           indicatorType = TYPE.INDICATOR; 
+        }
+        
         this.settings.normalizer = normalize.indicators;
         this.normalizationType(indicatorType);
         
@@ -2253,6 +2297,10 @@ function Tags(authentication) {
     // retrieveGroups
     this.retrieveGroups = function(groupType) {
         /* /v2/tags/<tag name>/groups */
+        if (!groupType) {
+           groupType = TYPE.GROUP; 
+        }
+        
         this.settings.normalizer = normalize.groups;
         this.normalizationType(groupType);
         
@@ -2297,7 +2345,7 @@ function SecurityLabels(authentication) {
     };
     
     //
-    // Retrieve Group
+    // Retrieve Security Labels
     //
     this.retrieve = function(callback) {
         if (this.rData.name) {
@@ -2315,6 +2363,186 @@ function SecurityLabels(authentication) {
     return this;
 }
 SecurityLabels.prototype = Object.create(RequestObject.prototype);
+
+function Victims(authentication) {
+    RequestObject.call(this);
+    /* /v2/victims */
+
+    this.authentication = authentication;
+    this.ajax.requestUri = this.ajax.baseUri + '/victims',
+    this.settings.helper = true,
+    this.settings.normalizer = normalize.victims,
+    this.settings.type = TYPE.VICTIM,
+    this.rData = {
+        id: undefined,
+        optionalData: {},
+        requiredData: {
+            name: undefined
+        },
+        specificData: {
+            victimEmailAddress: {},
+            victimNetworkAccount: {},
+            victimPhone: {},
+            victimSocialNetwork: {},
+            victimWebSite: {},
+        }
+    };
+    
+    /* SETTINGS */
+    this.id = function(data) {
+        this.rData.id = data;
+        return this;
+    };
+    
+    /* REQUIRED */
+    this.name = function(data) {
+        this.rData.requiredData.name = data;
+        return this;
+    };
+    
+    /* OPTIONAL */
+    this.org = function(data) {
+        this.rData.optionalData.org = data;
+        return this;
+    };
+    
+    this.suborg = function(data) {
+        this.rData.optionalData.suborg = data;
+        return this;
+    };
+    
+    this.workLocation = function(data) {
+        this.rData.optionalData.workLocation = data;
+        return this;
+    };
+    
+    this.nationality = function(data) {
+        this.rData.optionalData.nationality = data;
+        return this;
+    };
+    
+    /* ASSET TYPE SPECIFIC PARAMETERS */
+    
+    // emailAddress
+    this.address = function(data) {
+        this.rData.specificData.victimEmailAddress.address = data;
+        return this;
+    };
+    
+    this.addressType = function(data) {
+        this.rData.specificData.victimEmailAddress.addressType = data;
+        return this;
+    };
+    
+    // networkAccount / socialNetwork
+    this.account = function(data) {
+        this.rData.specificData.victimNetworkAccount.account = data;
+        this.rData.specificData.victimSocialNetwork.account = data;
+        return this;
+    };
+    
+    this.network = function(data) {
+        this.rData.specificData.victimNetworkAccount.network = data;
+        this.rData.specificData.victimSocialNetwork.network = data;
+        return this;
+    };
+    
+    // phone
+    this.phoneType = function(data) {
+        this.rData.specificData.victimPhone.phoneType = data;
+        return this;
+    };
+    
+    // webSite
+    this.webSite = function(data) {
+        this.rData.specificData.victimWebSite.webSite = data;
+        return this;
+    };
+    
+    //
+    // Commit Victim
+    //
+    this.commit = function(callback) {
+        var _this = this;
+        
+        this.requestMethod('POST');
+        this.body($.extend(this.rData.requiredData, this.rData.optionalData));
+        
+        if (this.rData.id) {
+            this.requestMethod('PUT');
+        }
+     
+        this.apiRequest({action: 'commit'})
+            .done(function(response) {
+                console.log('bcs', _this.settings);
+                _this.rData.id = response.data[_this.settings.type.dataField].id;
+                if (callback) callback();
+        });
+    };
+    
+    // commit victim asset
+    this.commitAsset = function(assetType) {
+        /* /v2/victims/7/victimAssets/webSites */
+        
+        if (this.rData.id && assetType) {
+            this.body(this.rData.specificData[assetType.dataField]);
+            this.requestMethod('POST');
+        
+            this.requestUri([
+                this.ajax.baseUri,
+                'victims',
+                this.rData.id,
+                assetType.uri
+            ].join('/'));
+     
+            return this.apiRequest('next');
+        }
+    };
+    
+    //
+    // Retrieve Victim
+    //
+    this.retrieve = function(callback) {
+        if (this.rData.id) {
+            this.requestUri(this.ajax.requestUri + '/' + this.rData.id);
+        }
+        this.requestMethod('GET');
+     
+        return this.apiRequest('next').done(function() {
+            if (callback) {
+                callback();
+            }
+        });
+    };
+    
+    //
+    // Retrieve Victim Assets
+    //
+    this.retrieveAssets = function(assetType) {
+        /* /v2/victims/7/victimAssets */
+        /* /v2/victims/7/victimAssets/webSites */
+        
+        if (!assetType) {
+            assetType = TYPE.VICTIM_ASSET;
+        }
+        if (this.rData.id) {
+            this.requestUri([
+                this.ajax.requestUri,
+                this.rData.id,
+                assetType.uri
+            ].join('/'));
+            
+            this.requestMethod('GET');
+            return this.apiRequest('next');
+        } else {
+            console.warn('Victim ID is required.');
+        }
+    };
+    
+    return this;
+}
+Victims.prototype = Object.create(RequestObject.prototype);
+
 
 function SecureProxy(authentication) {
     RequestObject.call(this);
@@ -2579,6 +2807,10 @@ var normalize = {
             }
         }
         return tags;
+    },
+    victims: function(type, response) {
+        // bcs - Complete this
+        return response;
     },
     default: function(type, response) {
         return response;

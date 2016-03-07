@@ -1,1 +1,4 @@
-tc_conf.js
+# Ignore test conf files
+tc_conf.js*
+# Except this file
+!.tc_conf.js-template
