@@ -108,11 +108,6 @@ var TYPE = {
         'type': 'Threat',
         'uri': 'groups/threats',
     },
-    TASK: {
-        'dataField': 'task',
-        'type': 'Task',
-        'uri': 'tasks',
-    },
     URL: {
         'dataField': 'url',
         'postField': 'text',
@@ -731,10 +726,6 @@ function ThreatConnect(params) {
         return new Tags(this.authentication);
     };
     
-    this.tasks = function() {
-        return new Tasks(this.authentication);
-    };
-    
     this.victims = function() {
         return new Victims(this.authentication);
     };
@@ -887,7 +878,6 @@ function Groups(authentication) {
     
     // Commit
     this.commit = function(callback) {
-        /* /v2/groups/{type} */
         var _this = this;
 
         // validate required fields
@@ -924,8 +914,7 @@ function Groups(authentication) {
     
     // Commit Associations
     this.commitAssociation = function(association) {
-        /* /v2/groups/{type}/{id}/groups/{type}/{id} */
-        /* /v2/groups/{type}/{id}/indicators/{type}/{indicators} */
+        /* /v2/groups/<group type>/<group id>/groups/<group type>/<group id> */
         this.normalization(normalize.find(association.type.type));
 
         this.requestUri([
@@ -942,7 +931,7 @@ function Groups(authentication) {
     
     // Commit Attributes
     this.commitAttribute = function(attribute) {
-        /* /v2/groups/{type}/{id}/attributes */
+        /* /v2/groups/<group type>/<ID>/attributes */
         this.normalization(normalize.attributes);
 
         this.requestUri([
@@ -962,7 +951,7 @@ function Groups(authentication) {
     
     // Commit Security Label
     this.commitSecurityLabel = function(label) {
-        /* /v2/groups/{type}/{id}/securityLabel/<name> */
+        /* /v2/groups/<group type>/<ID>/securityLabel/<label> */
         this.normalization(normalize.securityLabels);
 
         this.requestUri([
@@ -979,7 +968,7 @@ function Groups(authentication) {
     
     // Commit Tag
     this.commitTag = function(tag) {
-        /* /v2/groups/{type}/{id}/tags/<name> */
+        /* /v2/groups/<group type>/<ID>/tags/<tag> */
         this.normalization(normalize.tags);
 
         this.requestUri([
@@ -996,7 +985,7 @@ function Groups(authentication) {
     
     // Delete
     this.delete = function() {
-        /* /v2/groups/{type}/{id} */
+        /* /v2/groups/<group type>/<ID> */
         
         this.requestUri([
             this.ajax.requestUri,
@@ -1010,8 +999,8 @@ function Groups(authentication) {
  
     // Delete Associations
     this.deleteAssociation = function(association) {
-        /* /v2/groups/{type}/{id}/groups/{type}/{id} */
-        /* /v2/groups/{type}/{id}/indicators/{type}/{indicator} */
+        /* /v2/groups/<group type>/<group id>/groups/<group type>/<group id> */
+        /* /v2/groups/<group type>/<group id>/indicators/<indicator type>/<indicator> */
 
         this.requestUri([
             this.ajax.baseUri,
@@ -1027,7 +1016,7 @@ function Groups(authentication) {
     
     // Delete Attributes
     this.deleteAttribute = function(attributeId) {
-        /* /v2/groups/{type}/{id}/attributes/{id} */
+        /* /v2/groups/incidents/256/attributes/9 */
 
         this.requestUri([
             this.ajax.baseUri,
@@ -1043,7 +1032,7 @@ function Groups(authentication) {
     
     // Delete Security Label
     this.deleteSecurityLabel = function(label) {
-        /* /v2/groups/{type}/{id}/securityLabels/{name} */
+        /* /v2/groups/<group type>/<ID>/securityLabel/<label> */
 
         this.requestUri([
             this.ajax.baseUri,
@@ -1059,7 +1048,7 @@ function Groups(authentication) {
     
     // Delete Tag
     this.deleteTag = function(tag) {
-        /* /v2/groups/{type}/{id}/tags/{name} */
+        /* /v2/groups/<group type>/<ID>/tags/<tag> */
 
         this.requestUri([
             this.ajax.baseUri,
@@ -1075,15 +1064,11 @@ function Groups(authentication) {
     
     // Retrieve
     this.retrieve = function(callback) {
-        /* /v2/groups */
-        /* /v2/groups/{type} */
-        
         this.requestUri([
             this.ajax.requestUri,
             this.settings.type.uri,
             this.rData.id
         ].join('/'));
-        // bcs - should id be added separately ?
         this.requestMethod('GET');
         this.settings.requestCount = this.payload.resultLimit;
 
@@ -1096,12 +1081,13 @@ function Groups(authentication) {
     
     // Retrieve Associations
     this.retrieveAssociations = function(association) {
-        /* /v2/groups/{type}/{id}/indicators */
-        /* /v2/groups/{type}/{id}/indicators/{type} */
-        /* /v2/groups/{type}/{id}/groups */
-        /* /v2/groups/{type}/{id}/groups/{type} */
+        /* /v2/groups/adversaries/81/indicators */
+        /* /v2/groups/adversaries/81/indicators/hosts */
+        /* /v2/groups/adversaries/81/groups */
+        /* /v2/groups/adversaries/81/groups/incidents */
 
         this.normalization(normalize.find(association.type.type));
+        // this.normalization(normalize.find(association.type));
         this.normalizationType(association.type);
 
         this.requestUri([
@@ -1122,7 +1108,7 @@ function Groups(authentication) {
     
     // Retrieve Attributes
     this.retrieveAttributes = function(attributeId) {
-        /* /v2/groups/{type}/{id}/attributes */
+        /* /v2/groups/<group type>/<ID>/attributes */
         this.settings.normalizer = normalize.attributes;
 
         this.requestUri([
@@ -1143,7 +1129,7 @@ function Groups(authentication) {
     
     // Retrieve Tags
     this.retrieveTags = function() {
-        /* /v2/groups/{type}/{id}/tags */
+        /* /v2/groups/<group type>/<ID>/tags */
         this.settings.normalizer = normalize.tags;
 
         this.requestUri([
@@ -1156,30 +1142,14 @@ function Groups(authentication) {
         return this.apiRequest('tags');
     };
     
-    // Retrieve Tags
-    this.retrieveTasks = function() {
-        /* /v2/groups/{type}/{id}/tasks */
-        this.settings.normalizer = normalize.tasks;
-
-        this.requestUri([
-            this.ajax.baseUri,
-            this.settings.type.uri,
-            this.rData.id,
-            'tasks'
-        ].join('/'));
-
-        return this.apiRequest('tasks');
-    };
-    
     // Retrieve Security Labels
     this.retrieveSecurityLabel = function() {
-        /* /v2/groups/{type}/{id}/securityLabels */
+        /* /v2/groups/<group type>/<ID>/securityLabel */
         this.settings.normalizer = normalize.securityLabels;
 
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
-            
             this.rData.id,
             'securityLabels'
         ].join('/'));
@@ -1189,8 +1159,6 @@ function Groups(authentication) {
     
     // Download
     this.download = function(params) {
-        /* /v2/groups/documents/{id}/download */
-        
         // this.contentType('application/octet-stream');
         this.requestMethod('GET');
         this.requestUri([
@@ -1205,7 +1173,6 @@ function Groups(authentication) {
     
     // Upload
     this.upload = function(params) {
-        /* /v2/groups/documents/{id}/upload */
         
         this.body(params.body);
         this.contentType('application/octet-stream');
@@ -1222,6 +1189,10 @@ function Groups(authentication) {
         }
         
         return this.apiRequest({action: 'commit'});
+        //    .done(function(response) {
+        //        if (callback) callback();
+        //    });
+        
     };
     
     return this;
@@ -1328,9 +1299,6 @@ function Indicators(authentication) {
     
     // Commit
     this.commit = function(callback) {
-        /* /v2/indicators/{type}/{indicator} */
-        
-        
         // validate required fields
         if (this.iData.indicator) {
             
@@ -1366,7 +1334,7 @@ function Indicators(authentication) {
     
     // Commit Associations
     this.commitAssociation = function(association) {
-        /* /v2/indicators/{type}/{indicator}/groups/{type}/{id} */
+        /* /v2/indicators/<indicator type>/<indicator>/groups/incidents/199 */
         this.normalization(normalize.find(association.type.type));
 
         this.requestUri([
@@ -1383,7 +1351,7 @@ function Indicators(authentication) {
     
     // Commit Attributes
     this.commitAttribute = function(attribute) {
-        /* /v2/indicators/{type}/{indicator}/attributes */
+        /* /v2/indicators/<indicator type>/<indicator>/attributes */
         this.normalization(normalize.attributes);
 
         this.requestUri([
@@ -1403,7 +1371,7 @@ function Indicators(authentication) {
     
     // Commit False Positive
     this.commitFalsePositive = function(params) {
-        /* /v2/indicators/{type}/{indicator}/falsePositive */
+        /* /v2/indicators/<indicator type>/<indicator>/falsePositive */
         this.normalization(normalize.default);
 
         this.requestUri([
@@ -1419,7 +1387,7 @@ function Indicators(authentication) {
     
     // Commit Occurrence
     this.commitObservation = function(params) {
-        /* /v2/indicators/{type}/{indicator}/observation */
+        /* /v2/indicators/<indicator type>/<indicator>/observation */
         // this.normalization(normalize.observation);
 
         this.requestUri([
@@ -1439,7 +1407,7 @@ function Indicators(authentication) {
     
     // Commit Security Label
     this.commitSecurityLabel = function(label) {
-        /* /v2/indicators/{type}/{indicator}/securityLabels/{name} */
+        /* /v2/indicators/<indicator type>/<indicator>/securityLabel/<label> */
         this.normalization(normalize.securityLabels);
 
         this.requestUri([
@@ -1456,7 +1424,7 @@ function Indicators(authentication) {
     
     // Commit Tag
     this.commitTag = function(tag) {
-        /* /v2/indicators/{type}/{indicator}/tags/{name} */
+        /* /v2/indicators/<indicator type>/<indicator>/tags/<tag> */
         this.normalization(normalize.tags);
 
         this.requestUri([
@@ -1473,7 +1441,7 @@ function Indicators(authentication) {
     
     // Delete
     this.delete = function() {
-        /* /v2/indicators/{type}/{indicator} */
+        /* /v2/indicators/<indicator type>/<indicator> */
         this.requestUri([
             this.ajax.requestUri,
             this.settings.type.uri,
@@ -1486,7 +1454,7 @@ function Indicators(authentication) {
  
     // Delete Associations
     this.deleteAssociation = function(association) {
-        /* /v2/indicators/{type}/{indicator}/groups/{type}/{id} */
+        /* /v2/indicators/<indicator type>/<indicator>/groups/<group type>/<group id> */
 
         this.requestUri([
             this.ajax.baseUri,
@@ -1502,7 +1470,7 @@ function Indicators(authentication) {
     
     // Delete Attributes
     this.deleteAttribute = function(attributeId) {
-        /* /v2/indicators/{type}/{indicator}/attributes/{id} */
+        /* /v2/indicators/<indicator type>/<indicator>/attributes/<attribute id> */
 
         this.requestUri([
             this.ajax.baseUri,
@@ -1518,7 +1486,7 @@ function Indicators(authentication) {
     
     // Delete Security Label
     this.deleteSecurityLabel = function(label) {
-        /* /v2/indicators/{type}/{indicator}/securityLabels/{name} */
+        /* /v2/indicators/<indicator type>/<indicator>/securityLabel/<label> */
 
         this.requestUri([
             this.ajax.baseUri,
@@ -1534,7 +1502,7 @@ function Indicators(authentication) {
     
     // Delete Tag
     this.deleteTag = function(tag) {
-        /* /v2/indicators/{type}/{indicator}/tags/{name} */
+        /* /v2/indicators/<indicator type>/<indicator>/tags/<tag> */
 
         this.requestUri([
             this.ajax.baseUri,
@@ -1550,9 +1518,6 @@ function Indicators(authentication) {
     
     // retrieve
     this.retrieve = function(callback) {
-        /* /v2/indicators/ */
-        /* /v2/indicators/{type} */
-        /* /v2/indicators/{type}/{indicator} */
         
         // this.ajax.requestUri += '/' + this.settings.type.uri;
         this.requestUri([
@@ -1560,10 +1525,11 @@ function Indicators(authentication) {
             this.settings.type.uri
         ].join('/'));
         if (this.iData.indicator) {
-            this.requestUri([
-                this.ajax.requestUri,
-                this.settings.type.type == 'URL' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
-            ].join('/'));
+            var indicator = this.iData.indicator;
+            if (this.settings.type.type == 'URL') {
+                indicator = encodeURIComponent(indicator);
+            }
+            this.ajax.requestUri += '/' + indicator;
         }
         this.settings.requestCount = this.payload.resultLimit;
         
@@ -1576,9 +1542,8 @@ function Indicators(authentication) {
     
     // retrieve associations
     this.retrieveAssociations = function(association) {
-        /* /v2/indicators/{type}/{indicator}/groups */
-        /* /v2/indicators/{type}/{indicator}/groups/{type} */
-        /* /v2/indicators/{type}/{indicator}/groups/{type}/{id} */
+        /* /v2/indicators/<indicator type>/<value>/groups */
+        /* /v2/indicators/<indicator type>/<value>/groups/adversaries */
         
         this.normalization(normalize.find(association.type.type));
         this.normalizationType(association.type);
@@ -1586,7 +1551,7 @@ function Indicators(authentication) {
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
-            this.settings.type.type == 'URL' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
+            this.iData.indicator,
             association.type.uri,
         ].join('/'));
         if (association.id) {
@@ -1601,15 +1566,13 @@ function Indicators(authentication) {
     
     // Retrieve Attributes
     this.retrieveAttributes = function(attributeId) {
-        /* /v2/indicators/{type}/{indicator}/attributes */
-        /* /v2/indicators/{type}/{indicator}/attributes/{id} */
-        
+        /* /v2/indicators/<indicators type>/<indicator>/attributes */
         this.settings.normalizer = normalize.attributes;
 
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
-            this.settings.type.type == 'URL' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
+            this.iData.indicator,
             'attributes',
         ].join('/'));
         if (intCheck('attributeId', attributeId)) {
@@ -1624,14 +1587,13 @@ function Indicators(authentication) {
     
     // Retrieve Observations
     this.retrieveObservations = function(attributeId) {
-        /* /v2/indicators/{type}/{indicator}/observations */
-        
+        /* /v2/indicators/<indicators type>/<indicator>/observations */
         this.settings.normalizer = normalize.observations;
 
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
-            this.settings.type.type == 'URL' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
+            this.iData.indicator,
             'observations',
         ].join('/'));
 
@@ -1640,14 +1602,13 @@ function Indicators(authentication) {
     
     // Retrieve ObservationCount
     this.retrieveObservationCount = function(attributeId) {
-        /* /v2/indicators/{type}/{indicator}/observationCount */
-        
+        /* /v2/indicators/<indicators type>/<indicator>/observationCount */
         this.settings.normalizer = normalize.observationCount;
 
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
-            this.settings.type.type == 'URL' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
+            this.iData.indicator,
             'observationCount',
         ].join('/'));
 
@@ -1656,14 +1617,13 @@ function Indicators(authentication) {
     
     // Retrieve Security Labels
     this.retrieveSecurityLabel = function() {
-        /* /v2/indicators/{type}/{indicator}/securityLabels */
-        
+        /* /v2/indicators/<indicators type>/<indicator>/securityLabel */
         this.settings.normalizer = normalize.securityLabels;
 
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
-            this.settings.type.type == 'URL' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
+            this.iData.indicator,
             'securityLabels'
         ].join('/'));
 
@@ -1672,39 +1632,22 @@ function Indicators(authentication) {
     
     // Retrieve Tags
     this.retrieveTags = function() {
-        /* /v2/indicators/{type}/{indicator}/tags */
-        
+        /* /v2/indicators/<indicators type>/<indicator>/tags */
         this.settings.normalizer = normalize.tags;
 
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
-            this.settings.type.type == 'URL' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
+            this.iData.indicator,
             'tags'
         ].join('/'));
 
         return this.apiRequest('tags');
     };
     
-    // Retrieve Tasks
-    this.retrieveTasks = function() {
-        /* /v2/indicators/{type}/{indicator}/tasks */
-        
-        this.settings.normalizer = normalize.tasks;
-
-        this.requestUri([
-            this.ajax.baseUri,
-            this.settings.type.uri,
-            this.settings.type.type == 'URL' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
-            'tasks'
-        ].join('/'));
-
-        return this.apiRequest('tasks');
-    };
-    
     // dnsResolutions
     this.dnsResolutions = function() {
-        /* /v2/indicators/hosts/{indicator}/dnsResolutions */
+        /* /v2/indicators/hosts/<hostname>/dnsResolutions */
         if (this.settings.type == TYPE.HOST) {
             this.settings.normalizer = normalize.dnsResolutions;
     
@@ -1723,7 +1666,7 @@ function Indicators(authentication) {
     
     // fileOccurrences
     this.fileOccurrences = function() {
-        /* /v2/indicators/files/{indicator}/fileOccurrences */
+        /* /v2/indicators/files/<hash>/fileOccurrences */
         if (this.settings.type == TYPE.FILE) {
             this.settings.normalizer = normalize.fileOccurrences;
     
@@ -1905,8 +1848,10 @@ function IndicatorsBatch(authentication) {
         
         if (this.iData.requiredData.summary && this.iData.requiredData.type) {
             body = $.extend(this.iData.requiredData, this.iData.optionalData);
+            // body = extend(this.iData.requiredData, this.iData.optionalData);
             
             specificBody = this.iData.specificData[this.iData.requiredData.type],
+                // body = extend(body, specificBody);
                 body = $.extend(body, specificBody);
                 
             this.batchBody.push(body);
@@ -1959,13 +1904,14 @@ function IndicatorsBatch(authentication) {
         if (this.payload.owner && this.batchBody.length != 0) {
             
             this.body($.extend({owner: this.payload.owner}, this.batch));
+            // this.body(extend({owner: this.payload.owner}, this.batch));
             this.normalization(normalize.default);  // bcs rename
             this.requestUri(this.ajax.baseUri + '/batch');
             this.requestMethod('POST');
             this.done = this.callbacks.done;
             this.callbacks.done = undefined;
             
-            /* create job - /v2/batch */ 
+            /* create job */ 
             this.apiRequest({action: 'commit'})
                 .done(function(jobResponse) {
                     _this.batchId = jobResponse.data.batchId;
@@ -1974,7 +1920,7 @@ function IndicatorsBatch(authentication) {
                     _this.contentType('application/octet-stream');
                     _this.requestUri(_this.ajax.baseUri + '/batch/' + jobResponse.data.batchId);
                         
-                    /* post data - /v2/batch/{id} */
+                    /* post data */
                     _this.apiRequest({action: 'commit'})
                         .done(function(dataResponse) {
                             
@@ -1988,7 +1934,7 @@ function IndicatorsBatch(authentication) {
                                     console.log('status.frequency', _this.status.frequency);
                                     console.log('status.timeout', _this.status.timeout);
                                     
-                                    /* get status - /v2/batch/{id} */
+                                    /* get status */
                                     _this.apiRequest({action: 'status'})
                                         .done(function(statusResponse) {
                                                     
@@ -1999,7 +1945,7 @@ function IndicatorsBatch(authentication) {
                                                     _this.requestUri(_this.ajax.baseUri + '/batch/' + jobResponse.data.batchId + '/errors/');
                                                     _this.requestMethod('GET');
                                                                 
-                                                    /* get errors /v2/batch/{id}/errors */
+                                                    /* get errors */
                                                     _this.apiRequest({action: 'status'})
                                                         .done(function(errorResponse) {
                                                                     
@@ -2041,9 +1987,6 @@ function IndicatorsBatch(authentication) {
     
     // retrieve
     this.retrieve = function(format) {
-        /* /v2/indicators/bulk/csv */
-        /* /v2/indicators/bulk/json */
-        
         this.requestUri(this.ajax.baseUri + '/indicators/bulk/' + format);
         this.normalization(normalize.indicatorsBatch);
         return this.apiRequest('next');
@@ -2051,8 +1994,6 @@ function IndicatorsBatch(authentication) {
     
     // retrieve batch status
     this.retrieveBatchStatus = function() {
-        /* /v2/indicators/bulk */
-        
         this.normalization(normalize.default);
         this.requestUri(this.ajax.baseUri + '/indicators/bulk');
         return this.apiRequest('next');
@@ -2087,14 +2028,8 @@ function Owners(authentication) {
     
     // Retrieve Owners
     this.retrieve = function(callback) {
-        /* /v2/owners */
-        /* /v2/owners/{id} */
-        
         if (this.rData.id) {
-            this.requestUri([
-                this.ajax.requestUri,
-                this.rData.id
-            ].join('/'));
+            this.requestUri(this.ajax.requestUri + '/' + this.rData.id);
         }
         this.requestMethod('GET');
 
@@ -2104,50 +2039,23 @@ function Owners(authentication) {
             }
         });
     };
-    
-    // Retrieve Owners Members
-    this.retrieveMembers = function(callback) {
-        /* /v2/owners/mine/members */
-        
-        this.settings.normalizer = normalize.default;
-        this.requestUri([
-            this.ajax.requestUri,
-            'mine/members'
-        ].join('/'));
-        this.requestMethod('GET');
-
-        return this.apiRequest('members');
-    };
 
     // Retrieve Owners Metrics
     this.retrieveMetrics = function() {
-        /* /v2/owners/metrics */
-        
         if (this.rData.id) {
             this.requestUri(this.ajax.requestUri + '/' + this.rData.id);
         }
-        this.requestUri([
-            this.ajax.requestUri,
-            'metrics'
-        ].join('/'));
+        this.requestUri(this.ajax.requestUri + '/metrics');
         this.requestMethod('GET');
         this.settings.normalizer = normalize.default;
 
-        return this.apiRequest('owner');
-    };
-    
-    // Retrieve Owners Mine
-    this.retrieveMine = function(callback) {
-        /* /v2/owners/mine */
+        // return this.apiRequest('next').done(function() {
+        //     if (callback) {
+        //         callback();
+        //     }
+        // });
         
-        this.settings.normalizer = normalize.default;
-        this.requestUri([
-            this.ajax.requestUri,
-            'mine'
-        ].join('/'));
-        this.requestMethod('GET');
-
-        return this.apiRequest('mine');
+        return this.apiRequest('owner');
     };
 
     return this;
@@ -2202,8 +2110,8 @@ function Spaces(authentication) {
     
     // retrieve file
     this.retrieveFile = function(fileName) {
-        /* GET - /v2/exchange/spaces/{element id}/file */
-        /* GET - /v2/exchange/spaces/{element id}/file/{name} */
+        /* GET - /v2/exchange/spaces/<element id>/file */
+        /* GET - /v2/exchange/spaces/<element id>/file/<fileName> */
         
         this.requestUri([
             'v2/exchange/spaces',
@@ -2223,7 +2131,7 @@ function Spaces(authentication) {
     
     // retrieve job
     this.retrieveJob = function() {
-        /* GET - /v2/exchange/spaces/{element id}/job */
+        /* GET - /v2/exchange/spaces/<element id>/job */
         
         this.requestUri([
             'v2/exchange/spaces',
@@ -2237,7 +2145,7 @@ function Spaces(authentication) {
     
     // retrieve state
     this.retrieveState = function() {
-        /* GET - /v2/exchange/spaces/{element id}/state */
+        /* GET - /v2/exchange/spaces/<element id>/state */
         
         this.requestUri([
             'v2/exchange/spaces',
@@ -2251,7 +2159,7 @@ function Spaces(authentication) {
     
     // commit file
     this.commitFile = function(fileName) {
-        /* POST - /v2/exchange/spaces/{element id}/file/{name} */
+        /* POST - /v2/exchange/spaces/<element id>/file/<fileName> */
         
         this.requestUri([
             'v2/exchange/spaces',
@@ -2268,8 +2176,8 @@ function Spaces(authentication) {
     
     // commit job
     this.commitJob = function() {
-        /* POST - /v2/exchange/spaces/{element id}/job */
-        /* POST - /v2/exchange/spaces/{element id}/job/execute */
+        /* POST - /v2/exchange/spaces/<element id>/job */
+        /* POST - /v2/exchange/spaces/<element id>/job/execute */
         
         this.requestUri([
             'v2/exchange/spaces',
@@ -2277,6 +2185,7 @@ function Spaces(authentication) {
             'job'
         ].join('/'));
         var post = $.extend(this.sData.stateParams, this.sData.stateText);
+        // var post = extend(this.sData.stateParams, this.sData.stateText);
         this.body(post);
         this.requestMethod('POST');
         return this.apiRequest('state');
@@ -2284,7 +2193,7 @@ function Spaces(authentication) {
     
     // commit state
     this.commitState = function() {
-        /* POST - /v2/exchange/spaces/{element id}/state */
+        /* POST - /v2/exchange/spaces/<element id>/state */
         
         this.requestUri([
             'v2/exchange/spaces',
@@ -2292,6 +2201,7 @@ function Spaces(authentication) {
             'state'
         ].join('/'));
         var post = $.extend(this.sData.stateParams, this.sData.stateText);
+        // var post = extend(this.sData.stateParams, this.sData.stateText);
         this.body(post);
         this.requestMethod('POST');
         return this.apiRequest('state');
@@ -2299,7 +2209,7 @@ function Spaces(authentication) {
     
     // delete file
     this.deleteFile = function(fileName) {
-        /* DELETE - /v2/exchange/spaces/{element id}/file/{name} */
+        /* DELETE - /v2/exchange/spaces/<element id>/file/<fileName> */
         
         this.requestUri([
             'v2/exchange/spaces',
@@ -2318,6 +2228,7 @@ Spaces.prototype = Object.create(RequestObject.prototype);
 
 function Tags(authentication) {
     RequestObject.call(this);
+    /* /v2/tags */
 
     this.authentication = authentication;
     this.ajax.requestUri = this.ajax.baseUri + '/tags',
@@ -2338,8 +2249,7 @@ function Tags(authentication) {
     
     // retrieve
     this.retrieve = function(callback) {
-        /* GET - /v2/tags */
-        /* GET - /v2/tags/{name} */
+        /* /v2/tags/<tag name> */
         
         if (this.rData.name) {
             this.requestUri([
@@ -2358,8 +2268,7 @@ function Tags(authentication) {
     
     // retrieveIndicators
     this.retrieveIndicators = function(indicatorType) {
-        /* GET - /v2/tags/{name}/indicators */
-        /* GET - /v2/tags/{name}/indicators/{type} */
+        /* /v2/tags/<tag name>/indicators */
         
         if (!indicatorType) {
            indicatorType = TYPE.INDICATOR; 
@@ -2387,8 +2296,7 @@ function Tags(authentication) {
     
     // retrieveGroups
     this.retrieveGroups = function(groupType) {
-        /* GET - /v2/tags/{name}/groups */
-        /* GET - /v2/tags/{name}/groups/{type} */
+        /* /v2/tags/<tag name>/groups */
         if (!groupType) {
            groupType = TYPE.GROUP; 
         }
@@ -2419,6 +2327,7 @@ Tags.prototype = Object.create(RequestObject.prototype);
 
 function SecurityLabels(authentication) {
     RequestObject.call(this);
+    /* /v2/attributes */
 
     this.authentication = authentication;
     this.ajax.requestUri = this.ajax.baseUri + '/securityLabels',
@@ -2439,8 +2348,6 @@ function SecurityLabels(authentication) {
     // Retrieve Security Labels
     //
     this.retrieve = function(callback) {
-        /* /v2/securityLabel */
-        /* /v2/securityLabel/<Label Name> */
         if (this.rData.name) {
             this.requestUri(this.ajax.requestUri + '/' + this.rData.name);
         }
@@ -2453,439 +2360,9 @@ function SecurityLabels(authentication) {
         });
     };
     
-    this.retrieveTasks = function() {
-        /* /v2/securityLabel/<Label Name>/tasks */
-        if (this.rData.name) {
-            this.requestUri([
-                this.ajax.requestUri,
-                this.rData.name,
-                'tasks'
-            ].join['/']);
-            this.requestMethod('GET');
-     
-            return this.apiRequest('next');
-        }
-    };
-    
     return this;
 }
 SecurityLabels.prototype = Object.create(RequestObject.prototype);
-
-/* bcs */
-function Tasks(authentication) {
-    RequestObject.call(this);
-    /* /v2/attributes */
-
-    this.authentication = authentication;
-    this.ajax.requestUri = this.ajax.baseUri + '/tasks',
-    this.settings.helper = true,
-    this.settings.normalizer = normalize.tasks,
-    this.settings.type = TYPE.TASK,
-    this.rData = {
-        id: undefined,
-    };
-    
-    /* OPTIONAL */
-    this.id = function(data) {
-        this.rData.id = data;
-        return this;
-    };
-    /*
-    {
-        "name": "Task 001",
-        "escalatee": [{
-            "userName": "bsummers"
-        }],
-        "assignee": [{
-            "userName": "bcsummers@gmail.com"
-        }]
-    }
-    
-In Progress
-Completed
-Waiting on Someone
-Deferred
-
-{
-    "name": "Task 002",
-    "escalated": true,
-    "status": "In Progress",
-    "reminded": true,
-    "overdue": false,
-    "dueDate": "2016-03-19T22:19:45Z",
-    "reminderDate": "2016-04-11T22:19:45Z",
-    "escalationDate": "2016-05-11T22:19:45Z",
-    "escalatee": [{
-        "userName": "bsummers"
-    }],
-    "assignee": [{
-        "userName": "bcsummers@gmail.com"
-    }]
-}
-*/
-    
-    // Commit Assignees
-    this.commitAssignees = function(assignees) {
-        /* /v2/tasks/<ID>/assignees/<userName> */
-        this.normalization(normalize.default);
-
-        this.requestUri([
-            this.ajax.baseUri,
-            this.settings.type.uri,
-            this.rData.id,
-            'assignees',
-            assignees
-        ].join('/'));
-        this.requestMethod('POST');
-            
-        return this.apiRequest('assignees');
-    };
-    
-    // Commit Associations
-    this.commitAssociation = function(association) {
-        /* /v2/tasks/<ID>/groups/<group type>/<group id> */
-        /* /v2/tasks/<ID>/indicators/<indicator type>/<indicator value> */
-        this.normalization(normalize.find(association.type.type));
-
-        this.requestUri([
-            this.ajax.baseUri,
-            this.settings.type.uri,
-            this.rData.id,
-            association.type.uri,
-            association.id,
-        ].join('/'));
-        this.requestMethod('POST');
-            
-        return this.apiRequest('associations');
-    };
-    
-    // Commit Attributes
-    this.commitAttribute = function(attribute) {
-        /* /v2/tasks/<ID>/attributes */
-        this.normalization(normalize.attributes);
-
-        this.requestUri([
-            this.ajax.baseUri,
-            this.settings.type.uri,
-            this.rData.id,
-            'attributes'
-        ].join('/'));
-        this.requestMethod('POST');
-        this.body({
-            type: attribute.type,
-            value: attribute.value
-        });
-            
-        return this.apiRequest('attribute');
-    };
-    
-    // Commit Escalatees
-    this.commitEscalatees = function(escalatees) {
-        /* /v2/tasks/<ID>/escalatees/<userName> */
-        this.normalization(normalize.default);
-
-        this.requestUri([
-            this.ajax.baseUri,
-            this.settings.type.uri,
-            this.rData.id,
-            'escalatees',
-            escalatees
-        ].join('/'));
-        this.requestMethod('POST');
-            
-        return this.apiRequest('escalatees');
-    };
-    
-    // Commit Security Label
-    this.commitSecurityLabel = function(label) {
-        /* /v2/tasks/<ID>/securityLabel/<label> */
-        this.normalization(normalize.securityLabels);
-
-        this.requestUri([
-            this.ajax.baseUri,
-            this.settings.type.uri,
-            this.rData.id,
-            'securityLabels',
-            label
-        ].join('/'));
-        this.requestMethod('POST');
-            
-        return this.apiRequest('securityLabel');
-    };
-    
-    // Commit Tag
-    this.commitTag = function(tag) {
-        /* /v2/tasks/<ID>/tags/<tag> */
-        this.normalization(normalize.tags);
-
-        this.requestUri([
-            this.ajax.baseUri,
-            this.settings.type.uri,
-            this.rData.id,
-            'tags',
-            tag
-        ].join('/'));
-        this.requestMethod('POST');
-            
-        return this.apiRequest('tag');
-    };
-    
-    // Delete
-    this.delete = function() {
-        /* /v2/tasks/<ID> */
-        
-        this.requestUri([
-            this.ajax.requestUri,
-            this.settings.type.uri,
-            this.rData.id
-        ].join('/'));
-
-        this.requestMethod('DELETE');
-        return this.apiRequest({action: 'delete'});
-    };
-    
-    // Delete Assignees
-    this.deleteAssignees = function(assignees) {
-        /* /v2/tasks/<ID>/assignees/<userName> */
-        this.normalization(normalize.default);
-
-        this.requestUri([
-            this.ajax.baseUri,
-            this.settings.type.uri,
-            this.rData.id,
-            'assignees',
-            assignees
-        ].join('/'));
-        this.requestMethod('DELETE');
-            
-        return this.apiRequest('assignees');
-    };
- 
-    // Delete Associations
-    this.deleteAssociation = function(association) {
-        /* /v2/tasks/<ID>/groups/<group type>/<group id> */
-        /* /v2/tasks/<ID>/indicators/<indicator type>/<indicator> */
-
-        this.requestUri([
-            this.ajax.baseUri,
-            this.settings.type.uri,
-            this.rData.id,
-            association.type.uri,
-            association.id,
-        ].join('/'));
-        this.requestMethod('DELETE');
-            
-        return this.apiRequest('associations');
-    };
-    
-    // Delete Attributes
-    this.deleteAttribute = function(attributeId) {
-        /* /v2/tasks/<ID>/attributes/9 */
-
-        this.requestUri([
-            this.ajax.baseUri,
-            this.settings.type.uri,
-            this.rData.id,
-            'attributes',
-            attributeId
-        ].join('/'));
-        this.requestMethod('DELETE');
-            
-        return this.apiRequest('attribute');
-    };
-    
-    // Delete Escalatees
-    this.deleteEscalatees = function(escalatees) {
-        /* /v2/tasks/<ID>/escalatees/<userName> */
-        this.normalization(normalize.default);
-
-        this.requestUri([
-            this.ajax.baseUri,
-            this.settings.type.uri,
-            this.rData.id,
-            'escalatees',
-            escalatees
-        ].join('/'));
-        this.requestMethod('DELETE');
-            
-        return this.apiRequest('escalatees');
-    };
-    
-    // Delete Security Label
-    this.deleteSecurityLabel = function(label) {
-        /* /v2/tasks/<ID>/securityLabel/<label> */
-
-        this.requestUri([
-            this.ajax.baseUri,
-            this.settings.type.uri,
-            this.rData.id,
-            'securityLabels',
-            label
-        ].join('/'));
-        this.requestMethod('DELETE');
-            
-        return this.apiRequest('securityLabel');
-    };
-    
-    // Delete Tag
-    this.deleteTag = function(tag) {
-        /* /v2/groups/<group type>/<ID>/tags/<tag> */
-
-        this.requestUri([
-            this.ajax.baseUri,
-            this.settings.type.uri,
-            this.rData.id,
-            'tags',
-            tag
-        ].join('/'));
-        this.requestMethod('DELETE');
-            
-        return this.apiRequest('tag');
-    };
-    
-    //
-    // Retrieve Security Labels
-    //
-    this.retrieve = function(callback) {
-        /* /v2/tasks/ */
-        /* /v2/tasks/<ID>/attributes */
-        if (this.rData.id) {
-            this.requestUri([
-                this.ajax.requestUri,
-                this.rData.id
-            ].join('/'));
-        }
-        this.requestMethod('GET');
-     
-        return this.apiRequest('next').done(function() {
-            if (callback) {
-                callback();
-            }
-        });
-    };
-    
-    // Retrieve Assignees
-    this.retrieveAssignees = function() {
-        /* /v2/tasks/<ID>/assignees */
-        this.settings.normalizer = normalize.default;
-        if (this.rData.id) {
-            this.requestUri([
-                this.ajax.baseUri,
-                this.settings.type.uri,
-                this.rData.id,
-                'assignees'
-            ].join('/'));
-    
-            return this.apiRequest('assignees');
-        }
-    };
-    
-    // Retrieve Associations
-    this.retrieveAssociations = function(association) {
-        /* /v2/task/<ID>/indicators */
-        /* /v2/task/<ID>/indicators/hosts */
-        /* /v2/task/<ID>/groups */
-        /* /v2/task/<ID>/groups/incidents */
-
-        this.normalization(normalize.find(association.type.type));
-        // this.normalization(normalize.find(association.type));
-        this.normalizationType(association.type);
-        
-        if (this.rData.id) {
-            this.requestUri([
-                this.ajax.baseUri,
-                this.settings.type.uri,
-                this.rData.id,
-                association.type.uri,
-            ].join('/'));
-            if (association.id) {
-                this.requestUri([
-                    this.ajax.requestUri,
-                    association.id
-                ].join('/'));
-            }
-                
-            return this.apiRequest('associations');
-        }
-    };
-    
-    // Retrieve Attributes
-    this.retrieveAttributes = function(attributeId) {
-        /* /v2/tasks/<ID>/attributes */
-        /* /v2/tasks/<ID>/attributes/<Attribute ID> */
-        this.settings.normalizer = normalize.attributes;
-        if (this.rData.id) {
-            this.requestUri([
-                this.ajax.requestUri,
-                this.rData.id,
-                'attributes'
-            ].join('/'));
-            if (intCheck('attributeId', attributeId)) {
-                this.requestUri([
-                    this.ajax.requestUri,
-                    attributeId
-                ].join('/'));
-            }
-            
-            this.requestMethod('GET');
-         
-            return this.apiRequest('attributes');
-        }
-    };
-    
-    // Retrieve Escalatees
-    this.retrieveEscalatees = function() {
-        /* /v2/tasks/<ID>/escalatees */
-        this.settings.normalizer = normalize.default;
-        if (this.rData.id) {
-            this.requestUri([
-                this.ajax.baseUri,
-                this.settings.type.uri,
-                this.rData.id,
-                'escalatees'
-            ].join('/'));
-    
-            return this.apiRequest('escalatees');
-        }
-    };
-    
-    // Retrieve Tags
-    this.retrieveTags = function() {
-        /* /v2/tasks/<ID>/tags */
-        this.settings.normalizer = normalize.tags;
-        if (this.rData.id) {
-            this.requestUri([
-                this.ajax.baseUri,
-                this.settings.type.uri,
-                this.rData.id,
-                'tags'
-            ].join('/'));
-    
-            return this.apiRequest('tags');
-        }
-    };
-    
-    // Retrieve Security Labels
-    this.retrieveSecurityLabel = function() {
-        /* /v2/tasks/<ID>/securityLabel */
-        this.settings.normalizer = normalize.securityLabels;
-        if (this.rData.id) {
-
-            this.requestUri([
-                this.ajax.baseUri,
-                this.settings.type.uri,
-                this.rData.id,
-                'securityLabels'
-            ].join('/'));
-    
-            return this.apiRequest('securityLabel');
-        }
-    };
-    
-    return this;
-}
-Tasks.prototype = Object.create(RequestObject.prototype);
-
 
 function Victims(authentication) {
     RequestObject.call(this);
@@ -2924,11 +2401,6 @@ function Victims(authentication) {
     };
     
     /* OPTIONAL */
-    this.description = function(data) {
-        this.rData.optionalData.description = data;
-        return this;
-    };
-    
     this.org = function(data) {
         this.rData.optionalData.org = data;
         return this;
@@ -3027,85 +2499,6 @@ function Victims(authentication) {
         }
     };
     
-    // Delete
-    this.delete = function() {
-        /* /v2/victims/<ID> */
-        
-        this.requestUri([
-            this.ajax.requestUri,
-            this.settings.type.uri,
-            this.rData.id
-        ].join('/'));
-
-        this.requestMethod('DELETE');
-        return this.apiRequest({action: 'delete'});
-    };
- 
-    // Delete Associations
-    this.deleteAssociation = function(association) {
-        /* /v2/victims/{id}/groups/{type}/{id} */
-        /* /v2/victims/{id}/indicators/{type}/{indicator} */
-
-        this.requestUri([
-            this.ajax.baseUri,
-            this.settings.type.uri,
-            this.rData.id,
-            association.type.uri,
-            association.id,
-        ].join('/'));
-        this.requestMethod('DELETE');
-            
-        return this.apiRequest('associations');
-    };
-    
-    // Delete Attributes
-    this.deleteAttribute = function(attributeId) {
-        /* /v2/victims/{id}/attributes/9 */
-
-        this.requestUri([
-            this.ajax.baseUri,
-            this.settings.type.uri,
-            this.rData.id,
-            'attributes',
-            attributeId
-        ].join('/'));
-        this.requestMethod('DELETE');
-            
-        return this.apiRequest('attribute');
-    };
-    
-    // Delete Security Label
-    this.deleteSecurityLabel = function(label) {
-        /* /v2/victims/{id}/securityLabel/{label} */
-
-        this.requestUri([
-            this.ajax.baseUri,
-            this.settings.type.uri,
-            this.rData.id,
-            'securityLabels',
-            label
-        ].join('/'));
-        this.requestMethod('DELETE');
-            
-        return this.apiRequest('securityLabel');
-    };
-    
-    // Delete Tag
-    this.deleteTag = function(tag) {
-        /* /v2/victims/{id}/tags/{name} */
-
-        this.requestUri([
-            this.ajax.baseUri,
-            this.settings.type.uri,
-            this.rData.id,
-            'tags',
-            tag
-        ].join('/'));
-        this.requestMethod('DELETE');
-            
-        return this.apiRequest('tag');
-    };
-    
     //
     // Retrieve Victim
     //
@@ -3146,104 +2539,10 @@ function Victims(authentication) {
         }
     };
     
-    // Retrieve Associations
-    this.retrieveAssociations = function(association) {
-        /* /v2/victims/{id}/indicators */
-        /* /v2/victims/{id}/indicators/hosts */
-        /* /v2/victims/{id}/groups */
-        /* /v2/victims/{id}/groups/incidents */
-
-        this.normalization(normalize.find(association.type.type));
-        // this.normalization(normalize.find(association.type));
-        this.normalizationType(association.type);
-
-        this.requestUri([
-            this.ajax.baseUri,
-            this.settings.type.uri,
-            this.rData.id,
-            association.type.uri,
-        ].join('/'));
-        if (association.id) {
-            this.requestUri([
-                this.ajax.requestUri,
-                association.id
-            ].join('/'));
-        }
-            
-        return this.apiRequest('associations');
-    };
-    
-    // Retrieve Attributes
-    this.retrieveAttributes = function(attributeId) {
-        /* /v2/victims/{id}/attributes */
-        /* /v2/victims/{id}/attributes/{id} */
-        this.settings.normalizer = normalize.attributes;
-
-        this.requestUri([
-            this.ajax.baseUri,
-            this.settings.type.uri,
-            this.rData.id,
-            'attributes',
-        ].join('/'));
-        if (intCheck('attributeId', attributeId)) {
-            this.requestUri([
-                this.ajax.requestUri,
-                attributeId
-            ].join('/'));
-        }
-
-        return this.apiRequest('attribute');
-    };
-    
-    // Retrieve Tags
-    this.retrieveTags = function() {
-        /* /v2/victims/<ID>/tags */
-        this.settings.normalizer = normalize.tags;
-
-        this.requestUri([
-            this.ajax.baseUri,
-            this.settings.type.uri,
-            this.rData.id,
-            'tags'
-        ].join('/'));
-
-        return this.apiRequest('tags');
-    };
-    
-    // Retrieve Tasks
-    this.retrieveTasks = function() {
-        /* /v2/victims/7/tasks */
-        
-        if (this.rData.id) {
-            this.requestUri([
-                this.ajax.requestUri,
-                this.rData.id,
-                'tasks'
-            ].join('/'));
-            
-            this.requestMethod('GET');
-            return this.apiRequest('tasks');
-        }
-    };
-    
-    // Retrieve Security Labels
-    this.retrieveSecurityLabel = function() {
-        /* /v2/victims/<ID>/securityLabels */
-        this.settings.normalizer = normalize.securityLabels;
-
-        this.requestUri([
-            this.ajax.baseUri,
-            this.settings.type.uri,
-            this.rData.id,
-            'securityLabels'
-        ].join('/'));
-
-        return this.apiRequest('securityLabel');
-    };
-    
     return this;
 }
 Victims.prototype = Object.create(RequestObject.prototype);
+
 
 function SecureProxy(authentication) {
     RequestObject.call(this);
@@ -3508,10 +2807,6 @@ var normalize = {
             }
         }
         return tags;
-    },
-    tasks: function(type, response) {
-        // bcs - Complete this
-        return response;
     },
     victims: function(type, response) {
         // bcs - Complete this
