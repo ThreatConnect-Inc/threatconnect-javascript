@@ -428,10 +428,6 @@ function RequestObject() {
         return this;
     };
     
-    // this.go = function() {
-    //     this.apiRequest({action: 'go'});
-    // };
-    
     this.hasNext = function() {
         if (this.settings.requestCount >= this.response.resultCount) {
             return false;
@@ -513,10 +509,12 @@ function RequestObject() {
             signature = [this.settings.url.pathname + this.settings.url.search, this.ajax.requestMethod, timestamp].join(':'),
             hmacSignature = CryptoJS.HmacSHA256(signature, this.authentication.apiSec),
             authorization = 'TC ' + this.authentication.apiId + ':' + CryptoJS.enc.Base64.stringify(hmacSignature);
+        /*
         console.log('timestamp', timestamp);
         console.log('signature', signature);
         console.log('hmacSignature', hmacSignature);
         console.log('authorization', authorization);
+        */
     
         this.addHeader('Timestamp', timestamp),
         this.addHeader('Authorization', authorization);
@@ -555,7 +553,8 @@ function RequestObject() {
             
         // jQuery ajax does not allow query string paramaters and body to
         // be used at the same time.  The url has to rebuilt manually.
-        // first api call will always be synchronous to get resultCount
+        // first api call should always be synchronous in order to retrieve 
+        // resultCount, which the API only return when resultStart=0.
         
         var requestData;
         if (this.ajax.requestMethod == 'GET') {
@@ -607,7 +606,6 @@ function RequestObject() {
                     // var resultStart = getParameterFromUri('resultStart', this.url),
                     var normalizedData = _this.settings.normalizer(_this.settings.normalizerType, response.data),
                         doneResponse = $.extend({
-                        // doneResponse = extend({
                             data: normalizedData,
                             remaining: remaining,
                             url: this.url
@@ -803,7 +801,6 @@ function Groups(authentication) {
 
     /* GROUP DATA OPTIONAL */
     this.attributes = function(data) {
-        // if (!this.rData.optionalData.attribute) {this.rData.optionalData.attribute = []}
         if (objectCheck('attributes', data) && data.length != 0) {
             this.rData.optionalData.attribute.push(this.rData.optionalData.attribute, data);
         }
@@ -896,7 +893,6 @@ function Groups(authentication) {
             // prepare body
             var specificBody = this.rData.specificData[this.settings.type.dataField];
             this.body($.extend(this.rData.requiredData, $.extend(this.rData.optionalData, specificBody)));
-            // this.body(extend(this.rData.requiredData, extend(this.rData.optionalData, specificBody)));
             this.requestMethod('POST');
 
             this.requestUri([
@@ -1280,11 +1276,7 @@ function Indicators(authentication) {
     };
     
     this.description = function(data) {
-        if (typeof data === 'string') {
-            this.iData.optionalData.description = data;
-        } else {
-            console.error('Description must be a string.', data);
-        }
+        this.iData.optionalData.description = data;
         return this;
     };
     
@@ -1298,10 +1290,10 @@ function Indicators(authentication) {
     /* INDICATOR DATA SPECIFIC */
     
     // file
-    this.description = function(data) {
-        this.iData.specificData.File.description = data;
-        return this;
-    };
+    // this.description = function(data) {
+    //     this.iData.specificData.File.description = data;
+    //     return this;
+    // };
     
     // host
     this.dnsActive = function(data) {
@@ -1339,7 +1331,6 @@ function Indicators(authentication) {
             // prepare body
             var specificBody = this.iData.specificData[this.settings.type.dataField];
             this.body($.extend(this.iData.requiredData, $.extend(this.iData.optionalData, specificBody)));
-            // this.body(extend(this.iData.requiredData, extend(this.iData.optionalData, specificBody)));
             this.requestMethod('POST');
 
             this.requestUri([
@@ -1965,7 +1956,7 @@ function IndicatorsBatch(authentication) {
             this.done = this.callbacks.done;
             this.callbacks.done = undefined;
             
-            /* create job - /v2/batch */ 
+            /* POST (create job) - /v2/batch */ 
             this.apiRequest({action: 'commit'})
                 .done(function(jobResponse) {
                     _this.batchId = jobResponse.data.batchId;
@@ -1974,7 +1965,7 @@ function IndicatorsBatch(authentication) {
                     _this.contentType('application/octet-stream');
                     _this.requestUri(_this.ajax.baseUri + '/batch/' + jobResponse.data.batchId);
                         
-                    /* post data - /v2/batch/{id} */
+                    /* POST (data) - /v2/batch/{id} */
                     _this.apiRequest({action: 'commit'})
                         .done(function(dataResponse) {
                             
@@ -1988,7 +1979,7 @@ function IndicatorsBatch(authentication) {
                                     console.log('status.frequency', _this.status.frequency);
                                     console.log('status.timeout', _this.status.timeout);
                                     
-                                    /* get status - /v2/batch/{id} */
+                                    /* GET (status) - /v2/batch/{id} */
                                     _this.apiRequest({action: 'status'})
                                         .done(function(statusResponse) {
                                                     
@@ -1999,7 +1990,7 @@ function IndicatorsBatch(authentication) {
                                                     _this.requestUri(_this.ajax.baseUri + '/batch/' + jobResponse.data.batchId + '/errors/');
                                                     _this.requestMethod('GET');
                                                                 
-                                                    /* get errors /v2/batch/{id}/errors */
+                                                    /* GET (errors) - /v2/batch/{id}/errors */
                                                     _this.apiRequest({action: 'status'})
                                                         .done(function(errorResponse) {
                                                                     
@@ -2439,8 +2430,8 @@ function SecurityLabels(authentication) {
     // Retrieve Security Labels
     //
     this.retrieve = function(callback) {
-        /* /v2/securityLabel */
-        /* /v2/securityLabel/<Label Name> */
+        /* GET - /v2/securityLabels */
+        /* GET - /v2/securityLabels/{name} */
         if (this.rData.name) {
             this.requestUri(this.ajax.requestUri + '/' + this.rData.name);
         }
@@ -2454,7 +2445,7 @@ function SecurityLabels(authentication) {
     };
     
     this.retrieveTasks = function() {
-        /* /v2/securityLabel/<Label Name>/tasks */
+        /* GET - /v2/securityLabels/{name}/tasks */
         if (this.rData.name) {
             this.requestUri([
                 this.ajax.requestUri,
@@ -2474,7 +2465,6 @@ SecurityLabels.prototype = Object.create(RequestObject.prototype);
 /* bcs */
 function Tasks(authentication) {
     RequestObject.call(this);
-    /* /v2/attributes */
 
     this.authentication = authentication;
     this.ajax.requestUri = this.ajax.baseUri + '/tasks',
@@ -2483,50 +2473,126 @@ function Tasks(authentication) {
     this.settings.type = TYPE.TASK,
     this.rData = {
         id: undefined,
+        optionalData: {},
+        requiredData: {}
     };
     
-    /* OPTIONAL */
+    /* SETTINGS API */
     this.id = function(data) {
         this.rData.id = data;
         return this;
     };
-    /*
-    {
-        "name": "Task 001",
-        "escalatee": [{
-            "userName": "bsummers"
-        }],
-        "assignee": [{
-            "userName": "bcsummers@gmail.com"
-        }]
-    }
     
-In Progress
-Completed
-Waiting on Someone
-Deferred
+    /* TASK COMMIT REQUIRED */
+    this.name = function(data) {
+        this.rData.requiredData.name = data;
+        return this;
+    };
+    
+    /* TASK COMMIT OPTIONAL */
+    this.assignee = function(data) {
+        if (objectCheck('assignee', data) && data.length != 0) {
+            this.rData.optionalData.assignee = data;
+        }
+        return this;
+    };
+    
+    // this.description = function(data) {
+    //     this.rData.optionalData.description = data;
+    //     return this;
+    // };
+    
+    this.dueDate = function(data) {
+        // 2016-03-16T21:25:15Z
+        this.rData.optionalData.dueDate = data;
+        return this;
+    };
+    
+    this.escalatee = function(data) {
+        if (objectCheck('escalatee', data) && data.length != 0) {
+            this.rData.optionalData.escalatee = data;
+        }
+        return this;
+    };
+    
+    this.escalated = function(data) {
+        if (boolCheck('escalated', data)) {
+            this.rData.optionalData.escalated = data;
+        }
+        return this;
+    };
+    
+    this.escalationDate = function(data) {
+        // 2016-03-16T21:25:15Z
+        this.rData.optionalData.escalationDate = data;
+        return this;
+    };
+    
+    this.reminded = function(data) {
+        if (boolCheck('reminded', data)) {
+            this.rData.optionalData.reminded = data;
+        }
+        return this;
+    };
+    
+    this.reminderDate = function(data) {
+        // 2016-03-16T21:25:15Z
+        this.rData.optionalData.reminderDate = data;
+        return this;
+    };
+    
+    this.overdue = function(data) {
+        if (boolCheck('overdue', data)) {
+            this.rData.optionalData.overdue = data;
+        }
+        return this;
+    };
+    
+    this.status = function(data) {
+        if (valueCheck('status', data, ['In Progress', 'Complete', 'Waiting on Someone', 'Deferred'])) {
+            this.rData.optionalData.status = data;
+        }
+        return this;
+    };
+    
+    // Commit
+    this.commit = function(callback) {
+        /* /v2/tasks */
+        var _this = this;
 
-{
-    "name": "Task 002",
-    "escalated": true,
-    "status": "In Progress",
-    "reminded": true,
-    "overdue": false,
-    "dueDate": "2016-03-19T22:19:45Z",
-    "reminderDate": "2016-04-11T22:19:45Z",
-    "escalationDate": "2016-05-11T22:19:45Z",
-    "escalatee": [{
-        "userName": "bsummers"
-    }],
-    "assignee": [{
-        "userName": "bcsummers@gmail.com"
-    }]
-}
-*/
+        // validate required fields
+        if (this.rData.requiredData.name) {
+
+            // prepare body
+            this.body($.extend(this.rData.requiredData, this.rData.optionalData));
+            this.requestMethod('POST');
+
+            this.requestUri([
+                this.ajax.baseUri,
+                this.settings.type.uri,
+                this.rData.id
+            ].join('/'));
+
+            if (this.rData.id) {
+                this.requestMethod('PUT');
+            }
+            
+            this.apiRequest({action: 'commit'})
+                .done(function(response) {
+                    _this.rData.id = response.data[_this.settings.type.dataField].id;
+                    if (callback) callback();
+                });
+            
+        } else {
+            var errorMessage = 'Commit Failure: task name is required.';
+            console.error(errorMessage);
+            this.callbacks.error({error: errorMessage});
+        } 
+    };
     
     // Commit Assignees
     this.commitAssignees = function(assignees) {
-        /* /v2/tasks/<ID>/assignees/<userName> */
+        /* POST - /v2/tasks/{id}/assignees/{name} */
         this.normalization(normalize.default);
 
         this.requestUri([
@@ -2543,8 +2609,8 @@ Deferred
     
     // Commit Associations
     this.commitAssociation = function(association) {
-        /* /v2/tasks/<ID>/groups/<group type>/<group id> */
-        /* /v2/tasks/<ID>/indicators/<indicator type>/<indicator value> */
+        /* POST - /v2/tasks/{id}/groups/{type}/{id} */
+        /* POST - /v2/tasks/{id}/indicators/{type}/{indicator} */
         this.normalization(normalize.find(association.type.type));
 
         this.requestUri([
@@ -2561,7 +2627,7 @@ Deferred
     
     // Commit Attributes
     this.commitAttribute = function(attribute) {
-        /* /v2/tasks/<ID>/attributes */
+        /* POST - /v2/tasks/{id}/attributes */
         this.normalization(normalize.attributes);
 
         this.requestUri([
@@ -2581,7 +2647,7 @@ Deferred
     
     // Commit Escalatees
     this.commitEscalatees = function(escalatees) {
-        /* /v2/tasks/<ID>/escalatees/<userName> */
+        /* POST - /v2/tasks/{id}/escalatees/{name} */
         this.normalization(normalize.default);
 
         this.requestUri([
@@ -2598,7 +2664,7 @@ Deferred
     
     // Commit Security Label
     this.commitSecurityLabel = function(label) {
-        /* /v2/tasks/<ID>/securityLabel/<label> */
+        /* POST - /v2/tasks/{id}/securityLabel/{name} */
         this.normalization(normalize.securityLabels);
 
         this.requestUri([
@@ -2615,7 +2681,7 @@ Deferred
     
     // Commit Tag
     this.commitTag = function(tag) {
-        /* /v2/tasks/<ID>/tags/<tag> */
+        /* POST - /v2/tasks/{id}/tags/{name} */
         this.normalization(normalize.tags);
 
         this.requestUri([
@@ -2632,11 +2698,10 @@ Deferred
     
     // Delete
     this.delete = function() {
-        /* /v2/tasks/<ID> */
+        /* DELETE - /v2/tasks/{id} */
         
         this.requestUri([
             this.ajax.requestUri,
-            this.settings.type.uri,
             this.rData.id
         ].join('/'));
 
@@ -2645,30 +2710,29 @@ Deferred
     };
     
     // Delete Assignees
-    this.deleteAssignees = function(assignees) {
-        /* /v2/tasks/<ID>/assignees/<userName> */
+    this.deleteAssignees = function(assignee) {
+        /* DELETE - /v2/tasks/{id}/assignees/{name} */
         this.normalization(normalize.default);
 
         this.requestUri([
-            this.ajax.baseUri,
-            this.settings.type.uri,
+            this.ajax.requestUri,
             this.rData.id,
             'assignees',
-            assignees
+            assignee
+            // encodeURIComponent(assignee)
         ].join('/'));
         this.requestMethod('DELETE');
             
-        return this.apiRequest('assignees');
+        return this.apiRequest('assignee');
     };
  
     // Delete Associations
     this.deleteAssociation = function(association) {
-        /* /v2/tasks/<ID>/groups/<group type>/<group id> */
-        /* /v2/tasks/<ID>/indicators/<indicator type>/<indicator> */
+        /* DELETE - /v2/tasks/{id}/groups/{type}/{id} */
+        /* DELETE - /v2/tasks/{id}/indicators/{type}/{indicator} */
 
         this.requestUri([
-            this.ajax.baseUri,
-            this.settings.type.uri,
+            this.ajax.requestUri,
             this.rData.id,
             association.type.uri,
             association.id,
@@ -2680,11 +2744,10 @@ Deferred
     
     // Delete Attributes
     this.deleteAttribute = function(attributeId) {
-        /* /v2/tasks/<ID>/attributes/9 */
+        /* DELETE - /v2/tasks/{id}/attributes/{id} */
 
         this.requestUri([
-            this.ajax.baseUri,
-            this.settings.type.uri,
+            this.ajax.requestUri,
             this.rData.id,
             'attributes',
             attributeId
@@ -2696,12 +2759,11 @@ Deferred
     
     // Delete Escalatees
     this.deleteEscalatees = function(escalatees) {
-        /* /v2/tasks/<ID>/escalatees/<userName> */
+        /* DELETE - /v2/tasks/{id}/escalatees/{name} */
         this.normalization(normalize.default);
 
         this.requestUri([
-            this.ajax.baseUri,
-            this.settings.type.uri,
+            this.ajax.requestUri,
             this.rData.id,
             'escalatees',
             escalatees
@@ -2713,11 +2775,10 @@ Deferred
     
     // Delete Security Label
     this.deleteSecurityLabel = function(label) {
-        /* /v2/tasks/<ID>/securityLabel/<label> */
+        /* DELETE - /v2/tasks/{id}/securityLabel/{name} */
 
         this.requestUri([
-            this.ajax.baseUri,
-            this.settings.type.uri,
+            this.ajax.requestUri,
             this.rData.id,
             'securityLabels',
             label
@@ -2729,11 +2790,10 @@ Deferred
     
     // Delete Tag
     this.deleteTag = function(tag) {
-        /* /v2/groups/<group type>/<ID>/tags/<tag> */
+        /* DELETE - /v2/tasks/{id}/tags/{name} */
 
         this.requestUri([
-            this.ajax.baseUri,
-            this.settings.type.uri,
+            this.ajax.requestUri,
             this.rData.id,
             'tags',
             tag
@@ -2747,8 +2807,8 @@ Deferred
     // Retrieve Security Labels
     //
     this.retrieve = function(callback) {
-        /* /v2/tasks/ */
-        /* /v2/tasks/<ID>/attributes */
+        /* GET - /v2/tasks/ */
+        /* GET - /v2/tasks/{id}/attributes */
         if (this.rData.id) {
             this.requestUri([
                 this.ajax.requestUri,
@@ -2766,7 +2826,7 @@ Deferred
     
     // Retrieve Assignees
     this.retrieveAssignees = function() {
-        /* /v2/tasks/<ID>/assignees */
+        /* GET - /v2/tasks/{id}/assignees */
         this.settings.normalizer = normalize.default;
         if (this.rData.id) {
             this.requestUri([
@@ -2782,10 +2842,10 @@ Deferred
     
     // Retrieve Associations
     this.retrieveAssociations = function(association) {
-        /* /v2/task/<ID>/indicators */
-        /* /v2/task/<ID>/indicators/hosts */
-        /* /v2/task/<ID>/groups */
-        /* /v2/task/<ID>/groups/incidents */
+        /* GET - /v2/task/{id}/indicators */
+        /* GET - /v2/task/{id}/indicators/{type} */
+        /* GET - /v2/task/{id}/groups */
+        /* GET - /v2/task/{id}/groups/{type} */
 
         this.normalization(normalize.find(association.type.type));
         // this.normalization(normalize.find(association.type));
@@ -2811,8 +2871,8 @@ Deferred
     
     // Retrieve Attributes
     this.retrieveAttributes = function(attributeId) {
-        /* /v2/tasks/<ID>/attributes */
-        /* /v2/tasks/<ID>/attributes/<Attribute ID> */
+        /* GET - /v2/tasks/{id}/attributes */
+        /* GET - /v2/tasks/{id}/attributes/{id} */
         this.settings.normalizer = normalize.attributes;
         if (this.rData.id) {
             this.requestUri([
@@ -2835,7 +2895,7 @@ Deferred
     
     // Retrieve Escalatees
     this.retrieveEscalatees = function() {
-        /* /v2/tasks/<ID>/escalatees */
+        /* GET - /v2/tasks/{id}/escalatees */
         this.settings.normalizer = normalize.default;
         if (this.rData.id) {
             this.requestUri([
@@ -2851,7 +2911,7 @@ Deferred
     
     // Retrieve Tags
     this.retrieveTags = function() {
-        /* /v2/tasks/<ID>/tags */
+        /* GET - /v2/tasks/{id}/tags */
         this.settings.normalizer = normalize.tags;
         if (this.rData.id) {
             this.requestUri([
@@ -2867,7 +2927,7 @@ Deferred
     
     // Retrieve Security Labels
     this.retrieveSecurityLabel = function() {
-        /* /v2/tasks/<ID>/securityLabel */
+        /* GET - /v2/tasks/{id}/securityLabel */
         this.settings.normalizer = normalize.securityLabels;
         if (this.rData.id) {
 
@@ -2889,7 +2949,6 @@ Tasks.prototype = Object.create(RequestObject.prototype);
 
 function Victims(authentication) {
     RequestObject.call(this);
-    /* /v2/victims */
 
     this.authentication = authentication;
     this.ajax.requestUri = this.ajax.baseUri + '/victims',
@@ -2991,6 +3050,7 @@ function Victims(authentication) {
     // Commit Victim
     //
     this.commit = function(callback) {
+        /* POST - /v2/victims */
         var _this = this;
         
         this.requestMethod('POST');
@@ -3010,7 +3070,7 @@ function Victims(authentication) {
     
     // commit victim asset
     this.commitAsset = function(assetType) {
-        /* /v2/victims/7/victimAssets/webSites */
+        /* POST - /v2/victims/{id}/victimAssets/{type} */
         
         if (this.rData.id && assetType) {
             this.body(this.rData.specificData[assetType.dataField]);
@@ -3029,7 +3089,7 @@ function Victims(authentication) {
     
     // Delete
     this.delete = function() {
-        /* /v2/victims/<ID> */
+        /* DELETE - /v2/victims/{id} */
         
         this.requestUri([
             this.ajax.requestUri,
@@ -3043,8 +3103,8 @@ function Victims(authentication) {
  
     // Delete Associations
     this.deleteAssociation = function(association) {
-        /* /v2/victims/{id}/groups/{type}/{id} */
-        /* /v2/victims/{id}/indicators/{type}/{indicator} */
+        /* DELETE - /v2/victims/{id}/groups/{type}/{id} */
+        /* DELETE - /v2/victims/{id}/indicators/{type}/{indicator} */
 
         this.requestUri([
             this.ajax.baseUri,
@@ -3060,7 +3120,7 @@ function Victims(authentication) {
     
     // Delete Attributes
     this.deleteAttribute = function(attributeId) {
-        /* /v2/victims/{id}/attributes/9 */
+        /* DELETE - /v2/victims/{id}/attributes/{id} */
 
         this.requestUri([
             this.ajax.baseUri,
@@ -3076,7 +3136,7 @@ function Victims(authentication) {
     
     // Delete Security Label
     this.deleteSecurityLabel = function(label) {
-        /* /v2/victims/{id}/securityLabel/{label} */
+        /* DELETE - /v2/victims/{id}/securityLabel/{name} */
 
         this.requestUri([
             this.ajax.baseUri,
@@ -3092,7 +3152,7 @@ function Victims(authentication) {
     
     // Delete Tag
     this.deleteTag = function(tag) {
-        /* /v2/victims/{id}/tags/{name} */
+        /* DELETE - /v2/victims/{id}/tags/{name} */
 
         this.requestUri([
             this.ajax.baseUri,
@@ -3110,6 +3170,8 @@ function Victims(authentication) {
     // Retrieve Victim
     //
     this.retrieve = function(callback) {
+        /* GET - /v2/victims */
+        /* GET - /v2/victims/{id} */
         if (this.rData.id) {
             this.requestUri(this.ajax.requestUri + '/' + this.rData.id);
         }
@@ -3126,8 +3188,8 @@ function Victims(authentication) {
     // Retrieve Victim Assets
     //
     this.retrieveAssets = function(assetType) {
-        /* /v2/victims/7/victimAssets */
-        /* /v2/victims/7/victimAssets/webSites */
+        /* GET - /v2/victims/{id}/victimAssets */
+        /* GET - /v2/victims/{id}/victimAssets/{type} */
         
         if (!assetType) {
             assetType = TYPE.VICTIM_ASSET;
@@ -3148,10 +3210,10 @@ function Victims(authentication) {
     
     // Retrieve Associations
     this.retrieveAssociations = function(association) {
-        /* /v2/victims/{id}/indicators */
-        /* /v2/victims/{id}/indicators/hosts */
-        /* /v2/victims/{id}/groups */
-        /* /v2/victims/{id}/groups/incidents */
+        /* GET - /v2/victims/{id}/groups */
+        /* GET - /v2/victims/{id}/groups/{type} */
+        /* GET - /v2/victims/{id}/indicators */
+        /* GET - /v2/victims/{id}/indicators/{type} */
 
         this.normalization(normalize.find(association.type.type));
         // this.normalization(normalize.find(association.type));
@@ -3175,8 +3237,8 @@ function Victims(authentication) {
     
     // Retrieve Attributes
     this.retrieveAttributes = function(attributeId) {
-        /* /v2/victims/{id}/attributes */
-        /* /v2/victims/{id}/attributes/{id} */
+        /* GET - /v2/victims/{id}/attributes */
+        /* GET - /v2/victims/{id}/attributes/{id} */
         this.settings.normalizer = normalize.attributes;
 
         this.requestUri([
@@ -3197,7 +3259,7 @@ function Victims(authentication) {
     
     // Retrieve Tags
     this.retrieveTags = function() {
-        /* /v2/victims/<ID>/tags */
+        /* GET - /v2/victims/{id}/tags */
         this.settings.normalizer = normalize.tags;
 
         this.requestUri([
@@ -3212,7 +3274,7 @@ function Victims(authentication) {
     
     // Retrieve Tasks
     this.retrieveTasks = function() {
-        /* /v2/victims/7/tasks */
+        /* GET - /v2/victims/{id}/tasks */
         
         if (this.rData.id) {
             this.requestUri([
@@ -3228,7 +3290,7 @@ function Victims(authentication) {
     
     // Retrieve Security Labels
     this.retrieveSecurityLabel = function() {
-        /* /v2/victims/<ID>/securityLabels */
+        /* GET - /v2/victims/{id}/securityLabels */
         this.settings.normalizer = normalize.securityLabels;
 
         this.requestUri([
@@ -3297,7 +3359,7 @@ function SecureProxy(authentication) {
     
     this.request = function() {
         var _this = this;
-        console.log('this.defaults', this.defaults);
+        // console.log('this.defaults', this.defaults);
         
         $.ajax(this.defaults)
             .done(function (response, textStatus, request) {
@@ -3490,10 +3552,6 @@ var normalize = {
 
         if (response) {
             securityLabel = response.securityLabel;
-                
-            // if (Object.prototype.toString.call( tags ) != '[object Array]') {
-            //     tags = [tags];
-            // }
         }
         return securityLabel;
     },
@@ -3531,7 +3589,6 @@ var normalize = {
             case TYPE.SIGNATURE.type:
             case TYPE.THREAT.type:
                 return this.groups;
-                break;
             case TYPE.INDICATOR.type:
             case TYPE.ADDRESS.type:
             case TYPE.EMAIL_ADDRESS.type:
@@ -3539,7 +3596,6 @@ var normalize = {
             case TYPE.HOST.type:
             case TYPE.URL.type:
                 return this.indicators;
-                break;
             default:
                 console.warn('Invalid type provided.');
         }
@@ -3557,18 +3613,12 @@ var boolCheck = function(name, value) {
 };
 
 var functionCheck = function(name, value) {
+    /* validate user input is a function */
+    
     if (typeof value == 'function') {
         return true;
     }
     console.error(name + ' must be of type function.');
-    return false;
-};
-
-var objectCheck = function(name, value) {
-    if (typeof value == 'object') {
-        return true;
-    }
-    console.error(name + ' must be of type object.');
     return false;
 };
 
@@ -3582,8 +3632,19 @@ var intCheck = function(name, value) {
     return false;
 };
 
+var objectCheck = function(name, value) {
+    /* validate user input is an object */
+    
+    if (typeof value == 'object') {
+        return true;
+    }
+    console.error(name + ' must be of type object.');
+    return false;
+};
+
 var rangeCheck = function(name, value, low, high) {
-    /* validate user input has appropriate values */
+    /* validate user input is in appropriate range */
+    
     if (!isNaN(value) && !isNaN(low) && !isNaN(high)) {
         if (low >= value <= high) {
             return true;
@@ -3593,15 +3654,9 @@ var rangeCheck = function(name, value, low, high) {
     return false;
 };
 
-var valueCheck = function(name, value, array) {
-    if ($.inArray(value, array) != -1) {
-        return true;
-    }
-    console.warn(name + ' must be of value (.' + array.join(',') + ').');
-    return false;
-};
-
 var requiredCheck = function(name, data) {
+    /* validate user input a valid values */
+    
     if (data[name]) {
         return true;
     }
@@ -3609,38 +3664,12 @@ var requiredCheck = function(name, data) {
     return false;
 };
 
-var extend = function() {
-    // Variables
-    var extended = {};
-    var deep = false;
-    var i = 0;
-    var length = arguments.length;
-
-    // Check if a deep merge
-    if (Object.prototype.toString.call(arguments[0]) === '[object Boolean]') {
-        deep = arguments[0];
-        i++;
+var valueCheck = function(name, value, array) {
+    /* validate user input matches predefined values */
+    
+    if ($.inArray(value, array) != -1) {
+        return true;
     }
-
-    // Merge the object into the extended object
-    var merge = function(obj) {
-        for (var prop in obj) {
-            if (Object.prototype.hasOwnProperty.call(obj, prop)) {
-                // If deep merge and property is an object, merge properties
-                if (deep && Object.prototype.toString.call(obj[prop]) === '[object Object]') {
-                    extended[prop] = extend(true, extended[prop], obj[prop]);
-                }
-                else {
-                    extended[prop] = obj[prop];
-                }
-            }
-        }
-    };
-
-    // Loop through each object and conduct a merge
-    for (; i < length; i++) {
-        var obj = arguments[i];
-        merge(obj);
-    }
-    return extended;
+    console.warn(name + ' must be of value (.' + array.join(',') + ').');
+    return false;
 };

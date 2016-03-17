@@ -1,7 +1,7 @@
 <html>
 
 <head>
-    <title>ThreatConnect Javascript SDK - Indicator Commit All Example</title>
+    <title>ThreatConnect Javascript SDK - Tasks Delete Security Label</title>
 
     <!-- JQuery -->
     <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
@@ -31,13 +31,10 @@
         }
 
         var tc = new ThreatConnect(apiSettings);
-        var indicators = tc.indicators();
 
-        indicators.owner('Example Community')
-            .indicator('11.21.31.41')
-            .type(TYPE.ADDRESS)
-            .description('Example Description #1')
-            .rating(5.0)
+        tc.tasks()
+            .owner('SumX')
+            .id(572)
             .done(function(response) {
                 console.log('response', response);
                 $('#response-content').append(JSON.stringify(response, null, 4));
@@ -46,18 +43,7 @@
                 console.log('error response', response);
                 $('#response-content').append(JSON.stringify(response, null, 4));
             })
-            .commit(function() {
-                indicators.commitAssociation({
-                    type: TYPE.INCIDENT,
-                    id: 544
-                });
-                indicators.commitAttribute({
-                    type: 'Description',
-                    value: 'Example Description #2.'
-                });
-                indicators.commitTag('Example');
-                indicators.commitSecurityLabel('TLP Red');
-            });
+            .deleteSecurityLabel('TLP Red');
     </script>
 </head>
 
