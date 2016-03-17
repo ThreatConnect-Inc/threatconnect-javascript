@@ -883,6 +883,7 @@ function Groups(authentication) {
     // Commit
     this.commit = function(callback) {
         /* POST - /v2/groups/{type} */
+        /* PUT - /v2/groups/{type}/{id} */
         var _this = this;
 
         // validate required fields
@@ -895,11 +896,14 @@ function Groups(authentication) {
 
             this.requestUri([
                 this.ajax.baseUri,
-                this.settings.type.uri,
-                this.rData.id
+                this.settings.type.uri
             ].join('/'));
 
             if (this.rData.id) {
+                this.requestUri([
+                    this.ajax.baseUri,
+                    this.rData.id
+                ].join('/'));
                 this.requestMethod('PUT');
             }
             
@@ -937,7 +941,7 @@ function Groups(authentication) {
     // Commit Attributes
     this.commitAttribute = function(attribute) {
         /* POST - /v2/groups/{type}/{id}/attributes */
-        /* POST - /v2/groups/{type}/{id}/attributes/{id} */
+        /* PUT - /v2/groups/{type}/{id}/attributes/{id} */
         
         if (attribute) {
             this.normalization(normalize.attributes);
@@ -1102,10 +1106,14 @@ function Groups(authentication) {
     
     // Retrieve Associations
     this.retrieveAssociations = function(association) {
-        /* GET - /v2/groups/{type}/{id}/indicators */
-        /* GET - /v2/groups/{type}/{id}/indicators/{type} */
         /* GET - /v2/groups/{type}/{id}/groups */
         /* GET - /v2/groups/{type}/{id}/groups/{type} */
+        /* GET - /v2/groups/{type}/{id}/indicators */
+        /* GET - /v2/groups/{type}/{id}/indicators/{type} */
+        /* GET - /v2/groups/{type}/{id}/victims */
+        /* GET - /v2/groups/{type}/{id}/victims/{id} */
+        /* GET - /v2/groups/{type}/{id}/victimAssets */
+        /* GET - /v2/groups/{type}/{id}/victimAssets/{type} */
 
         this.normalization(normalize.find(association.type.type));
         this.normalizationType(association.type);
@@ -1344,7 +1352,8 @@ function Indicators(authentication) {
     
     // Commit
     this.commit = function(callback) {
-        /* POST - /v2/indicators/{type}/{indicator} */
+        /* POST - /v2/indicators/{type} */
+        /* PUT - /v2/indicators/{type}/{indicator} */
         
         // validate required fields
         if (this.iData.indicator) {
@@ -1354,17 +1363,21 @@ function Indicators(authentication) {
             // prepare body
             var specificBody = this.iData.specificData[this.settings.type.dataField];
             this.body($.extend(this.iData.requiredData, $.extend(this.iData.optionalData, specificBody)));
-            this.requestMethod('POST');
 
             this.requestUri([
                 this.ajax.baseUri,
                 this.settings.type.uri,
-                // this.iData.requiredData.summary
             ].join('/'));
+            this.requestMethod('POST');
 
-            // if (this.rData.id) {
-            //     this.requestMethod('PUT');
-            // }
+            // update indicator
+            if (this.iData.indicator) {
+                this.requestUri([
+                    this.ajax.baseUri,
+                    this.iData.indicator
+                ].join('/'));
+                this.requestMethod('PUT');
+            }
             
             this.apiRequest({action: 'commit'})
                 .done(function(response) {
@@ -1398,7 +1411,7 @@ function Indicators(authentication) {
     // Commit Attributes
     this.commitAttribute = function(attribute) {
         /* POST - /v2/indicators/{type}/{indicator}/attributes */
-        /* POST - /v2/indicators/{type}/{indicator}/attributes/{id} */
+        /* PUT - /v2/indicators/{type}/{indicator}/attributes/{id} */
         
         if (attribute) {
             this.normalization(normalize.attributes);
@@ -1605,6 +1618,10 @@ function Indicators(authentication) {
         /* GET - /v2/indicators/{type}/{indicator}/groups */
         /* GET - /v2/indicators/{type}/{indicator}/groups/{type} */
         /* GET - /v2/indicators/{type}/{indicator}/groups/{type}/{id} */
+        /* GET - /v2/indicators/{type}/{indicator}/victims */
+        /* GET - /v2/indicators/{type}/{indicator}/victims/{id} */
+        /* GET - /v2/indicators/{type}/{indicator}/victimAssets */
+        /* GET - /v2/indicators/{type}/{indicator}/victimAssets/{type} */
         
         this.normalization(normalize.find(association.type.type));
         this.normalizationType(association.type);
@@ -2368,6 +2385,7 @@ function Tasks(authentication) {
     // Commit
     this.commit = function(callback) {
         /* POST - /v2/tasks */
+        /* PUT - /v2/tasks/{id} */
         var _this = this;
 
         // validate required fields
@@ -2438,7 +2456,7 @@ function Tasks(authentication) {
     // Commit Attributes
     this.commitAttribute = function(attribute) {
         /* POST - /v2/tasks/{id}/attributes */
-        /* POST - /v2/tasks/{id}/attributes/{id} */
+        /* PUT - /v2/tasks/{id}/attributes/{id} */
         
         if (attribute) {
             this.normalization(normalize.attributes);
@@ -2664,10 +2682,14 @@ function Tasks(authentication) {
     
     // Retrieve Associations
     this.retrieveAssociations = function(association) {
-        /* GET - /v2/task/{id}/indicators */
-        /* GET - /v2/task/{id}/indicators/{type} */
-        /* GET - /v2/task/{id}/groups */
-        /* GET - /v2/task/{id}/groups/{type} */
+        /* GET - /v2/tasks/{id}/indicators */
+        /* GET - /v2/tasks/{id}/indicators/{type} */
+        /* GET - /v2/tasks/{id}/groups */
+        /* GET - /v2/tasks/{id}/groups/{type} */
+        /* GET - /v2/tasks/{id}/victims */
+        /* GET - /v2/tasks/{id}/victims/{id} */
+        /* GET - /v2/tasks/{id}/victimAssets */
+        /* GET - /v2/tasks/{id}/victimAssets/{type} */
 
         this.normalization(normalize.find(association.type.type));
         // this.normalization(normalize.find(association.type));
@@ -3026,12 +3048,18 @@ function Victims(authentication) {
     //
     this.commit = function(callback) {
         /* POST - /v2/victims */
+        /* PUT - /v2/victims/{id} */
         var _this = this;
         
         this.requestMethod('POST');
         this.body($.extend(this.rData.requiredData, this.rData.optionalData));
         
+        // update victim
         if (this.rData.id) {
+            this.requestUri([
+                this.ajax.requestUri,
+                this.rData.id
+            ].join('/'));
             this.requestMethod('PUT');
         }
      
@@ -3081,7 +3109,7 @@ function Victims(authentication) {
     // Commit Attributes
     this.commitAttribute = function(attribute) {
         /* POST - /v2/victims/{id}/attributes */
-        /* POST - /v2/victims/{id}/attributes/{id} */
+        /* PUT - /v2/victims/{id}/attributes/{id} */
         if (attribute) {
             this.normalization(normalize.attributes);
     
