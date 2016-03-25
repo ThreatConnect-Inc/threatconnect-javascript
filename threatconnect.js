@@ -2826,7 +2826,6 @@ var normalize = {
             case TYPE.SIGNATURE.type:
             case TYPE.THREAT.type:
                 return this.groups;
-                break;
             case TYPE.INDICATOR.type:
             case TYPE.ADDRESS.type:
             case TYPE.EMAIL_ADDRESS.type:
@@ -2834,7 +2833,8 @@ var normalize = {
             case TYPE.HOST.type:
             case TYPE.URL.type:
                 return this.indicators;
-                break;
+            case TYPE.VICTIM.type:
+                return this.victims;
             default:
                 console.warn('Invalid type provided.');
         }
