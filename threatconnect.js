@@ -972,7 +972,7 @@ function Groups(authentication) {
     
     // Commit Security Label
     this.commitSecurityLabel = function(label) {
-        /* POST - /v2/groups/{type}/{id}/securityLabel/<name> */
+        /* POST - /v2/groups/{type}/{id}/securityLabel/{name} */
         this.normalization(normalize.securityLabels);
 
         this.requestUri([
@@ -989,7 +989,7 @@ function Groups(authentication) {
     
     // Commit Tag
     this.commitTag = function(tag) {
-        /* POST - /v2/groups/{type}/{id}/tags/<name> */
+        /* POST - /v2/groups/{type}/{id}/tags/{name} */
         this.normalization(normalize.tags);
 
         this.requestUri([
@@ -1459,7 +1459,6 @@ function Indicators(authentication) {
     // Commit Occurrence
     this.commitObservation = function(params) {
         /* POST - /v2/indicators/{type}/{indicator}/observation */
-        // this.normalization(normalize.observation);
 
         this.requestUri([
             this.ajax.baseUri,
@@ -3138,7 +3137,7 @@ function Victims(authentication) {
     
     // Commit Security Label
     this.commitSecurityLabel = function(label) {
-        /* POST - /v2/victims/{id}/securityLabel/<name> */
+        /* POST - /v2/victims/{id}/securityLabel/{name} */
         this.normalization(normalize.securityLabels);
 
         this.requestUri([
@@ -3154,7 +3153,7 @@ function Victims(authentication) {
 
     // Commit Tag
     this.commitTag = function(tag) {
-        /* POST - /v2/victims/{id}/tags/<name> */
+        /* POST - /v2/victims/{id}/tags/{name} */
         this.normalization(normalize.tags);
 
         this.requestUri([
@@ -3862,6 +3861,8 @@ var normalize = {
             case TYPE.HOST.type:
             case TYPE.URL.type:
                 return this.indicators;
+            case TYPE.VICTIM.type:
+                return this.victims;
             default:
                 console.warn('Invalid type provided.');
         }
