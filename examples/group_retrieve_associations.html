@@ -35,7 +35,7 @@
         tc.groups()
             .owner('Example Community')
             .type(TYPE.INCIDENT)
-            .id(256)
+            .id(544)
             .done(function(response) {
                 console.log('response', response);
                 $('#response-content').append(JSON.stringify(response, null, 4));
@@ -53,7 +53,7 @@
         tc.groups()
             .owner('Example Community')
             .type(TYPE.INCIDENT)
-            .id(256)
+            .id(544)
             .filter(filter)
             .done(function(response) {
                 console.log('response', response);
@@ -65,6 +65,23 @@
             .retrieveAssociations({
                 type: TYPE.INDICATOR
             });
+            
+        tc.groups()
+            .owner('Example Community')
+            .type(TYPE.INCIDENT)
+            .id(544)
+            .filter(filter)
+            .done(function(response) {
+                console.log('response', response);
+                $('#response-content').append(JSON.stringify(response, null, 4));
+            })
+            .error(function(response) {
+                console.log('error response', response);
+            })
+            .retrieveAssociations({
+                type: TYPE.VICTIM
+            });
+
     </script>
 </head>
 
