@@ -1,7 +1,7 @@
 <html>
 
 <head>
-    <title>ThreatConnect Javascript SDK - Group Retrieve Associations Example</title>
+    <title>ThreatConnect Javascript SDK - Indicator Retrieve Tasks Example</title>
 
     <!-- JQuery -->
     <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
@@ -31,11 +31,12 @@
         }
 
         var tc = new ThreatConnect(apiSettings);
+        var indicators = tc.indicators();
 
-        tc.groups()
-            .owner('Example Community')
-            .type(TYPE.INCIDENT)
-            .id(544)
+        indicators.owner('Example Community')
+            .indicator('74.121.142.111')
+            .type(TYPE.ADDRESS)
+            .resultLimit(5)
             .done(function(response) {
                 console.log('response', response);
                 $('#response-content').append(JSON.stringify(response, null, 4));
@@ -43,45 +44,7 @@
             .error(function(response) {
                 console.log('error response', response);
             })
-            .retrieveAssociations({
-                type: TYPE.GROUP,
-            });
-
-        var filter = new Filter(FILTER.AND);
-        filter.on('confidence', FILTER.GT, 50);
-
-        tc.groups()
-            .owner('Example Community')
-            .type(TYPE.INCIDENT)
-            .id(544)
-            .filter(filter)
-            .done(function(response) {
-                console.log('response', response);
-                $('#response-content').append(JSON.stringify(response, null, 4));
-            })
-            .error(function(response) {
-                console.log('error response', response);
-            })
-            .retrieveAssociations({
-                type: TYPE.INDICATOR
-            });
-            
-        tc.groups()
-            .owner('Example Community')
-            .type(TYPE.INCIDENT)
-            .id(544)
-            .filter(filter)
-            .done(function(response) {
-                console.log('response', response);
-                $('#response-content').append(JSON.stringify(response, null, 4));
-            })
-            .error(function(response) {
-                console.log('error response', response);
-            })
-            .retrieveAssociations({
-                type: TYPE.VICTIM
-            });
-
+            .retrieveTasks();
     </script>
 </head>
 

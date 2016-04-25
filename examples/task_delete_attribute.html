@@ -1,7 +1,7 @@
 <html>
 
 <head>
-    <title>ThreatConnect Javascript SDK - Group Retrieve Associations Example</title>
+    <title>ThreatConnect Javascript SDK - Tasks Delete Attribute</title>
 
     <!-- JQuery -->
     <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
@@ -32,56 +32,18 @@
 
         var tc = new ThreatConnect(apiSettings);
 
-        tc.groups()
-            .owner('Example Community')
-            .type(TYPE.INCIDENT)
-            .id(544)
+        tc.tasks()
+            .owner('SumX')
+            .id(572)
             .done(function(response) {
                 console.log('response', response);
                 $('#response-content').append(JSON.stringify(response, null, 4));
             })
             .error(function(response) {
                 console.log('error response', response);
-            })
-            .retrieveAssociations({
-                type: TYPE.GROUP,
-            });
-
-        var filter = new Filter(FILTER.AND);
-        filter.on('confidence', FILTER.GT, 50);
-
-        tc.groups()
-            .owner('Example Community')
-            .type(TYPE.INCIDENT)
-            .id(544)
-            .filter(filter)
-            .done(function(response) {
-                console.log('response', response);
                 $('#response-content').append(JSON.stringify(response, null, 4));
             })
-            .error(function(response) {
-                console.log('error response', response);
-            })
-            .retrieveAssociations({
-                type: TYPE.INDICATOR
-            });
-            
-        tc.groups()
-            .owner('Example Community')
-            .type(TYPE.INCIDENT)
-            .id(544)
-            .filter(filter)
-            .done(function(response) {
-                console.log('response', response);
-                $('#response-content').append(JSON.stringify(response, null, 4));
-            })
-            .error(function(response) {
-                console.log('error response', response);
-            })
-            .retrieveAssociations({
-                type: TYPE.VICTIM
-            });
-
+            .deleteAttribute(2918);
     </script>
 </head>
 

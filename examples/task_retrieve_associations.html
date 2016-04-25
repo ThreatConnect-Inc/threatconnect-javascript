@@ -1,7 +1,7 @@
 <html>
 
 <head>
-    <title>ThreatConnect Javascript SDK - Group Retrieve Associations Example</title>
+    <title>ThreatConnect Javascript SDK - Task Retrieve Associations Example</title>
 
     <!-- JQuery -->
     <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
@@ -32,10 +32,9 @@
 
         var tc = new ThreatConnect(apiSettings);
 
-        tc.groups()
+        tc.tasks()
             .owner('Example Community')
-            .type(TYPE.INCIDENT)
-            .id(544)
+            .id(571)
             .done(function(response) {
                 console.log('response', response);
                 $('#response-content').append(JSON.stringify(response, null, 4));
@@ -47,14 +46,9 @@
                 type: TYPE.GROUP,
             });
 
-        var filter = new Filter(FILTER.AND);
-        filter.on('confidence', FILTER.GT, 50);
-
-        tc.groups()
+        tc.tasks()
             .owner('Example Community')
-            .type(TYPE.INCIDENT)
-            .id(544)
-            .filter(filter)
+            .id(571)
             .done(function(response) {
                 console.log('response', response);
                 $('#response-content').append(JSON.stringify(response, null, 4));
@@ -63,25 +57,8 @@
                 console.log('error response', response);
             })
             .retrieveAssociations({
-                type: TYPE.INDICATOR
+                type: TYPE.ADDRESS
             });
-            
-        tc.groups()
-            .owner('Example Community')
-            .type(TYPE.INCIDENT)
-            .id(544)
-            .filter(filter)
-            .done(function(response) {
-                console.log('response', response);
-                $('#response-content').append(JSON.stringify(response, null, 4));
-            })
-            .error(function(response) {
-                console.log('error response', response);
-            })
-            .retrieveAssociations({
-                type: TYPE.VICTIM
-            });
-
     </script>
 </head>
 
