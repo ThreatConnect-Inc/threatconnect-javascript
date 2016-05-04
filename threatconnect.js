@@ -293,7 +293,9 @@ function RequestObject() {
     
     /* secureProxy */
     this.secureProxy = function(url) {
-        var secureProxyUrl = this.authentication.apiUrl.replace(/api$/, 'secureProxy?_targetUrl=');
+        // var secureProxyUrl = this.authentication.apiUrl.replace(/api$/, 'secureProxy?_targetUrl=');
+        var server = window.location.protocol + "//" + window.location.host,
+            secureProxyUrl = server + "/secureProxy?_targetUrl=";
         return secureProxyUrl + encodeURIComponent(url);
     };
     
@@ -1621,6 +1623,9 @@ function Indicators(authentication) {
         /* GET - /v2/indicators/{type}/{indicator}/victims/{id} */
         /* GET - /v2/indicators/{type}/{indicator}/victimAssets */
         /* GET - /v2/indicators/{type}/{indicator}/victimAssets/{type} */
+        /* GET - /v2/indicators/{type}/{indicator}/indicators */
+        /* GET - /v2/indicators/{type}/{indicator}/indicators/{type} */
+        /* GET - /v2/indicators/{type}/{indicator}/indicators/{type}/{indicator} */
         
         this.normalization(normalize.find(association.type.type));
         this.normalizationType(association.type);
@@ -1694,6 +1699,28 @@ function Indicators(authentication) {
         ].join('/'));
 
         return this.apiRequest('observationCount');
+    };
+    
+    // Retrieve Owners
+    this.retrieveOwners = function(label) {
+        /* GET - /v2/indicators/{type}/{indicator}/owners */
+        
+        this.settings.normalizer = normalize.owners;
+
+        this.requestUri([
+            this.ajax.baseUri,
+            this.settings.type.uri,
+            this.settings.type.type == 'URL' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
+            'owners'
+        ].join('/'));
+        if (label) {
+            this.requestUri([
+                this.ajax.requestUri,
+                label
+            ].join('/'));
+        }
+
+        return this.apiRequest('owners');
     };
     
     // Retrieve Security Labels
