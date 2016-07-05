@@ -532,7 +532,48 @@ function RequestObject() {
             this.settings.url.href = this.settings.url.href + '?' + $.param(this.payload);
         }
     };
-    
+
+    this.tokenRetryURL = function(expiredToken) {
+        //  create a link in the DOM and set its href
+        var link = document.createElement('a');
+        link.setAttribute('href', window.location.href);
+        return link.protocol+'//'+link.hostname+':'+link.port+'/appAuth/appAuth/?expiredToken='+expiredToken;
+    };
+
+    this.getNewToken = function(){
+        //need to have this query be syncro as to move forward, we need the new token this call gives us
+        var retryDefaults = {
+            async:false,
+            url: _this.tokenRetryURL(_this.authentication.apiToken),
+            method: 'GET',
+            success: function (data, status) {
+                if (status === 'success'){
+                    //our call to the servlet worked but we need to see what our servlet result was.
+                    //the data object is a json object that the servlet returns
+                    if (data.apiToken.status === 'Failure'){
+                        //translate servlet result in the one required by calling method
+                        _this.response.error = "{\"status\":\"Failure\",\"message\":\""+ data.errorMsg+ "\"}";
+                    } else {
+                            //save the new token to the auth object
+                            _this.authentication.apiToken = data.newToken;
+                            _this.authentication.apiTokenExpires = data.newTokenExpires;
+                    }
+                } else {
+                    //call to the servlet failed, just log the response. The API call will fail
+                    //now with a token error.
+                    console.error(data);
+                }
+            },
+            error: function (data) {
+                //call to the servlet failed, just log the response. The API call will fail now with a token error.
+                console.error(data);
+            },
+        };
+
+        //get our new token
+        $.ajax(retryDefaults);
+    };
+
     this.apiRequest = function(params) {
         if (params.action == 'previous') {
             this.resultStart(this.payload.resultStart - (this.payload.resultLimit * 2));
@@ -542,6 +583,20 @@ function RequestObject() {
         this.apiRequestUrl();
             
         if (this.authentication.apiToken) {
+            var tokenExpiredSeconds = this.authentication.apiTokenExpires;
+
+            // check to see if this request token is expired including a 15 second buffer
+            // Note: the time in the token is using System.currentTimeMillis()
+            //        and since we are using getTime() here, we are comparing apples to apples.
+            var currentSeconds = new Date().getTime() / 1000;
+            if (tokenExpiredSeconds < currentSeconds+15){
+		//token is/about to expire.  Need to get a new one
+                //console.log("Token expired");
+
+                //get a new token
+                this.getNewToken();
+            }
+
             this.apiTokenRequestHeader();
         } else {
             this.apiHmacRequestHeader();
@@ -592,6 +647,10 @@ function RequestObject() {
                 
                 _this.response.apiCalls++;
                 _this.response.status = response.status;
+
+                //add in the token to the response for use by the calling app as it might of changed
+                _this.response.apiToken = _this.authentication.apiToken;
+                _this.response.apiTokenExpires = _this.authentication.apiTokenExpires;
                 
                 if (response.status == 'Success' && response.data) {
                     if (response.data.resultCount) {
@@ -656,6 +715,10 @@ function RequestObject() {
                 }
             })
             .fail(function (response, textStatus, request) {
+                //add in the token to the response for use by the calling app as it might of changed
+                _this.response.apiToken = _this.authentication.apiToken;
+                _this.response.apiTokenExpires = _this.authentication.apiTokenExpires;
+                
                 _this.response.error = response.responseText;
                 console.warn(response.responseText);
                 
@@ -680,11 +743,19 @@ function ThreatConnect(params) {
             'apiUrl': params.apiUrl,
             // 'proxyServer': undefined
         };
-    } else if (params.apiToken && params.apiUrl) {
+    } else if (params.apiToken && params.apiUrl && params.apiTokenExpires) {
         this.authentication = {
             'apiToken': params.apiToken,
             'apiUrl': params.apiUrl,
+            'apiTokenExpires': params.apiTokenExpires,
             // 'proxyServer': params.proxyServer
+        };
+    } else if (params.apiUrl) {
+        //get the token/expire for security
+        this.authentication = {
+            'apiUrl': params.apiUrl,
+            'apiToken': getParameterByName('tcToken'),
+            'apiTokenExpires': getParameterByName('tcTokenExpires'),
         };
     } else {
         console.error('Required authentication parameters were not provided.');
@@ -1373,13 +1444,16 @@ function Indicators(authentication) {
             this.requestMethod('POST');
 
             // update indicator
-            if (this.iData.indicator) {
-                this.requestUri([
-                    this.ajax.baseUri,
-                    this.iData.indicator
-                ].join('/'));
-                this.requestMethod('PUT');
-            }
+            // commented out per discussion with Bracey.
+            // This code will always get run if you look above as this.iData.indicator is checked
+            // and it was breaking the save action of the CreateEncriched app. 
+//            if (this.iData.indicator) {
+//                this.requestUri([
+//                    this.ajax.baseUri,
+//                    this.iData.indicator
+//                ].join('/'));
+//                this.requestMethod('PUT');
+//            }
             
             this.apiRequest({action: 'commit'})
                 .done(function(response) {
