@@ -12,7 +12,7 @@
  =============================================================================
 */
 
-/* global CryptoJS, TYPE */
+/* global $, CryptoJS, TYPE */
 
 // const TYPE = {  // ECMASCRIPT6 support only
 var TYPE = {
@@ -714,7 +714,8 @@ function ThreatConnect(params) {
     };
     
     this.secureProxy = function() {
-        return new SecureProxy(this.authentication);
+        // return new SecureProxy(this.authentication);
+        return new SecureProxy();
     };
     
     this.securityLabel = function() {
@@ -737,6 +738,69 @@ function ThreatConnect(params) {
         return new Victims(this.authentication);
     };
 }
+
+function Db(authentication) {
+    RequestObject.call(this);
+    
+    this.authentication = authentication;
+    this.addHeader('DB-Method', 'GET');
+    this.ajax.requestUri = this.ajax.baseUri + '/exchange/db',
+    this.settings.helper = true,
+    this.settings.normalizer = normalize.owners,
+    this.settings.type = TYPE.OWNER,
+    this.command = undefined;
+    this.domain = undefined;
+    this.typeName = undefined;
+    this.dbData = {
+    };
+    
+    /* REQUIRED */
+    
+    this.command = function(data) {
+        this.command = data;
+        return this;
+    };
+    
+    this.domain = function(data) {
+        if (valueCheck('domain', data, ['local', 'organization', 'system'])) {
+            this.domain = data;
+        }
+        return this;
+    };
+    
+    this.typeName = function(data) {
+        this.typeName = data;
+        return this;
+    };
+
+    /* OPTIONAL */
+    
+    this.dbMethod = function(data) {
+        if (valueCheck('dbMethod', data, ['GET'])) {
+            this.addHeader('DB-Method', data);
+        }
+        return this;
+    };
+    
+    // retrieve state
+    this.request = function() {
+        /* GET - /v2/exchange/db/{domain}/{typeName}/{command} */
+        
+        this.requestUri([
+            this.ajax.requestUri,
+            this.domain,
+            this.typeName,
+            this.command
+        ].join('/'));
+        this.requestMethod('GET');
+
+        return this.apiRequest('db');
+    };
+    
+    return this;
+}
+Db.prototype = Object.create(RequestObject.prototype);
+
 
 function Groups(authentication) {
     RequestObject.call(this);
@@ -3429,18 +3493,12 @@ function Victims(authentication) {
 }
 Victims.prototype = Object.create(RequestObject.prototype);
 
-function SecureProxy(authentication) {
-    RequestObject.call(this);
-    
-    this.authentication = authentication;
+function SecureProxy() {
     this.defaults = {
         aysnc: true,
         contentType: undefined,
         data: undefined,
         headers: {},
-        // headers: {
-        //     'authorization': 'TC-Token ' + this.authentication.apiToken
-        // },
         method: 'GET',
         url: undefined
     };
@@ -3467,6 +3525,21 @@ function SecureProxy(authentication) {
         return this;
     };
     
+    /* functions */
+    this.done = function(data) {
+        if (data) {
+            if (functionCheck('done', data)) { this.done = data; }
+        }
+        return this;
+    };
+    
+    this.error = function(data) {
+        if (data) {
+            if (functionCheck('error', data)) { this.error = data; }
+        }
+        return this;
+    };
+    
     this.method = function(data) {
         if (valueCheck('method', data, ['DELETE', 'GET', 'POST', 'PUT'])) {
             this.defaults.method = data;
@@ -3475,7 +3548,10 @@ function SecureProxy(authentication) {
     };
     
     this.url = function(data) {
-        this.defaults.url = this.secureProxy(data);
+        var server = window.location.protocol + "//" + window.location.host,
+            secureProxyUrl = server + "/secureProxy?_targetUrl=";
+        
+        this.defaults.url = secureProxyUrl + encodeURIComponent(data);
         return this;
     };
     
@@ -3485,11 +3561,11 @@ function SecureProxy(authentication) {
         
         $.ajax(this.defaults)
             .done(function (response, textStatus, request) {
-                _this.callbacks.done(response);
+                _this.done(response);
              })
             .fail(function() {
                 var message = {error: 'Request Failed.'};
-                _this.callbacks.error(message);
+                _this.error(message);
             });
     };
     
@@ -3513,7 +3589,6 @@ function SecureProxy(authentication) {
         this.request();
     };
 }
-SecureProxy.prototype = Object.create(RequestObject.prototype);
 
 function Spaces(authentication) {
     RequestObject.call(this);
