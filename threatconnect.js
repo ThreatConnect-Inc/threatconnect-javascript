@@ -537,7 +537,7 @@ function RequestObject() {
         //  create a link in the DOM and set its href
         var link = document.createElement('a');
         link.setAttribute('href', window.location.href);
-        return link.protocol+'//'+link.hostname+':'+link.port+'/appAuth/appAuth/?expiredToken='+expiredToken;
+        return link.protocol+'//'+link.hostname+':'+link.port+'/appAuth/appAuth/?expiredToken='+encodeURIComponent(expiredToken);
     };
 
     this.getNewToken = function(){
@@ -550,13 +550,13 @@ function RequestObject() {
                 if (status === 'success'){
                     //our call to the servlet worked but we need to see what our servlet result was.
                     //the data object is a json object that the servlet returns
-                    if (data.apiToken.status === 'Failure'){
+                    if (data.success === 'false'){
                         //translate servlet result in the one required by calling method
-                        _this.response.error = "{\"status\":\"Failure\",\"message\":\""+ data.errorMsg+ "\"}";
+                        _this.response.error = "{\"status\":\"Failure\",\"message\":\""+ data.message+ "\"}";
                     } else {
                             //save the new token to the auth object
-                            _this.authentication.apiToken = data.newToken;
-                            _this.authentication.apiTokenExpires = data.newTokenExpires;
+                            _this.authentication.apiToken = data.apiToken;
+                            _this.authentication.apiTokenExpires = data.apiTokenExpires;
                     }
                 } else {
                     //call to the servlet failed, just log the response. The API call will fail
