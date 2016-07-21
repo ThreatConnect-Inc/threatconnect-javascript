@@ -1950,6 +1950,19 @@ function IndicatorsBatch(authentication) {
         return this;
     };
     
+    this.associatedGroup = function(data) {
+        var associatedGroup;
+        if (Object.prototype.toString.call( data ) === '[object Array]' && data.length != 0) {
+            if (!this.iData.optionalData.associatedGroup) {this.iData.optionalData.associatedGroup = []}
+            for (associatedGroup in data) {
+                this.iData.optionalData.associatedGroup.push(data[associatedGroup]);
+            }
+        } else {
+            console.error('associatedGroup must be an array.');
+        }
+        return this;
+    };
+    
     /* INDICATOR DATA SPECIFIC */
     
     // file
