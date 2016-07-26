@@ -909,7 +909,7 @@ function Groups(authentication) {
                 this.requestMethod('PUT');
             }
             
-            this.apiRequest({action: 'commit'})
+            return this.apiRequest({action: 'commit'})
                 .done(function(response) {
                     _this.rData.id = response.data[_this.settings.type.dataField].id;
                     if (callback) callback();
