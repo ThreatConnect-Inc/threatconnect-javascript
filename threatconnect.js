@@ -170,15 +170,15 @@ var FILTER = {
     SW: '^'       /* %5E */
 };
 
-var indicatorHelper = function(prefix) {
+var indicatorHelper = function(type) {
     var iTypes = {
-        'a': TYPE.ADDRESS,
-        'e': TYPE.EMAIL_ADDRESS,
-        'f': TYPE.FILE,
-        'h': TYPE.HOST,
-        'u': TYPE.URL
+        'address': TYPE.ADDRESS,
+        'emailaddress': TYPE.EMAIL_ADDRESS,
+        'file': TYPE.FILE,
+        'host': TYPE.HOST,
+        'url': TYPE.URL
     };
-    return iTypes[prefix];
+    return iTypes[type];
 };
     
 function getParameterByName(name) {
@@ -3723,6 +3723,7 @@ var normalize = {
     indicators: function(type, response) { 
         var indicators,
             indicatorsData,
+            indicatorTypeData,
             indicatorType = type.type;
 
 
@@ -3746,37 +3747,40 @@ var normalize = {
             }
 
             if ('type' in rvalue) {
-                indicatorType = indicatorHelper(rvalue.type.charAt(0).toLowerCase()).type;
+                indicatorTypeData = indicatorHelper(rvalue.type.toLowerCase());
             }
 
-            indicatorsData = [];
-            // $.each(type.indicatorFields, function(ikey, ivalue) {
-            Array.prototype.forEach.call(type.indicatorFields, function(ivalue, index, array){
-                if ('summary' in rvalue) {
-                    indicatorsData.push(rvalue['summary']);
-                    return false;
-                } else {
-                    if (rvalue[ivalue]) {
-                        indicatorsData.push(rvalue[ivalue]);
+            if (typeof indicatorTypeData != 'undefined'){
+                indicatorType = indicatorTypeData.type;                
+                indicatorsData = [];
+                // $.each(type.indicatorFields, function(ikey, ivalue) {
+                Array.prototype.forEach.call(type.indicatorFields, function(ivalue, index, array){
+                    if ('summary' in rvalue) {
+                        indicatorsData.push(rvalue['summary']);
+                        return false;
+                    } else {
+                        if (rvalue[ivalue]) {
+                            indicatorsData.push(rvalue[ivalue]);
+                        }
                     }
-                }
-            });
+                });
 
-            indicators.push({
-                id: rvalue.id,
-                indicators: indicatorsData.join(' : '),
-                dateAdded: rvalue.dateAdded,
-                lastModified: rvalue.lastModified,
-                ownerName: rvalue.ownerName || rvalue.owner.name,
-                rating: rvalue.rating,
-                confidence: rvalue.confidence,
-                observationCount: rvalue.observationCount,
-                falsePositiveCount: rvalue.falsePositiveCount,
-                type: indicatorType,
-                threatAssessRating: rvalue.threatAssessRating,
-                threatAssessConfidence: rvalue.threatAssessConfidence,
-                webLink: rvalue.webLink,
-            });
+                indicators.push({
+                    id: rvalue.id,
+                    indicators: indicatorsData.join(' : '),
+                    dateAdded: rvalue.dateAdded,
+                    lastModified: rvalue.lastModified,
+                    ownerName: rvalue.ownerName || rvalue.owner.name,
+                    rating: rvalue.rating,
+                    confidence: rvalue.confidence,
+                    observationCount: rvalue.observationCount,
+                    falsePositiveCount: rvalue.falsePositiveCount,
+                    type: indicatorType,
+                    threatAssessRating: rvalue.threatAssessRating,
+                    threatAssessConfidence: rvalue.threatAssessConfidence,
+                    webLink: rvalue.webLink,
+                });
+            }
         });
         
         return indicators;
