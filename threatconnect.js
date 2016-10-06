@@ -180,40 +180,40 @@ var indicatorHelper = function(prefix) {
     };
     return iTypes[prefix];
 };
-    
+
 function getParameterByName(name) {
     name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-    
+
     var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
         results = regex.exec(location.search);
-        
+
     return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
 }
 
 function getParameterArrayByName(name) {
 	name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-    
+
 	var results = {};
     var regex = new RegExp("[\\?&]" + name + "=([^&#]*)");
     var result;
     var i = 0;
-    
+
     var qs = location.search;
-    
+
     while(result = regex.exec(qs)) {
     	results[i++] = (result === null ? "" : decodeURIComponent(result[1].replace(/\+/g, " ")));
     	qs = qs.substring(result.index + result[0].length);
     }
-        
+
     return results;
 }
-    
+
 function getParameterFromUri(name, uri) {
     name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-    
+
     var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
         results = regex.exec(uri);
-        
+
     return results === null ? undefined : decodeURIComponent(results[1].replace(/\+/g, " "));
 }
 
@@ -290,7 +290,7 @@ function RequestObject() {
         type: undefined,
         url: undefined,
     };
-    
+
     /* secureProxy */
     this.secureProxy = function(url) {
         // var secureProxyUrl = this.authentication.apiUrl.replace(/api$/, 'secureProxy?_targetUrl=');
@@ -298,7 +298,7 @@ function RequestObject() {
             secureProxyUrl = server + "/secureProxy?_targetUrl=";
         return secureProxyUrl + encodeURIComponent(url);
     };
-    
+
     /* authentication */
     this.setAuthentication = function(data) {
         this.authentication = data;
@@ -311,14 +311,14 @@ function RequestObject() {
         this.payload[key] = val;
         return this;
     };
-    
+
     this.removePayload = function(key) {
         if (key in this.payload) {
             delete this.payload[key];
-        } 
+        }
         return this;
     };
-    
+
     this.createActivityLog = function(data) {
         if (boolCheck('createActivityLog', data)) {
             this.addPayload('createActivityLog', data.toString());
@@ -338,12 +338,12 @@ function RequestObject() {
         this.addPayload('modifiedSince', data);
         return this;
     };
-    
+
     this.owner = function(data) {
         this.addPayload('owner', data);
         return this;
     };
-    
+
     this.resultLimit = function(data) {
         if (rangeCheck('resultLimit', data, 1, 500)) {
             this.addPayload('resultLimit', data);
@@ -351,18 +351,18 @@ function RequestObject() {
         }
         return this;
     };
-    
+
     this.resultStart = function(data) {
         this.addPayload('resultStart', data);
         return this;
     };
-    
+
     /* headers */
     this.addHeader = function(key, val) {
         this.headers[key] = val;
         return this;
     };
-    
+
     /* ajax settings */
     this.async = function(data) {
         if (boolCheck('async', data)) {
@@ -370,7 +370,7 @@ function RequestObject() {
         }
         return this;
     };
-    
+
     this.body = function(data) {
         this.ajax.body = JSON.stringify(data);
         this.response.body = JSON.stringify(data);
@@ -379,18 +379,18 @@ function RequestObject() {
         }
         return this;
     };
-    
+
     this.contentType = function(data) {
         // TODO: validate content type
         this.ajax.contentType = data;
         return this;
     };
-    
+
     this.formData = function(data) {
         this.ajax.formData = data;
         return this;
     };
-    
+
     this.requestMethod = function(method) {
         this.ajax.requestMethod = method;
         if (method == 'DELETE') {
@@ -398,12 +398,12 @@ function RequestObject() {
         }
         return this;
     };
-    
+
     this.requestUri = function(uri) {
         this.ajax.requestUri = uri;
         return this;
     };
-    
+
     /* functions */
     this.done = function(data) {
         if (data) {
@@ -411,31 +411,31 @@ function RequestObject() {
         }
         return this;
     };
-    
+
     this.error = function(data) {
         if (data) {
             if (functionCheck('error', data)) { this.callbacks.error = data; }
         }
         return this;
     };
-    
+
     this.normalization = function(method) {
         this.settings.normalizer = method;
         return this;
     };
-    
+
     this.normalizationType = function(data) {
         this.settings.normalizerType = data;
         return this;
     };
-    
+
     this.hasNext = function() {
         if (this.settings.requestCount >= this.response.resultCount) {
             return false;
         }
         return true;
     };
-    
+
     this.next = function() {
         this.settings.requestCount += this.payload.resultLimit;
         if (this.settings.pagination) {
@@ -454,14 +454,14 @@ function RequestObject() {
         }
         return this;
     };
-    
+
     this.hasPrevious = function() {
         if (this.settings.requestCount == 0) {
             return false;
         }
         return true;
     };
-    
+
     this.previous = function() {
         this.settings.requestCount += this.payload.resultLimit;
         if (this.settings.pagination) {
@@ -480,23 +480,23 @@ function RequestObject() {
         }
         return this;
     };
-    
+
     /* response */
     this.data = function(data) {
         this.response.data = data;
         return this;
     };
-    
+
     this.resultCount = function(data) {
         this.response.resultCount = data;
         return this;
     };
-    
+
     this.remaining = function(data) {
         this.settings.remaining = data;
         return this;
     };
-    
+
     //
     // api
     //
@@ -505,7 +505,7 @@ function RequestObject() {
             var date = new Date().getTime();
             return Math.floor(date / 1000);
         };
-        
+
         var timestamp = this._getTimestamp(),
             signature = [this.settings.url.pathname + this.settings.url.search, this.ajax.requestMethod, timestamp].join(':'),
             hmacSignature = CryptoJS.HmacSHA256(signature, this.authentication.apiSec),
@@ -516,15 +516,15 @@ function RequestObject() {
         console.log('hmacSignature', hmacSignature);
         console.log('authorization', authorization);
         */
-    
+
         this.addHeader('Timestamp', timestamp),
         this.addHeader('Authorization', authorization);
     };
-    
+
     this.apiTokenRequestHeader = function () {
         this.addHeader('authorization', "TC-Token " + this.authentication.apiToken);
     };
-    
+
     this.apiRequestUrl = function(host, pathname, search) {
         this.settings.url = document.createElement('a');
         this.settings.url.href =  this.authentication.apiUrl + '/' + this.ajax.requestUri;
@@ -532,31 +532,31 @@ function RequestObject() {
             this.settings.url.href = this.settings.url.href + '?' + $.param(this.payload);
         }
     };
-    
+
     this.apiRequest = function(params) {
         if (params.action == 'previous') {
             this.resultStart(this.payload.resultStart - (this.payload.resultLimit * 2));
             this.remaining(this.settings.remaining + (this.payload.resultLimit * 2));
         }
-        
+
         this.apiRequestUrl();
-            
+
         if (this.authentication.apiToken) {
             this.apiTokenRequestHeader();
         } else {
             this.apiHmacRequestHeader();
         }
-        
+
         // if (this.payload.resultStart > this.response.resultCount) {
         //     console.warn('ResultStart cannot be greater than resultCount.');
         //     return;
         // }
-            
+
         // jQuery ajax does not allow query string paramaters and body to
         // be used at the same time.  The url has to rebuilt manually.
-        // first api call should always be synchronous in order to retrieve 
+        // first api call should always be synchronous in order to retrieve
         // resultCount, which the API only return when resultStart=0.
-        
+
         var requestData;
         if (this.ajax.requestMethod == 'GET') {
             requestData = this.payload;
@@ -567,7 +567,7 @@ function RequestObject() {
                 requestData = this.ajax.body;
             }
         }
-        
+
         // var apiUrl = this.ajax.requestMethod === 'GET' ? [this.authentication.apiUrl, this.ajax.requestUri].join('/') : this.settings.url.href;
         var defaults = {
             aysnc: false,
@@ -581,7 +581,7 @@ function RequestObject() {
             contentType: this.ajax.formData ? false : this.ajax.contentType,
             processData: this.ajax.formData ? false: true,
         };
-        
+
         var apiPromise = $.ajax(defaults)
             .done(function (response, textStatus, request) {
                 // console.log('request.getAllResponseHeaders()', request.getAllResponseHeaders());
@@ -589,10 +589,10 @@ function RequestObject() {
                     // upload_pattern = /upload/,
                     remaining = undefined,
                     responseContentType = request.getResponseHeader('Content-Type');
-                
+
                 _this.response.apiCalls++;
                 _this.response.status = response.status;
-                
+
                 if (response.status == 'Success' && response.data) {
                     if (response.data.resultCount) {
                         currentCount = response.data.resultCount;
@@ -612,7 +612,7 @@ function RequestObject() {
                             url: this.url
                         }, _this.response);
                     console.info('doneResponse', doneResponse);
-                        
+
                     if (_this.callbacks.done) {
                         if (_this.settings.helper) {
                             _this.callbacks.done(doneResponse);
@@ -620,13 +620,13 @@ function RequestObject() {
                             _this.callbacks.done(response);
                         }
                     }
-                    
+
                 } else if (responseContentType == 'application/octet-stream') {
                     // download
                     _this.response.data = response;
                     if (_this.callbacks.done) { _this.callbacks.done(_this.response); }
                 // } else if (upload_pattern.test(_this._requestUri)) {
-                //     // upload helper 
+                //     // upload helper
                 //     if (_this.callbacks.done) { _this.callbacks.done(_this.response); }
                 } else if (_this.response.requestMethod === 'DELETE') {
                     // delete
@@ -638,7 +638,7 @@ function RequestObject() {
                 } else if (responseContentType == 'application/json') {
                     // bulk download
                     _this.response.data = response;
-                    
+
                     if (_this.callbacks.done) {
                         if (_this.settings.helper) {
                             _this.response.data = _this.settings.normalizer(_this.settings.normalizerType, response);
@@ -658,17 +658,17 @@ function RequestObject() {
             .fail(function (response, textStatus, request) {
                 _this.response.error = response.responseText;
                 console.warn(response.responseText);
-                
+
                 if (_this.callbacks.error) {
                     _this.callbacks.error(_this.response);
                 }
             });
-            
+
         if (! this.payload.resultStart) this.resultStart(0);
         this.resultStart(this.payload.resultStart + this.payload.resultLimit);
         return apiPromise;
     };
-    
+
     return this;
 }
 
@@ -690,37 +690,37 @@ function ThreatConnect(params) {
         console.error('Required authentication parameters were not provided.');
         return false;
     }
-    
+
     this.groups = function() {
         return new Groups(this.authentication);
     };
-    
+
     this.indicators = function() {
         return new Indicators(this.authentication);
     };
-    
+
     this.indicatorsBatch = function() {
         return new IndicatorsBatch(this.authentication);
     };
-    
+
     this.owners = function() {
         return new Owners(this.authentication);
     };
-    
+
     this.requestObject = function() {
         var ro = new RequestObject();
         ro.setAuthentication(this.authentication);
         return ro;
     };
-    
+
     this.secureProxy = function() {
         return new SecureProxy(this.authentication);
     };
-    
+
     this.securityLabel = function() {
         return new SecurityLabels(this.authentication);
     };
-    
+
     this.spaces = function() {
         return new Spaces(this.authentication);
     };
@@ -728,11 +728,11 @@ function ThreatConnect(params) {
     this.tags = function() {
         return new Tags(this.authentication);
     };
-    
+
     this.tasks = function() {
         return new Tasks(this.authentication);
     };
-    
+
     this.victims = function() {
         return new Victims(this.authentication);
     };
@@ -740,7 +740,7 @@ function ThreatConnect(params) {
 
 function Groups(authentication) {
     RequestObject.call(this);
-    
+
     this.authentication = authentication;
     this.ajax.requestUri = 'v2',
     this.resultLimit(500);
@@ -763,14 +763,14 @@ function Groups(authentication) {
             threat: {}
         },
     };
- 
+
     /* SETTINGS API */
     this.id = function(data) {
         this.rData.id = data;
         this.response.id = data;
         return this;
     };
-    
+
     this.type = function(data) {
         if (data.type && data.uri) {
             this.settings.type = data;
@@ -778,7 +778,7 @@ function Groups(authentication) {
         }
         return this;
     };
-    
+
     this.associationId = function(data) {
         if (intCheck('associationId', data)) {
             this.rData.associationId = data;
@@ -806,7 +806,7 @@ function Groups(authentication) {
         }
         return this;
     };
-    
+
     this.tags = function(data) {
         if (this.rData.optionalData.tag) {this.rData.optionalData.tag = []}
         var tag;
@@ -817,71 +817,71 @@ function Groups(authentication) {
         }
         return this;
     };
-    
+
     /* TYPE SPECIFIC PARAMETERS */
-    
+
     // document / signature
     this.fileName = function(data) {
         this.rData.specificData.document.fileName = data;
         this.rData.specificData.signature.fileName = data;
         return this;
     };
- 
+
     this.fileSize = function(data) {
         this.rData.specificData.document.fileSize = data;
         return this;
     };
-    
+
     // email
     this.emailBody = function(data) {
         this.rData.specificData.email.body = data;
         return this;
     };
- 
+
     this.emailFrom = function(data) {
         this.rData.specificData.email.from = data;
         return this;
     };
- 
+
     this.emailHeader = function(data) {
         this.rData.specificData.email.header = data;
         return this;
     };
- 
+
     this.emailScore = function(data) {
         this.rData.specificData.email.score = data;
         return this;
     };
- 
+
     this.emailSubject = function(data) {
         this.rData.specificData.email.subject = data;
         return this;
     };
- 
+
     this.emailTo = function(data) {
         this.rData.specificData.email.to = data;
         return this;
     };
-    
+
     // incident
     this.eventDate = function(data) {
         this.rData.specificData.incident.eventDate = data;
         return this;
     };
-    
+
     // signature
     this.fileType = function(data) {
         this.rData.specificData.signature.fileType = data;
         return this;
     };
-    
+
     this.fileText = function(data) {
         this.rData.specificData.signature.fileText = data;
         return this;
     };
-    
+
     /* API ACTIONS */
-    
+
     // Commit
     this.commit = function(callback) {
         /* POST - /v2/groups/{type} */
@@ -908,20 +908,20 @@ function Groups(authentication) {
                 ].join('/'));
                 this.requestMethod('PUT');
             }
-            
-            this.apiRequest({action: 'commit'})
+
+            return this.apiRequest({action: 'commit'})
                 .done(function(response) {
                     _this.rData.id = response.data[_this.settings.type.dataField].id;
                     if (callback) callback();
                 });
-            
+
         } else {
             var errorMessage = 'Commit Failure: group name is required.';
             console.error(errorMessage);
             this.callbacks.error({error: errorMessage});
-        } 
+        }
     };
-    
+
     // Commit Associations
     this.commitAssociation = function(association) {
         /* POST - /v2/groups/{type}/{id}/groups/{type}/{id} */
@@ -936,18 +936,18 @@ function Groups(authentication) {
             association.id,
         ].join('/'));
         this.requestMethod('POST');
-            
+
         return this.apiRequest('associations');
     };
-    
+
     // Commit Attributes
     this.commitAttribute = function(attribute) {
         /* POST - /v2/groups/{type}/{id}/attributes */
         /* PUT - /v2/groups/{type}/{id}/attributes/{id} */
-        
+
         if (attribute) {
             this.normalization(normalize.attributes);
-    
+
             this.requestUri([
                 this.ajax.baseUri,
                 this.settings.type.uri,
@@ -963,7 +963,7 @@ function Groups(authentication) {
                 _body['displayed'] = attribute.displayed;
             }
             this.body(_body);
-            
+
             // attribute update
             if (attribute.id) {
                 this.requestUri([
@@ -975,7 +975,7 @@ function Groups(authentication) {
             return this.apiRequest('attribute');
         }
     };
-    
+
     // Commit Security Label
     this.commitSecurityLabel = function(label) {
         /* POST - /v2/groups/{type}/{id}/securityLabel/{name} */
@@ -989,10 +989,10 @@ function Groups(authentication) {
             label
         ].join('/'));
         this.requestMethod('POST');
-            
+
         return this.apiRequest('securityLabel');
     };
-    
+
     // Commit Tag
     this.commitTag = function(tag) {
         /* POST - /v2/groups/{type}/{id}/tags/{name} */
@@ -1006,14 +1006,14 @@ function Groups(authentication) {
             tag
         ].join('/'));
         this.requestMethod('POST');
-            
+
         return this.apiRequest('tag');
     };
-    
+
     // Delete
     this.delete = function() {
         /* DELETE - /v2/groups/{type}/{id} */
-        
+
         this.requestUri([
             this.ajax.requestUri,
             this.settings.type.uri,
@@ -1023,7 +1023,7 @@ function Groups(authentication) {
         this.requestMethod('DELETE');
         return this.apiRequest({action: 'delete'});
     };
- 
+
     // Delete Associations
     this.deleteAssociation = function(association) {
         /* DELETE - /v2/groups/{type}/{id}/groups/{type}/{id} */
@@ -1037,10 +1037,10 @@ function Groups(authentication) {
             association.id,
         ].join('/'));
         this.requestMethod('DELETE');
-            
+
         return this.apiRequest('associations');
     };
-    
+
     // Delete Attributes
     this.deleteAttribute = function(attributeId) {
         /* DELETE - /v2/groups/{type}/{id}/attributes/{id} */
@@ -1053,10 +1053,10 @@ function Groups(authentication) {
             attributeId
         ].join('/'));
         this.requestMethod('DELETE');
-            
+
         return this.apiRequest('attribute');
     };
-    
+
     // Delete Security Label
     this.deleteSecurityLabel = function(label) {
         /* DELETE - /v2/groups/{type}/{id}/securityLabels/{name} */
@@ -1069,10 +1069,10 @@ function Groups(authentication) {
             label
         ].join('/'));
         this.requestMethod('DELETE');
-            
+
         return this.apiRequest('securityLabel');
     };
-    
+
     // Delete Tag
     this.deleteTag = function(tag) {
         /* DELETE - /v2/groups/{type}/{id}/tags/{name} */
@@ -1085,15 +1085,15 @@ function Groups(authentication) {
             tag
         ].join('/'));
         this.requestMethod('DELETE');
-            
+
         return this.apiRequest('tag');
     };
-    
+
     // Retrieve
     this.retrieve = function(callback) {
         /* GET - /v2/groups */
         /* GET - /v2/groups/{type} */
-        
+
         this.requestUri([
             this.ajax.requestUri,
             this.settings.type.uri,
@@ -1109,7 +1109,7 @@ function Groups(authentication) {
             }
         });
     };
-    
+
     // Retrieve Associations
     this.retrieveAssociations = function(association) {
         /* GET - /v2/groups/{type}/{id}/groups */
@@ -1136,10 +1136,10 @@ function Groups(authentication) {
                 association.id
             ].join('/'));
         }
-            
+
         return this.apiRequest('associations');
     };
-    
+
     // Retrieve Attributes
     this.retrieveAttributes = function(attributeId) {
         /* GET - /v2/groups/{type}/{id}/attributes */
@@ -1160,7 +1160,7 @@ function Groups(authentication) {
 
         return this.apiRequest('attribute');
     };
-    
+
     // Retrieve Security Labels
     this.retrieveSecurityLabel = function(label) {
         /* GET - /v2/groups/{type}/{id}/securityLabels */
@@ -1182,7 +1182,7 @@ function Groups(authentication) {
 
         return this.apiRequest('securityLabel');
     };
-    
+
     // Retrieve Tags
     this.retrieveTags = function(tagName) {
         /* GET - /v2/groups/{type}/{id}/tags */
@@ -1204,7 +1204,7 @@ function Groups(authentication) {
 
         return this.apiRequest('tags');
     };
-    
+
     // Retrieve Tags
     this.retrieveTasks = function() {
         /* GET - /v2/groups/{type}/{id}/tasks */
@@ -1219,11 +1219,11 @@ function Groups(authentication) {
 
         return this.apiRequest('tasks');
     };
-    
+
     // Download
     this.download = function(params) {
         /* GET - /v2/groups/documents/{id}/download */
-        
+
         // this.contentType('application/octet-stream');
         this.requestMethod('GET');
         this.requestUri([
@@ -1235,12 +1235,12 @@ function Groups(authentication) {
 
         return this.apiRequest({action: 'get'});
     };
-    
+
     // Upload
     this.upload = function(params) {
         /* POST - /v2/groups/documents/{id}/upload */
         /* PUT - /v2/groups/documents/{id}/upload */
-        
+
         this.body(params.body);
         this.contentType('application/octet-stream');
         this.requestMethod('POST');
@@ -1254,17 +1254,17 @@ function Groups(authentication) {
         if (params.update) {
             this.requestMethod('PUT');
         }
-        
+
         return this.apiRequest({action: 'commit'});
     };
-    
+
     return this;
 }
 Groups.prototype = Object.create(RequestObject.prototype);
 
 function Indicators(authentication) {
     RequestObject.call(this);
-    
+
     this.authentication = authentication;
     this.settings.helper = true,
     this.settings.normalizer = normalize.indicators,
@@ -1282,7 +1282,7 @@ function Indicators(authentication) {
             URL: {}
         },
     };
-    
+
     /* INDICATOR SPECIFIC QUERY STRING PARAMETER */
     this.includeAdditional = function(data) {
         if (boolCheck('includeAdditional', data)) {
@@ -1290,13 +1290,13 @@ function Indicators(authentication) {
         }
         return this;
     };
-    
+
     /* INDICATOR DATA REQUIRED */
     this.indicator = function(data) {
         this.iData.indicator = data;
         return this;
     };
-    
+
     this.type = function(data) {
         if (data.type && data.uri) {
             this.settings.type = data;
@@ -1304,7 +1304,7 @@ function Indicators(authentication) {
         }
         return this;
     };
-    
+
     /* INDICATOR DATA OPTIONAL */
     this.confidence = function(data) {
         if (intCheck('confidence', data)) {
@@ -1312,27 +1312,27 @@ function Indicators(authentication) {
         }
         return this;
     };
-    
+
     this.description = function(data) {
         this.iData.optionalData.description = data;
         return this;
     };
-    
+
     this.rating = function(data) {
         if (intCheck('rating', data)) {
             this.iData.optionalData.rating = data;
         }
         return this;
     };
-    
+
     /* INDICATOR DATA SPECIFIC */
-    
+
     // file
     // this.description = function(data) {
     //     this.iData.specificData.File.description = data;
     //     return this;
     // };
-    
+
     // host
     this.dnsActive = function(data) {
         if (boolCheck('dnsActive', data)) {
@@ -1340,30 +1340,30 @@ function Indicators(authentication) {
         }
         return this;
     };
-    
+
     this.whoisActive = function(data) {
         if (boolCheck('whoisActive', data)) {
             this.iData.specificData.Host.whoisActive = data;
         }
         return this;
     };
-    
+
     // url
     this.source = function(data) {
         this.iData.specificData.URL.source = data;
         return this;
     };
-    
+
     /* API ACTIONS */
-    
+
     // Commit
     this.commit = function(callback) {
         /* POST - /v2/indicators/{type} */
         /* PUT - /v2/indicators/{type}/{indicator} */
-        
+
         // validate required fields
         if (this.iData.indicator) {
-            
+
             this.iData.requiredData[this.settings.type.postField] = this.iData.indicator;
 
             // prepare body
@@ -1384,19 +1384,19 @@ function Indicators(authentication) {
                 ].join('/'));
                 this.requestMethod('PUT');
             }
-            
+
             this.apiRequest({action: 'commit'})
                 .done(function(response) {
                     if (callback) callback();
                 });
-            
+
         } else {
             var errorMessage = 'Commit Failure: indicator is required.';
             console.error(errorMessage);
             this.callbacks.error({error: errorMessage});
-        } 
+        }
     };
-    
+
     // Commit Associations
     this.commitAssociation = function(association) {
         /* POST - /v2/indicators/{type}/{indicator}/groups/{type}/{id} */
@@ -1410,18 +1410,18 @@ function Indicators(authentication) {
             association.id,
         ].join('/'));
         this.requestMethod('POST');
-            
+
         return this.apiRequest('associations');
     };
-    
+
     // Commit Attributes
     this.commitAttribute = function(attribute) {
         /* POST - /v2/indicators/{type}/{indicator}/attributes */
         /* PUT - /v2/indicators/{type}/{indicator}/attributes/{id} */
-        
+
         if (attribute) {
             this.normalization(normalize.attributes);
-    
+
             this.requestUri([
                 this.ajax.baseUri,
                 this.settings.type.uri,
@@ -1433,7 +1433,7 @@ function Indicators(authentication) {
                 type: attribute.type,
                 value: attribute.value
             });
-            
+
             // attribute update
             if (attribute.id) {
                 this.requestUri([
@@ -1445,7 +1445,7 @@ function Indicators(authentication) {
             return this.apiRequest('attribute');
         }
     };
-    
+
     // Commit False Positive
     this.commitFalsePositive = function(params) {
         /* POST - /v2/indicators/{type}/{indicator}/falsePositive */
@@ -1458,10 +1458,10 @@ function Indicators(authentication) {
             'falsePositive'
         ].join('/'));
         this.requestMethod('POST');
-            
+
         return this.apiRequest('falsePositive');
     };
-    
+
     // Commit Occurrence
     this.commitObservation = function(params) {
         /* POST - /v2/indicators/{type}/{indicator}/observation */
@@ -1477,10 +1477,10 @@ function Indicators(authentication) {
             count: params.count,
             dateObserved: params.dateObserved
         });
-            
+
         return this.apiRequest('attribute');
     };
-    
+
     // Commit Security Label
     this.commitSecurityLabel = function(label) {
         /* POST - /v2/indicators/{type}/{indicator}/securityLabels/{name} */
@@ -1494,10 +1494,10 @@ function Indicators(authentication) {
             label
         ].join('/'));
         this.requestMethod('POST');
-            
+
         return this.apiRequest('securityLabel');
     };
-    
+
     // Commit Tag
     this.commitTag = function(tag) {
         /* POST - /v2/indicators/{type}/{indicator}/tags/{name} */
@@ -1511,10 +1511,10 @@ function Indicators(authentication) {
             tag
         ].join('/'));
         this.requestMethod('POST');
-            
+
         return this.apiRequest('tag');
     };
-    
+
     // Delete
     this.delete = function() {
         /* DELETE - /v2/indicators/{type}/{indicator} */
@@ -1527,7 +1527,7 @@ function Indicators(authentication) {
         this.requestMethod('DELETE');
         return this.apiRequest({action: 'delete'});
     };
- 
+
     // Delete Associations
     this.deleteAssociation = function(association) {
         /* DELETE - /v2/indicators/{type}/{indicator}/groups/{type}/{id} */
@@ -1540,10 +1540,10 @@ function Indicators(authentication) {
             association.id,
         ].join('/'));
         this.requestMethod('DELETE');
-            
+
         return this.apiRequest('associations');
     };
-    
+
     // Delete Attributes
     this.deleteAttribute = function(attributeId) {
         /* DELETE - /v2/indicators/{type}/{indicator}/attributes/{id} */
@@ -1556,10 +1556,10 @@ function Indicators(authentication) {
             attributeId
         ].join('/'));
         this.requestMethod('DELETE');
-            
+
         return this.apiRequest('attribute');
     };
-    
+
     // Delete Security Label
     this.deleteSecurityLabel = function(label) {
         /* DELETE - /v2/indicators/{type}/{indicator}/securityLabels/{name} */
@@ -1572,10 +1572,10 @@ function Indicators(authentication) {
             label
         ].join('/'));
         this.requestMethod('DELETE');
-            
+
         return this.apiRequest('securityLabel');
     };
-    
+
     // Delete Tag
     this.deleteTag = function(tag) {
         /* DELETE - /v2/indicators/{type}/{indicator}/tags/{name} */
@@ -1588,16 +1588,16 @@ function Indicators(authentication) {
             tag
         ].join('/'));
         this.requestMethod('DELETE');
-            
+
         return this.apiRequest('tag');
     };
-    
+
     // retrieve
     this.retrieve = function(callback) {
         /* GET - /v2/indicators/ */
         /* GET - /v2/indicators/{type} */
         /* GET - /v2/indicators/{type}/{indicator} */
-        
+
         // this.ajax.requestUri += '/' + this.settings.type.uri;
         this.requestUri([
             this.ajax.baseUri,
@@ -1610,14 +1610,14 @@ function Indicators(authentication) {
             ].join('/'));
         }
         this.settings.requestCount = this.payload.resultLimit;
-        
+
         return this.apiRequest('next').done(function() {
             if (callback) {
                 callback();
             }
         });
     };
-    
+
     // retrieve associations
     this.retrieveAssociations = function(association) {
         /* GET - /v2/indicators/{type}/{indicator}/groups */
@@ -1630,10 +1630,10 @@ function Indicators(authentication) {
         /* GET - /v2/indicators/{type}/{indicator}/indicators */
         /* GET - /v2/indicators/{type}/{indicator}/indicators/{type} */
         /* GET - /v2/indicators/{type}/{indicator}/indicators/{type}/{indicator} */
-        
+
         this.normalization(normalize.find(association.type.type));
         this.normalizationType(association.type);
-        
+
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
@@ -1646,15 +1646,15 @@ function Indicators(authentication) {
                 association.id
             ].join('/'));
         }
-            
+
         return this.apiRequest('associations');
     };
-    
+
     // Retrieve Attributes
     this.retrieveAttributes = function(attributeId) {
         /* GET - /v2/indicators/{type}/{indicator}/attributes */
         /* GET - /v2/indicators/{type}/{indicator}/attributes/{id} */
-        
+
         this.settings.normalizer = normalize.attributes;
 
         this.requestUri([
@@ -1672,11 +1672,11 @@ function Indicators(authentication) {
 
         return this.apiRequest('attribute');
     };
-    
+
     // Retrieve Observations
     this.retrieveObservations = function(attributeId) {
         /* GET - /v2/indicators/{type}/{indicator}/observations */
-        
+
         this.settings.normalizer = normalize.observations;
 
         this.requestUri([
@@ -1688,11 +1688,11 @@ function Indicators(authentication) {
 
         return this.apiRequest('observations');
     };
-    
+
     // Retrieve ObservationCount
     this.retrieveObservationCount = function(attributeId) {
         /* GET - /v2/indicators/{type}/{indicator}/observationCount */
-        
+
         this.settings.normalizer = normalize.observationCount;
 
         this.requestUri([
@@ -1704,11 +1704,11 @@ function Indicators(authentication) {
 
         return this.apiRequest('observationCount');
     };
-    
+
     // Retrieve Owners
     this.retrieveOwners = function(label) {
         /* GET - /v2/indicators/{type}/{indicator}/owners */
-        
+
         this.settings.normalizer = normalize.owners;
 
         this.requestUri([
@@ -1726,12 +1726,12 @@ function Indicators(authentication) {
 
         return this.apiRequest('owners');
     };
-    
+
     // Retrieve Security Labels
     this.retrieveSecurityLabel = function(label) {
         /* GET - /v2/indicators/{type}/{indicator}/securityLabels */
         /* GET - /v2/indicators/{type}/{indicator}/securityLabels/{name} */
-        
+
         this.settings.normalizer = normalize.securityLabels;
 
         this.requestUri([
@@ -1749,12 +1749,12 @@ function Indicators(authentication) {
 
         return this.apiRequest('securityLabel');
     };
-    
+
     // Retrieve Tags
     this.retrieveTags = function(tagName) {
         /* GET - /v2/indicators/{type}/{indicator}/tags */
         /* GET - /v2/indicators/{type}/{indicator}/tags/{name} */
-        
+
         this.settings.normalizer = normalize.tags;
 
         this.requestUri([
@@ -1772,11 +1772,11 @@ function Indicators(authentication) {
 
         return this.apiRequest('tags');
     };
-    
+
     // Retrieve Tasks
     this.retrieveTasks = function() {
         /* GET - /v2/indicators/{type}/{indicator}/tasks */
-        
+
         this.settings.normalizer = normalize.tasks;
 
         this.requestUri([
@@ -1788,52 +1788,52 @@ function Indicators(authentication) {
 
         return this.apiRequest('tasks');
     };
-    
+
     // dnsResolutions
     this.dnsResolutions = function() {
         /* GET - /v2/indicators/hosts/{indicator}/dnsResolutions */
         if (this.settings.type == TYPE.HOST) {
             this.settings.normalizer = normalize.dnsResolutions;
-    
+
             this.requestUri([
                 this.ajax.baseUri,
                 this.settings.type.uri,
                 this.iData.indicator,
                 'dnsResolutions'
             ].join('/'));
-    
+
             return this.apiRequest('dnsResolutions');
         } else {
             this.callbacks.error('This method is only supported for Host Indicators.');
         }
     };
-    
+
     // fileOccurrences
     this.fileOccurrences = function() {
         /* GET - /v2/indicators/files/{indicator}/fileOccurrences */
         if (this.settings.type == TYPE.FILE) {
             this.settings.normalizer = normalize.fileOccurrences;
-    
+
             this.requestUri([
                 this.ajax.baseUri,
                 this.settings.type.uri,
                 this.iData.indicator,
                 'fileOccurrences'
             ].join('/'));
-    
+
             return this.apiRequest('fileOccurrences');
         } else {
             this.callbacks.error('This method is only supported for File Indicators.');
         }
     };
-    
+
     return this;
 }
 Indicators.prototype = Object.create(RequestObject.prototype);
 
 function IndicatorsBatch(authentication) {
     RequestObject.call(this);
-    
+
     this.authentication = authentication;
     this.batchBody = [],
     this.ajax.requestUri = 'v2',
@@ -1864,7 +1864,7 @@ function IndicatorsBatch(authentication) {
             URL: {}
         },
     };
-    
+
     /* SETTINGS BATCH */
     this.action = function(data) {
         if (valueCheck('action', data, ['Create', 'Delete'])) {
@@ -1872,27 +1872,27 @@ function IndicatorsBatch(authentication) {
         }
         return this;
     };
-    
+
     this.attributeWriteType = function(data) {
         if (valueCheck('attributeWriteType', data, ['Append', 'Replace'])) {
             this.batch.haltOnError = data;
         }
         return this;
     };
-                 
+
     this.haltOnError = function(data) {
         if (boolCheck('haltOnError', data)) {
             this.batch.haltOnError = data;
         }
         return this;
     };
-     
+
     /* INDICATOR DATA REQUIRED */
     this.indicator = function(data) {
         this.iData.requiredData.summary = data;
         return this;
     };
-    
+
     this.type = function(data) {
         if (data.type && data.uri) {
             this.settings.type = data;
@@ -1901,7 +1901,7 @@ function IndicatorsBatch(authentication) {
         }
         return this;
     };
-    
+
     /* INDICATOR DATA OPTIONAL */
     this.attributes = function(data) {
         // if (!this.iData.optionalData.attribute) {this.iData.optionalData.attribute = []}
@@ -1914,14 +1914,14 @@ function IndicatorsBatch(authentication) {
         }
         return this;
     };
-    
+
     this.confidence = function(data) {
         if (intCheck('confidence', data)) {
             this.iData.optionalData.confidence = data;
         }
         return this;
     };
-    
+
     this.description = function(data) {
         if (typeof data === 'string') {
             this.iData.optionalData.description = data;
@@ -1930,7 +1930,7 @@ function IndicatorsBatch(authentication) {
         }
         return this;
     };
-    
+
     this.rating = function(data) {
         if (intCheck('rating', data)) {
             this.iData.optionalData.rating = data;
@@ -1939,7 +1939,7 @@ function IndicatorsBatch(authentication) {
         }
         return this;
     };
-    
+
     this.tags = function(data) {
         var tag;
         // if (typeof data === 'object' && data.length != 0) {
@@ -1953,15 +1953,28 @@ function IndicatorsBatch(authentication) {
         }
         return this;
     };
-    
+
+    this.associatedGroup = function(data) {
+        var associatedGroup;
+        if (Object.prototype.toString.call( data ) === '[object Array]' && data.length != 0) {
+            if (!this.iData.optionalData.associatedGroup) {this.iData.optionalData.associatedGroup = []}
+            for (associatedGroup in data) {
+                this.iData.optionalData.associatedGroup.push(data[associatedGroup]);
+            }
+        } else {
+            console.error('associatedGroup must be an array.');
+        }
+        return this;
+    };
+
     /* INDICATOR DATA SPECIFIC */
-    
+
     // file
     this.description = function(data) {
         this.iData.specificData.File.description = data;
         return this;
     };
-    
+
     // host
     this.dnsActive = function(data) {
         if (boolCheck('dnsActive', data)) {
@@ -1969,35 +1982,35 @@ function IndicatorsBatch(authentication) {
         }
         return this;
     };
-    
+
     this.whoisActive = function(data) {
         if (boolCheck('whoisActive', data)) {
             this.iData.specificData.Host.whoisActive = data;
         }
         return this;
     };
-    
+
     // url
     this.source = function(data) {
         this.iData.specificData.URL.source = data;
         return this;
     };
-    
+
     /* BATCH */
-    
+
     // add
     this.add = function() {
         var body = {},
             specificBody = {};
-        
+
         if (this.iData.requiredData.summary && this.iData.requiredData.type) {
             body = $.extend(this.iData.requiredData, this.iData.optionalData);
-            
+
             specificBody = this.iData.specificData[this.iData.requiredData.type],
                 body = $.extend(body, specificBody);
-                
+
             this.batchBody.push(body);
-            
+
             this.iData.optionalData = {};
             this.iData.requiredData = {};
             this.iData.specificData = {};
@@ -2006,7 +2019,7 @@ function IndicatorsBatch(authentication) {
         }
         return this;
     };
-    
+
     this.init = function() {
         this.batchBody = [];
         this.iData = {
@@ -2020,12 +2033,12 @@ function IndicatorsBatch(authentication) {
                 URL: {}
             },
         };
-        
+
         this.settings.callbacks.done = undefined;
         this.settings.callbacks.pagination = undefined;
         this.settings.callbacks.error = undefined;
     };
-    
+
     this.updateFrequency = function(params) {
         if ((params.frequency * params.multiplier) < params.maxFrequency) {
             params.frequency = params.frequency * params.multiplier;
@@ -2034,62 +2047,62 @@ function IndicatorsBatch(authentication) {
         }
         params.timeout -= params.frequency;
     };
-    
+
     /* API ACTIONS */
-    
+
     // commit
     this.commit = function(callback) {
         var _this = this,
             message;
-            
+
         // validate required fields
         if (this.payload.owner && this.batchBody.length != 0) {
-            
+
             this.body($.extend({owner: this.payload.owner}, this.batch));
             this.normalization(normalize.default);  // bcs rename
             this.requestUri(this.ajax.baseUri + '/batch');
             this.requestMethod('POST');
             this.done = this.callbacks.done;
             this.callbacks.done = undefined;
-            
-            /* POST (create job) - /v2/batch */ 
+
+            /* POST (create job) - /v2/batch */
             this.apiRequest({action: 'commit'})
                 .done(function(jobResponse) {
                     _this.batchId = jobResponse.data.batchId;
-                    
+
                     _this.body(_this.batchBody);
                     _this.contentType('application/octet-stream');
                     _this.requestUri(_this.ajax.baseUri + '/batch/' + jobResponse.data.batchId);
-                        
+
                     /* POST (data) - /v2/batch/{id} */
                     _this.apiRequest({action: 'commit'})
                         .done(function(dataResponse) {
-                            
+
                             _this.body(_this.batchBody);
                             _this.contentType('application/octet-stream');
                             _this.requestUri(_this.ajax.baseUri + '/batch/' + jobResponse.data.batchId);
                             _this.requestMethod('GET');
-                            
+
                             var checkStatus = function() {
                                 setTimeout(function() {
                                     console.log('status.frequency', _this.status.frequency);
                                     console.log('status.timeout', _this.status.timeout);
-                                    
+
                                     /* GET (status) - /v2/batch/{id} */
                                     _this.apiRequest({action: 'status'})
                                         .done(function(statusResponse) {
-                                                    
+
                                             if (statusResponse.data.batchStatus.status == 'Completed') {
                                                 statusResponse.data.batchStatus.data = _this.batchBody;
                                                 if (statusResponse.data.batchStatus.errorCount > 0) {
-                                                    
+
                                                     _this.requestUri(_this.ajax.baseUri + '/batch/' + jobResponse.data.batchId + '/errors/');
                                                     _this.requestMethod('GET');
-                                                                
+
                                                     /* GET (errors) - /v2/batch/{id}/errors */
                                                     _this.apiRequest({action: 'status'})
                                                         .done(function(errorResponse) {
-                                                                    
+
                                                             if(typeof errorResponse === "string") {
                                                             	statusResponse.data.batchStatus.errors = JSON.parse(errorResponse);
                                                             } else {
@@ -2121,30 +2134,30 @@ function IndicatorsBatch(authentication) {
                 });
         } else {
             console.error('Commit Failure: batch owner and indicators are required.');
-        } 
-        
+        }
+
         return this;
     };
-    
+
     // retrieve
     this.retrieve = function(format) {
         /* GET - /v2/indicators/bulk/csv */
         /* GET - /v2/indicators/bulk/json */
-        
+
         this.requestUri(this.ajax.baseUri + '/indicators/bulk/' + format);
         this.normalization(normalize.indicatorsBatch);
         return this.apiRequest('next');
     };
-    
+
     // retrieve batch status
     this.retrieveBatchStatus = function() {
         /* GET - /v2/indicators/bulk */
-        
+
         this.normalization(normalize.default);
         this.requestUri(this.ajax.baseUri + '/indicators/bulk');
         return this.apiRequest('next');
     };
-    
+
     return this;
 }
 IndicatorsBatch.prototype = Object.create(RequestObject.prototype);
@@ -2171,12 +2184,12 @@ function Owners(authentication) {
     };
 
     /* API ACTIONS */
-    
+
     // Retrieve Owners
     this.retrieve = function(callback) {
         /* GET - /v2/owners */
         /* GET - /v2/owners/{id} */
-        
+
         if (this.rData.id) {
             this.requestUri([
                 this.ajax.requestUri,
@@ -2191,11 +2204,11 @@ function Owners(authentication) {
             }
         });
     };
-    
+
     // Retrieve Owners Members
     this.retrieveMembers = function(callback) {
         /* GET - /v2/owners/mine/members */
-        
+
         this.settings.normalizer = normalize.default;
         this.requestUri([
             this.ajax.requestUri,
@@ -2209,7 +2222,7 @@ function Owners(authentication) {
     // Retrieve Owners Metrics
     this.retrieveMetrics = function() {
         /* GET - /v2/owners/metrics */
-        
+
         if (this.rData.id) {
             this.requestUri(this.ajax.requestUri + '/' + this.rData.id);
         }
@@ -2222,11 +2235,11 @@ function Owners(authentication) {
 
         return this.apiRequest('owner');
     };
-    
+
     // Retrieve Owners Mine
     this.retrieveMine = function(callback) {
         /* GET - /v2/owners/mine */
-        
+
         this.settings.normalizer = normalize.default;
         this.requestUri([
             this.ajax.requestUri,
@@ -2252,16 +2265,16 @@ function SecurityLabels(authentication) {
     this.rData = {
         name: undefined,
     };
-    
+
     /* OPTIONAL */
     this.name = function(data) {
         this.rData.name = data;
         return this;
     };
-    
+
     /* All Security Labels commits are accessible via the individual resource commits. */
     /* All Security Labels deletes are accessible via the individual resource deletes. */
-    
+
     //
     // Retrieve Security Labels
     //
@@ -2272,14 +2285,14 @@ function SecurityLabels(authentication) {
             this.requestUri(this.ajax.requestUri + '/' + this.rData.name);
         }
         this.requestMethod('GET');
-     
+
         return this.apiRequest('next').done(function() {
             if (callback) {
                 callback();
             }
         });
     };
-    
+
     this.retrieveTasks = function() {
         /* GET - /v2/securityLabels/{name}/tasks */
         this.requestUri([
@@ -2288,10 +2301,10 @@ function SecurityLabels(authentication) {
             'tasks'
         ].join['/']);
         this.requestMethod('GET');
-    
+
         return this.apiRequest('next');
     };
-    
+
     this.retrieveVictims = function() {
         /* GET - /v2/securityLabels/{name}/victims */
         this.requestUri([
@@ -2300,10 +2313,10 @@ function SecurityLabels(authentication) {
             'victims'
         ].join['/']);
         this.requestMethod('GET');
-     
+
         return this.apiRequest('next');
     };
-    
+
     this.retrieveVictimAssets = function() {
         /* GET - /v2/securityLabels/{name}/victimAssets */
         this.requestUri([
@@ -2312,10 +2325,10 @@ function SecurityLabels(authentication) {
             'victimAssets'
         ].join['/']);
         this.requestMethod('GET');
-     
+
         return this.apiRequest('next');
     };
-    
+
     return this;
 }
 SecurityLabels.prototype = Object.create(RequestObject.prototype);
@@ -2333,19 +2346,19 @@ function Tasks(authentication) {
         optionalData: {},
         requiredData: {}
     };
-    
+
     /* SETTINGS API */
     this.id = function(data) {
         this.rData.id = data;
         return this;
     };
-    
+
     /* TASK COMMIT REQUIRED */
     this.name = function(data) {
         this.rData.requiredData.name = data;
         return this;
     };
-    
+
     /* TASK COMMIT OPTIONAL */
     this.assignee = function(data) {
         if (objectCheck('assignee', data) && data.length != 0) {
@@ -2353,65 +2366,65 @@ function Tasks(authentication) {
         }
         return this;
     };
-    
+
     // this.description = function(data) {
     //     this.rData.optionalData.description = data;
     //     return this;
     // };
-    
+
     this.dueDate = function(data) {
         // 2016-03-16T21:25:15Z
         this.rData.optionalData.dueDate = data;
         return this;
     };
-    
+
     this.escalatee = function(data) {
         if (objectCheck('escalatee', data) && data.length != 0) {
             this.rData.optionalData.escalatee = data;
         }
         return this;
     };
-    
+
     this.escalated = function(data) {
         if (boolCheck('escalated', data)) {
             this.rData.optionalData.escalated = data;
         }
         return this;
     };
-    
+
     this.escalationDate = function(data) {
         // 2016-03-16T21:25:15Z
         this.rData.optionalData.escalationDate = data;
         return this;
     };
-    
+
     this.reminded = function(data) {
         if (boolCheck('reminded', data)) {
             this.rData.optionalData.reminded = data;
         }
         return this;
     };
-    
+
     this.reminderDate = function(data) {
         // 2016-03-16T21:25:15Z
         this.rData.optionalData.reminderDate = data;
         return this;
     };
-    
+
     this.overdue = function(data) {
         if (boolCheck('overdue', data)) {
             this.rData.optionalData.overdue = data;
         }
         return this;
     };
-    
+
     this.status = function(data) {
         if (valueCheck('status', data, ['In Progress', 'Complete', 'Waiting on Someone', 'Deferred'])) {
             this.rData.optionalData.status = data;
         }
         return this;
     };
-    
+
     // Commit
     this.commit = function(callback) {
         /* POST - /v2/tasks */
@@ -2434,20 +2447,20 @@ function Tasks(authentication) {
             if (this.rData.id) {
                 this.requestMethod('PUT');
             }
-            
+
             this.apiRequest({action: 'commit'})
                 .done(function(response) {
                     _this.rData.id = response.data[_this.settings.type.dataField].id;
                     if (callback) callback();
                 });
-            
+
         } else {
             var errorMessage = 'Commit Failure: task name is required.';
             console.error(errorMessage);
             this.callbacks.error({error: errorMessage});
-        } 
+        }
     };
-    
+
     // Commit Assignees
     this.commitAssignees = function(assignees) {
         /* POST - /v2/tasks/{id}/assignees/{name} */
@@ -2461,10 +2474,10 @@ function Tasks(authentication) {
             assignees
         ].join('/'));
         this.requestMethod('POST');
-            
+
         return this.apiRequest('assignees');
     };
-    
+
     // Commit Associations
     this.commitAssociation = function(association) {
         /* POST - /v2/tasks/{id}/groups/{type}/{id} */
@@ -2479,18 +2492,18 @@ function Tasks(authentication) {
             association.id,
         ].join('/'));
         this.requestMethod('POST');
-            
+
         return this.apiRequest('associations');
     };
-    
+
     // Commit Attributes
     this.commitAttribute = function(attribute) {
         /* POST - /v2/tasks/{id}/attributes */
         /* PUT - /v2/tasks/{id}/attributes/{id} */
-        
+
         if (attribute) {
             this.normalization(normalize.attributes);
-    
+
             this.requestUri([
                 this.ajax.baseUri,
                 this.settings.type.uri,
@@ -2502,7 +2515,7 @@ function Tasks(authentication) {
                 type: attribute.type,
                 value: attribute.value
             });
-            
+
             // attribute update
             if (attribute.id) {
                 this.requestUri([
@@ -2514,7 +2527,7 @@ function Tasks(authentication) {
             return this.apiRequest('attribute');
         }
     };
-    
+
     // Commit Escalatees
     this.commitEscalatees = function(escalatees) {
         /* POST - /v2/tasks/{id}/escalatees/{name} */
@@ -2528,10 +2541,10 @@ function Tasks(authentication) {
             escalatees
         ].join('/'));
         this.requestMethod('POST');
-            
+
         return this.apiRequest('escalatees');
     };
-    
+
     // Commit Security Label
     this.commitSecurityLabel = function(label) {
         /* POST - /v2/tasks/{id}/securityLabel/{name} */
@@ -2545,10 +2558,10 @@ function Tasks(authentication) {
             label
         ].join('/'));
         this.requestMethod('POST');
-            
+
         return this.apiRequest('securityLabel');
     };
-    
+
     // Commit Tag
     this.commitTag = function(tag) {
         /* POST - /v2/tasks/{id}/tags/{name} */
@@ -2562,14 +2575,14 @@ function Tasks(authentication) {
             tag
         ].join('/'));
         this.requestMethod('POST');
-            
+
         return this.apiRequest('tag');
     };
-    
+
     // Delete
     this.delete = function() {
         /* DELETE - /v2/tasks/{id} */
-        
+
         this.requestUri([
             this.ajax.requestUri,
             this.rData.id
@@ -2578,7 +2591,7 @@ function Tasks(authentication) {
         this.requestMethod('DELETE');
         return this.apiRequest({action: 'delete'});
     };
-    
+
     // Delete Assignees
     this.deleteAssignees = function(assignee) {
         /* DELETE - /v2/tasks/{id}/assignees/{name} */
@@ -2592,10 +2605,10 @@ function Tasks(authentication) {
             // encodeURIComponent(assignee)
         ].join('/'));
         this.requestMethod('DELETE');
-            
+
         return this.apiRequest('assignee');
     };
- 
+
     // Delete Associations
     this.deleteAssociation = function(association) {
         /* DELETE - /v2/tasks/{id}/groups/{type}/{id} */
@@ -2608,10 +2621,10 @@ function Tasks(authentication) {
             association.id,
         ].join('/'));
         this.requestMethod('DELETE');
-            
+
         return this.apiRequest('associations');
     };
-    
+
     // Delete Attributes
     this.deleteAttribute = function(attributeId) {
         /* DELETE - /v2/tasks/{id}/attributes/{id} */
@@ -2623,10 +2636,10 @@ function Tasks(authentication) {
             attributeId
         ].join('/'));
         this.requestMethod('DELETE');
-            
+
         return this.apiRequest('attribute');
     };
-    
+
     // Delete Escalatees
     this.deleteEscalatees = function(escalatees) {
         /* DELETE - /v2/tasks/{id}/escalatees/{name} */
@@ -2639,10 +2652,10 @@ function Tasks(authentication) {
             escalatees
         ].join('/'));
         this.requestMethod('DELETE');
-            
+
         return this.apiRequest('escalatees');
     };
-    
+
     // Delete Security Label
     this.deleteSecurityLabel = function(label) {
         /* DELETE - /v2/tasks/{id}/securityLabel/{name} */
@@ -2654,10 +2667,10 @@ function Tasks(authentication) {
             label
         ].join('/'));
         this.requestMethod('DELETE');
-            
+
         return this.apiRequest('securityLabel');
     };
-    
+
     // Delete Tag
     this.deleteTag = function(tag) {
         /* DELETE - /v2/tasks/{id}/tags/{name} */
@@ -2669,10 +2682,10 @@ function Tasks(authentication) {
             tag
         ].join('/'));
         this.requestMethod('DELETE');
-            
+
         return this.apiRequest('tag');
     };
-    
+
     //
     // Retrieve Security Labels
     //
@@ -2686,14 +2699,14 @@ function Tasks(authentication) {
             ].join('/'));
         }
         this.requestMethod('GET');
-     
+
         return this.apiRequest('next').done(function() {
             if (callback) {
                 callback();
             }
         });
     };
-    
+
     // Retrieve Assignees
     this.retrieveAssignees = function() {
         /* GET - /v2/tasks/{id}/assignees */
@@ -2705,11 +2718,11 @@ function Tasks(authentication) {
                 this.rData.id,
                 'assignees'
             ].join('/'));
-    
+
             return this.apiRequest('assignees');
         }
     };
-    
+
     // Retrieve Associations
     this.retrieveAssociations = function(association) {
         /* GET - /v2/tasks/{id}/indicators */
@@ -2724,7 +2737,7 @@ function Tasks(authentication) {
         this.normalization(normalize.find(association.type.type));
         // this.normalization(normalize.find(association.type));
         this.normalizationType(association.type);
-        
+
         if (this.rData.id) {
             this.requestUri([
                 this.ajax.baseUri,
@@ -2738,11 +2751,11 @@ function Tasks(authentication) {
                     association.id
                 ].join('/'));
             }
-                
+
             return this.apiRequest('associations');
         }
     };
-    
+
     // Retrieve Attributes
     this.retrieveAttributes = function(attributeId) {
         /* GET - /v2/tasks/{id}/attributes */
@@ -2760,13 +2773,13 @@ function Tasks(authentication) {
                     attributeId
                 ].join('/'));
             }
-            
+
             this.requestMethod('GET');
-         
+
             return this.apiRequest('attributes');
         }
     };
-    
+
     // Retrieve Escalatees
     this.retrieveEscalatees = function() {
         /* GET - /v2/tasks/{id}/escalatees */
@@ -2778,16 +2791,16 @@ function Tasks(authentication) {
                 this.rData.id,
                 'escalatees'
             ].join('/'));
-    
+
             return this.apiRequest('escalatees');
         }
     };
-    
+
     // Retrieve Tags
     this.retrieveTags = function(tagName) {
         /* GET - /v2/tasks/{id}/tags */
         /* GET - /v2/tasks/{id}/tags/{name} */
-        
+
         this.settings.normalizer = normalize.tags;
         if (this.rData.id) {
             this.requestUri([
@@ -2802,16 +2815,16 @@ function Tasks(authentication) {
                     tagName
                 ].join('/'));
             }
-    
+
             return this.apiRequest('tags');
         }
     };
-    
+
     // Retrieve Security Labels
     this.retrieveSecurityLabel = function(label) {
         /* GET - /v2/tasks/{id}/securityLabel */
         /* GET - /v2/tasks/{id}/securityLabel/{name} */
-        
+
         this.settings.normalizer = normalize.securityLabels;
         if (this.rData.id) {
 
@@ -2827,11 +2840,11 @@ function Tasks(authentication) {
                     label
                 ].join('/'));
             }
-    
+
             return this.apiRequest('securityLabel');
         }
     };
-    
+
     return this;
 }
 Tasks.prototype = Object.create(RequestObject.prototype);
@@ -2853,15 +2866,15 @@ function Tags(authentication) {
         this.rData.name = data;
         return this;
     };
-    
+
     /* All Tag commits are accessible via the individual resource commits. */
     /* All Tag deletes are accessible via the individual resource deletes. */
-    
+
     // retrieve
     this.retrieve = function(callback) {
         /* GET - /v2/tags */
         /* GET - /v2/tags/{name} */
-        
+
         if (this.rData.name) {
             this.requestUri([
                 this.ajax.requestUri,
@@ -2876,19 +2889,19 @@ function Tags(authentication) {
             }
         });
     };
-    
+
     // retrieveIndicators
     this.retrieveIndicators = function(indicatorType) {
         /* GET - /v2/tags/{name}/indicators */
         /* GET - /v2/tags/{name}/indicators/{type} */
-        
+
         if (!indicatorType) {
-           indicatorType = TYPE.INDICATOR; 
+           indicatorType = TYPE.INDICATOR;
         }
-        
+
         this.settings.normalizer = normalize.indicators;
         this.normalizationType(indicatorType);
-        
+
         if (this.rData.name) {
             this.requestUri([
                 this.ajax.requestUri,
@@ -2905,18 +2918,18 @@ function Tags(authentication) {
 
         return this.apiRequest('next');
     };
-    
+
     // retrieveGroups
     this.retrieveGroups = function(groupType) {
         /* GET - /v2/tags/{name}/groups */
         /* GET - /v2/tags/{name}/groups/{type} */
         if (!groupType) {
-           groupType = TYPE.GROUP; 
+           groupType = TYPE.GROUP;
         }
-        
+
         this.settings.normalizer = normalize.groups;
         this.normalizationType(groupType);
-        
+
         if (this.rData.name) {
             this.requestUri([
                 this.ajax.requestUri,
@@ -2933,7 +2946,7 @@ function Tags(authentication) {
 
         return this.apiRequest('next');
     };
-    
+
     this.retrieveTasks = function() {
         /* GET - /v2/tags/{name}/tasks */
         this.requestUri([
@@ -2942,10 +2955,10 @@ function Tags(authentication) {
             'tasks'
         ].join['/']);
         this.requestMethod('GET');
-    
+
         return this.apiRequest('next');
     };
-    
+
     this.retrieveVictims = function() {
         /* GET - /v2/tags/{name}/victims */
         this.requestUri([
@@ -2954,10 +2967,10 @@ function Tags(authentication) {
             'victims'
         ].join['/']);
         this.requestMethod('GET');
-     
+
         return this.apiRequest('next');
     };
-    
+
     this.retrieveVictimAssets = function() {
         /* GET - /v2/tags/{name}/victimAssets */
         this.requestUri([
@@ -2966,10 +2979,10 @@ function Tags(authentication) {
             'victimAssets'
         ].join['/']);
         this.requestMethod('GET');
-     
+
         return this.apiRequest('next');
     };
-    
+
     return this;
 }
 Tags.prototype = Object.create(RequestObject.prototype);
@@ -2996,83 +3009,83 @@ function Victims(authentication) {
             victimWebSite: {},
         }
     };
-    
+
     /* SETTINGS */
     this.id = function(data) {
         this.rData.id = data;
         return this;
     };
-    
+
     /* REQUIRED */
     this.name = function(data) {
         this.rData.requiredData.name = data;
         return this;
     };
-    
+
     /* OPTIONAL */
     this.description = function(data) {
         this.rData.optionalData.description = data;
         return this;
     };
-    
+
     this.org = function(data) {
         this.rData.optionalData.org = data;
         return this;
     };
-    
+
     this.suborg = function(data) {
         this.rData.optionalData.suborg = data;
         return this;
     };
-    
+
     this.workLocation = function(data) {
         this.rData.optionalData.workLocation = data;
         return this;
     };
-    
+
     this.nationality = function(data) {
         this.rData.optionalData.nationality = data;
         return this;
     };
-    
+
     /* ASSET TYPE SPECIFIC PARAMETERS */
-    
+
     // emailAddress
     this.address = function(data) {
         this.rData.specificData.victimEmailAddress.address = data;
         return this;
     };
-    
+
     this.addressType = function(data) {
         this.rData.specificData.victimEmailAddress.addressType = data;
         return this;
     };
-    
+
     // networkAccount / socialNetwork
     this.account = function(data) {
         this.rData.specificData.victimNetworkAccount.account = data;
         this.rData.specificData.victimSocialNetwork.account = data;
         return this;
     };
-    
+
     this.network = function(data) {
         this.rData.specificData.victimNetworkAccount.network = data;
         this.rData.specificData.victimSocialNetwork.network = data;
         return this;
     };
-    
+
     // phone
     this.phoneType = function(data) {
         this.rData.specificData.victimPhone.phoneType = data;
         return this;
     };
-    
+
     // webSite
     this.webSite = function(data) {
         this.rData.specificData.victimWebSite.webSite = data;
         return this;
     };
-    
+
     //
     // Commit Victim
     //
@@ -3080,10 +3093,10 @@ function Victims(authentication) {
         /* POST - /v2/victims */
         /* PUT - /v2/victims/{id} */
         var _this = this;
-        
+
         this.requestMethod('POST');
         this.body($.extend(this.rData.requiredData, this.rData.optionalData));
-        
+
         // update victim
         if (this.rData.id) {
             this.requestUri([
@@ -3092,7 +3105,7 @@ function Victims(authentication) {
             ].join('/'));
             this.requestMethod('PUT');
         }
-     
+
         this.apiRequest({action: 'commit'})
             .done(function(response) {
                 console.log('bcs', _this.settings);
@@ -3100,25 +3113,25 @@ function Victims(authentication) {
                 if (callback) callback();
         });
     };
-    
+
     // commit victim asset
     this.commitAsset = function(assetType) {
         /* POST - /v2/victims/{id}/victimAssets/{type} */
-        
+
         if (this.rData.id && assetType) {
             this.body(this.rData.specificData[assetType.dataField]);
             this.requestMethod('POST');
-        
+
             this.requestUri([
                 this.ajax.requestUri,
                 this.rData.id,
                 assetType.uri
             ].join('/'));
-            
+
             return this.apiRequest('next');
         }
     };
-    
+
     // Commit Associations
     this.commitAssociation = function(association) {
         /* POST - /v2/victims/{id}/groups/{type}/{id} */
@@ -3132,17 +3145,17 @@ function Victims(authentication) {
             association.id,
         ].join('/'));
         this.requestMethod('POST');
-            
+
         return this.apiRequest('associations');
     };
-    
+
     // Commit Attributes
     this.commitAttribute = function(attribute) {
         /* POST - /v2/victims/{id}/attributes */
         /* PUT - /v2/victims/{id}/attributes/{id} */
         if (attribute) {
             this.normalization(normalize.attributes);
-    
+
             this.requestUri([
                 this.ajax.requestUri,
                 this.rData.id,
@@ -3153,7 +3166,7 @@ function Victims(authentication) {
                 type: attribute.type,
                 value: attribute.value
             });
-            
+
             // attribute update
             if (attribute.id) {
                 this.requestUri([
@@ -3165,7 +3178,7 @@ function Victims(authentication) {
             return this.apiRequest('attribute');
         }
     };
-    
+
     // Commit Security Label
     this.commitSecurityLabel = function(label) {
         /* POST - /v2/victims/{id}/securityLabel/{name} */
@@ -3212,7 +3225,7 @@ function Victims(authentication) {
             action: 'delete'
         });
     };
- 
+
     // Delete Associations
     this.deleteAssociation = function(association) {
         /* DELETE - /v2/victims/{id}/groups/{type}/{id} */
@@ -3226,10 +3239,10 @@ function Victims(authentication) {
             association.id,
         ].join('/'));
         this.requestMethod('DELETE');
-            
+
         return this.apiRequest('associations');
     };
-    
+
     // Delete Attributes
     this.deleteAttribute = function(attributeId) {
         /* DELETE - /v2/victims/{id}/attributes/{id} */
@@ -3242,10 +3255,10 @@ function Victims(authentication) {
             attributeId
         ].join('/'));
         this.requestMethod('DELETE');
-            
+
         return this.apiRequest('attribute');
     };
-    
+
     // Delete Security Label
     this.deleteSecurityLabel = function(label) {
         /* DELETE - /v2/victims/{id}/securityLabel/{name} */
@@ -3258,10 +3271,10 @@ function Victims(authentication) {
             label
         ].join('/'));
         this.requestMethod('DELETE');
-            
+
         return this.apiRequest('securityLabel');
     };
-    
+
     // Delete Tag
     this.deleteTag = function(tag) {
         /* DELETE - /v2/victims/{id}/tags/{name} */
@@ -3274,10 +3287,10 @@ function Victims(authentication) {
             tag
         ].join('/'));
         this.requestMethod('DELETE');
-            
+
         return this.apiRequest('tag');
     };
-    
+
     //
     // Retrieve Victim
     //
@@ -3288,21 +3301,21 @@ function Victims(authentication) {
             this.requestUri(this.ajax.requestUri + '/' + this.rData.id);
         }
         this.requestMethod('GET');
-     
+
         return this.apiRequest('next').done(function() {
             if (callback) {
                 callback();
             }
         });
     };
-    
+
     //
     // Retrieve Victim Assets
     //
     this.retrieveAssets = function(assetType) {
         /* GET - /v2/victims/{id}/victimAssets */
         /* GET - /v2/victims/{id}/victimAssets/{type} */
-        
+
         if (!assetType) {
             assetType = TYPE.VICTIM_ASSET;
         }
@@ -3312,14 +3325,14 @@ function Victims(authentication) {
                 this.rData.id,
                 assetType.uri
             ].join('/'));
-            
+
             this.requestMethod('GET');
             return this.apiRequest('next');
         } else {
             console.warn('Victim ID is required.');
         }
     };
-    
+
     // Retrieve Associations
     this.retrieveAssociations = function(association) {
         /* GET - /v2/victims/{id}/groups */
@@ -3343,10 +3356,10 @@ function Victims(authentication) {
                 association.id
             ].join('/'));
         }
-            
+
         return this.apiRequest('associations');
     };
-    
+
     // Retrieve Attributes
     this.retrieveAttributes = function(attributeId) {
         /* GET - /v2/victims/{id}/attributes */
@@ -3368,7 +3381,7 @@ function Victims(authentication) {
 
         return this.apiRequest('attribute');
     };
-    
+
     // Retrieve Tags
     this.retrieveTags = function(tagName) {
         /* GET - /v2/victims/{id}/tags */
@@ -3390,23 +3403,23 @@ function Victims(authentication) {
 
         return this.apiRequest('tags');
     };
-    
+
     // Retrieve Tasks
     this.retrieveTasks = function() {
         /* GET - /v2/victims/{id}/tasks */
-        
+
         if (this.rData.id) {
             this.requestUri([
                 this.ajax.requestUri,
                 this.rData.id,
                 'tasks'
             ].join('/'));
-            
+
             this.requestMethod('GET');
             return this.apiRequest('tasks');
         }
     };
-    
+
     // Retrieve Security Labels
     this.retrieveSecurityLabel = function(label) {
         /* GET - /v2/victims/{id}/securityLabels */
@@ -3428,14 +3441,14 @@ function Victims(authentication) {
 
         return this.apiRequest('securityLabel');
     };
-    
+
     return this;
 }
 Victims.prototype = Object.create(RequestObject.prototype);
 
 function SecureProxy(authentication) {
     RequestObject.call(this);
-    
+
     this.authentication = authentication;
     this.defaults = {
         aysnc: true,
@@ -3448,45 +3461,45 @@ function SecureProxy(authentication) {
         method: 'GET',
         url: undefined
     };
-    
+
     this.async = function(data) {
         if (boolCheck('async', data)) {
             this.defaults.async = data;
         }
         return this;
     };
-    
+
     this.body = function(data) {
         this.defaults.data = data;
         return this;
     };
-    
+
     this.contentType = function(data) {
         this.defaults.contentType = data;
         return this;
     };
-    
+
     this.header = function(key, val) {
         this.defaults.headers[key] = val;
         return this;
     };
-    
+
     this.method = function(data) {
         if (valueCheck('method', data, ['DELETE', 'GET', 'POST', 'PUT'])) {
             this.defaults.method = data;
         }
         return this;
     };
-    
+
     this.url = function(data) {
         this.defaults.url = this.secureProxy(data);
         return this;
     };
-    
+
     this.request = function() {
         var _this = this;
         // console.log('this.defaults', this.defaults);
-        
+
         $.ajax(this.defaults)
             .done(function (response, textStatus, request) {
                 _this.callbacks.done(response);
@@ -3496,22 +3509,22 @@ function SecureProxy(authentication) {
                 _this.callbacks.error(message);
             });
     };
-    
+
     this.delete = function() {
         this.defaults.method = 'DELETE';
         this.request();
     };
-    
+
     this.get = function() {
         this.defaults.method = 'GET';
         this.request();
     };
-    
+
     this.post = function() {
         this.defaults.method = 'POST';
         this.request();
     };
-    
+
     this.put = function() {
         this.defaults.method = 'PUT';
         this.request();
@@ -3521,7 +3534,7 @@ SecureProxy.prototype = Object.create(RequestObject.prototype);
 
 function Spaces(authentication) {
     RequestObject.call(this);
-    
+
     this.authentication = authentication;
     this.ajax.requestUri = this.ajax.baseUri + '/owners',
     this.settings.helper = true,
@@ -3531,9 +3544,9 @@ function Spaces(authentication) {
         stateParams: {},
         stateText: {},
     };
-    
+
     /* REQUIRED */
-    
+
     this.elementId = function(data) {
         if (intCheck('elementId', data)) {
             this.spaceElementId = data;
@@ -3542,21 +3555,21 @@ function Spaces(authentication) {
     };
 
     /* OPTIONAL */
-    
+
     // state optional
     this.stateParams = function(data) {
         this.sData.stateParams = data;
         return this;
     };
-    
+
     // state optional
     this.expireDays = function(data) {
         this.addPayload('expireDays', data);
         return this;
     };
-    
+
     /* REQUIRED */
-    
+
     // state required
     this.stateText = function(data) {
         this.sData.stateText = data;
@@ -3564,12 +3577,12 @@ function Spaces(authentication) {
     };
 
     /* API ACTIONS */
-    
+
     // retrieve file
     this.retrieveFile = function(fileName) {
         /* GET - /v2/exchange/spaces/{element id}/file */
         /* GET - /v2/exchange/spaces/{element id}/file/{name} */
-        
+
         this.requestUri([
             'v2/exchange/spaces',
             this.spaceElementId,
@@ -3585,11 +3598,11 @@ function Spaces(authentication) {
 
         return this.apiRequest('file');
     };
-    
+
     // retrieve job
     this.retrieveJob = function() {
         /* GET - /v2/exchange/spaces/{element id}/job */
-        
+
         this.requestUri([
             'v2/exchange/spaces',
             this.spaceElementId,
@@ -3599,11 +3612,11 @@ function Spaces(authentication) {
 
         return this.apiRequest('state');
     };
-    
+
     // retrieve state
     this.retrieveState = function() {
         /* GET - /v2/exchange/spaces/{element id}/state */
-        
+
         this.requestUri([
             'v2/exchange/spaces',
             this.spaceElementId,
@@ -3613,11 +3626,11 @@ function Spaces(authentication) {
 
         return this.apiRequest('state');
     };
-    
+
     // commit file
     this.commitFile = function(fileName) {
         /* POST - /v2/exchange/spaces/{element id}/file/{name} */
-        
+
         this.requestUri([
             'v2/exchange/spaces',
             this.spaceElementId,
@@ -3630,12 +3643,12 @@ function Spaces(authentication) {
 
         return this.apiRequest('file');
     };
-    
+
     // commit job
     this.commitJob = function() {
         /* POST - /v2/exchange/spaces/{element id}/job */
         /* POST - /v2/exchange/spaces/{element id}/job/execute */
-        
+
         this.requestUri([
             'v2/exchange/spaces',
             this.spaceElementId,
@@ -3646,11 +3659,11 @@ function Spaces(authentication) {
         this.requestMethod('POST');
         return this.apiRequest('state');
     };
-    
+
     // commit state
     this.commitState = function() {
         /* POST - /v2/exchange/spaces/{element id}/state */
-        
+
         this.requestUri([
             'v2/exchange/spaces',
             this.spaceElementId,
@@ -3661,11 +3674,11 @@ function Spaces(authentication) {
         this.requestMethod('POST');
         return this.apiRequest('state');
     };
-    
+
     // delete file
     this.deleteFile = function(fileName) {
         /* DELETE - /v2/exchange/spaces/{element id}/file/{name} */
-        
+
         this.requestUri([
             'v2/exchange/spaces',
             this.spaceElementId,
@@ -3682,16 +3695,16 @@ function Spaces(authentication) {
 Spaces.prototype = Object.create(RequestObject.prototype);
 
 var normalize = {
-    attributes: function(ro, response) { 
+    attributes: function(ro, response) {
         var attributes = [];
 
         if (response) {
             attributes = response.attribute;
-                
+
             if (Object.prototype.toString.call( attributes ) != '[object Array]') {
                 attributes = [attributes];
             }
-            
+
         }
         return attributes;
     },
@@ -3724,7 +3737,7 @@ var normalize = {
         }
         return groups;
     },
-    indicators: function(type, response) { 
+    indicators: function(type, response) {
         var indicators,
             indicatorsData,
             indicatorType = type.type;
@@ -3742,7 +3755,7 @@ var normalize = {
         }
 
         indicators = [];
-        
+
         // $.each(response, function(rkey, rvalue) {
         Array.prototype.forEach.call(response, function(rvalue, index, array){
             if (rvalue && rvalue.length == 0) {
@@ -3782,10 +3795,10 @@ var normalize = {
                 webLink: rvalue.webLink,
             });
         });
-        
+
         return indicators;
     },
-    indicatorsBatch: function(type, response) { 
+    indicatorsBatch: function(type, response) {
 
         response = response.indicator;
 
@@ -3801,22 +3814,22 @@ var normalize = {
 
             indicators.push(rvalue);
         });
-        
+
         return indicators;
     },
-    observations: function(ro, response) { 
+    observations: function(ro, response) {
         var observations = [];
 
         if (response) {
             observations = response.observation;
-                
+
             if (Object.prototype.toString.call( observations ) != '[object Array]') {
                 observations = [observations];
             }
         }
         return observations;
     },
-    observationCount: function(ro, response) { 
+    observationCount: function(ro, response) {
         var observationCount = undefined;
 
         if (response) {
@@ -3835,7 +3848,7 @@ var normalize = {
         }
         return owners;
     },
-    securityLabels: function(ro, response) { 
+    securityLabels: function(ro, response) {
         var securityLabel = undefined;
 
         if (response) {
@@ -3843,12 +3856,12 @@ var normalize = {
         }
         return securityLabel;
     },
-    tags: function(ro, response) { 
+    tags: function(ro, response) {
         var tags = [];
 
         if (response) {
             tags = response.tag;
-                
+
             if (Object.prototype.toString.call( tags ) != '[object Array]') {
                 tags = [tags];
             }
@@ -3857,7 +3870,7 @@ var normalize = {
     },
     tasks: function(type, response) {
         var tasks = [];
-        
+
         if (response) {
             tasks = response.task;
         }
@@ -3865,7 +3878,7 @@ var normalize = {
     },
     victims: function(type, response) {
         var victims = [];
-        
+
         if (response) {
             victims = response.victim;
         }
@@ -3902,7 +3915,7 @@ var normalize = {
 
 var boolCheck = function(name, value) {
     /* validate user input is a boolean */
-    
+
     if (typeof value === 'boolean') {
         return true;
     }
@@ -3912,7 +3925,7 @@ var boolCheck = function(name, value) {
 
 var functionCheck = function(name, value) {
     /* validate user input is a function */
-    
+
     if (typeof value == 'function') {
         return true;
     }
@@ -3922,7 +3935,7 @@ var functionCheck = function(name, value) {
 
 var intCheck = function(name, value) {
     /* validate user input is an integer */
-    
+
     if (!isNaN(parseFloat(value))) {
         return true;
     }
@@ -3932,7 +3945,7 @@ var intCheck = function(name, value) {
 
 var objectCheck = function(name, value) {
     /* validate user input is an object */
-    
+
     if (typeof value == 'object') {
         return true;
     }
@@ -3942,7 +3955,7 @@ var objectCheck = function(name, value) {
 
 var rangeCheck = function(name, value, low, high) {
     /* validate user input is in appropriate range */
-    
+
     if (!isNaN(value) && !isNaN(low) && !isNaN(high)) {
         if (low >= value <= high) {
             return true;
@@ -3954,7 +3967,7 @@ var rangeCheck = function(name, value, low, high) {
 
 var requiredCheck = function(name, data) {
     /* validate user input a valid values */
-    
+
     if (data[name]) {
         return true;
     }
@@ -3964,7 +3977,7 @@ var requiredCheck = function(name, data) {
 
 var valueCheck = function(name, value, array) {
     /* validate user input matches predefined values */
-    
+
     if ($.inArray(value, array) != -1) {
         return true;
     }
