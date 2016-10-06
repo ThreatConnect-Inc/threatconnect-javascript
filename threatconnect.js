@@ -955,10 +955,14 @@ function Groups(authentication) {
                 'attributes'
             ].join('/'));
             this.requestMethod('POST');
-            this.body({
+            var _body = {
                 type: attribute.type,
                 value: attribute.value
-            });
+            };
+            if (attribute.displayed) {
+                _body['displayed'] = attribute.displayed;
+            }
+            this.body(_body);
             
             // attribute update
             if (attribute.id) {
