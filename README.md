@@ -6,11 +6,11 @@ Javascript SDK for the V2 of the ThreatConnect API
 ## 0.5.0
 * updated secure proxy to use window location
 * added retrieveOwners method for indicators
-* added associations endpoints for indicator to indicator assosiations
+* added associations endpoints for indicator to indicator associations
 
 ## 0.4.0
 * added methods for tasks branch (ThreatConnect 4.2)
-* added additional vicitims functionality (ThreatConnect 4.2)
+* added additional victims functionality (ThreatConnect 4.2)
 * added additional method for new owners endpoints - mine and mine/members.  (ThreatConnect 4.2)
 
 ## 0.3.0
