@@ -12,7 +12,7 @@
  =============================================================================
 */
 
-/* global CryptoJS, TYPE */
+/* global $, CryptoJS, TYPE */
 
 // const TYPE = {  // ECMASCRIPT6 support only
 var TYPE = {
@@ -955,6 +955,7 @@ function Groups(authentication) {
                 'attributes'
             ].join('/'));
             this.requestMethod('POST');
+            this.requestMethod('POST');
             var _body = {
                 type: attribute.type,
                 value: attribute.value
@@ -1375,15 +1376,6 @@ function Indicators(authentication) {
                 this.settings.type.uri,
             ].join('/'));
             this.requestMethod('POST');
-
-            // update indicator
-            if (this.iData.indicator) {
-                this.requestUri([
-                    this.ajax.baseUri,
-                    this.iData.indicator
-                ].join('/'));
-                this.requestMethod('PUT');
-            }
 
             this.apiRequest({action: 'commit'})
                 .done(function(response) {
@@ -1826,6 +1818,38 @@ function Indicators(authentication) {
             this.callbacks.error('This method is only supported for File Indicators.');
         }
     };
+
+    // update
+    this.update = function(callback) {
+        /* PUT - /v2/indicators/{type}/{indicator} */
+
+        // validate required fields
+        if (this.iData.indicator) {
+
+            // prepare body
+            var specificBody = this.iData.specificData[this.settings.type.dataField];
+            this.body($.extend(this.iData.requiredData, $.extend(this.iData.optionalData, specificBody)));
+
+            if (this.iData.indicator) {
+                this.requestUri([
+                    this.ajax.baseUri,
+                    this.iData.indicator
+                ].join('/'));
+                this.requestMethod('PUT');
+            }
+
+            this.apiRequest({action: 'update'})
+                .done(function(response) {
+                    if (callback) callback();
+                });
+
+        } else {
+            var errorMessage = 'Update Failure: indicator is required.';
+            console.error(errorMessage);
+            this.callbacks.error({error: errorMessage});
+        }
+    };
+
 
     return this;
 }
