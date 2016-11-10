@@ -1371,7 +1371,7 @@ function Indicators(authentication) {
             var specificBody = this.iData.specificData[this.settings.type.type];
             this.body($.extend(this.iData.requiredData, $.extend(this.iData.optionalData, specificBody)));
 
-            this.requestUri([
+           this.requestUri([
                 this.ajax.baseUri,
                 this.settings.type.uri,
             ].join('/'));
@@ -1412,6 +1412,7 @@ function Indicators(authentication) {
         /* PUT - /v2/indicators/{type}/{indicator}/attributes/{id} */
 
         if (attribute) {
+            console.log('attributeeeeeeeeee', attribute);
             this.normalization(normalize.attributes);
 
             this.requestUri([
@@ -1421,10 +1422,11 @@ function Indicators(authentication) {
                 'attributes'
             ].join('/'));
             this.requestMethod('POST');
-            this.body({
-                type: attribute.type,
-                value: attribute.value
-            });
+            this.body(attribute);
+            // this.body({
+            //     type: attribute.type,
+            //     value: attribute.value
+            // });
 
             // attribute update
             if (attribute.id) {
