@@ -1412,7 +1412,6 @@ function Indicators(authentication) {
         /* PUT - /v2/indicators/{type}/{indicator}/attributes/{id} */
 
         if (attribute) {
-            console.log('attributeeeeeeeeee', attribute);
             this.normalization(normalize.attributes);
 
             this.requestUri([
@@ -2111,8 +2110,10 @@ function IndicatorsBatch(authentication) {
 
                             var checkStatus = function() {
                                 setTimeout(function() {
+                                    /*
                                     console.log('status.frequency', _this.status.frequency);
                                     console.log('status.timeout', _this.status.timeout);
+                                    */
 
                                     /* GET (status) - /v2/batch/{id} */
                                     _this.apiRequest({action: 'status'})
@@ -3134,7 +3135,7 @@ function Victims(authentication) {
 
         this.apiRequest({action: 'commit'})
             .done(function(response) {
-                console.log('bcs', _this.settings);
+                // console.log('bcs', _this.settings);
                 _this.rData.id = response.data[_this.settings.type.dataField].id;
                 if (callback) callback();
         });
