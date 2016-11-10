@@ -1827,7 +1827,7 @@ function Indicators(authentication) {
         if (this.iData.indicator) {
 
             // prepare body
-            var specificBody = this.iData.specificData[this.settings.type.dataField];
+            var specificBody = this.iData.specificData[this.settings.type.type];
             this.body($.extend(this.iData.requiredData, $.extend(this.iData.optionalData, specificBody)));
 
             if (this.iData.indicator) {
