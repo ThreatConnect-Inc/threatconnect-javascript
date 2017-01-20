@@ -969,7 +969,7 @@ function Groups(authentication) {
             if (attribute.id) {
                 this.requestUri([
                     this.ajax.requestUri,
-                    this.attribute.id,
+                    attribute.id,
                 ].join('/'));
                 this.requestMethod('PUT');
             }
@@ -1430,7 +1430,7 @@ function Indicators(authentication) {
             if (attribute.id) {
                 this.requestUri([
                     this.ajax.requestUri,
-                    this.attribute.id,
+                    attribute.id,
                 ].join('/'));
                 this.requestMethod('PUT');
             }
@@ -2544,7 +2544,7 @@ function Tasks(authentication) {
             if (attribute.id) {
                 this.requestUri([
                     this.ajax.requestUri,
-                    this.attribute.id,
+                    attribute.id,
                 ].join('/'));
                 this.requestMethod('PUT');
             }
@@ -3195,7 +3195,7 @@ function Victims(authentication) {
             if (attribute.id) {
                 this.requestUri([
                     this.ajax.requestUri,
-                    this.attribute.id,
+                    attribute.id,
                 ].join('/'));
                 this.requestMethod('PUT');
             }
