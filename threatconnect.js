@@ -38,7 +38,7 @@ var TYPE = {
         'type': 'Email',
         'uri': 'groups/emails',
     },
-    EMAIL_ADDRESS: {
+    EMAILADDRESS: {
         'dataField': 'emailAddress',
         'postField': 'address',
         'indicatorFields': ['address'],
@@ -173,7 +173,7 @@ var FILTER = {
 var indicatorHelper = function(type) {
     var iTypes = {
         'address': TYPE.ADDRESS,
-        'emailaddress': TYPE.EMAIL_ADDRESS,
+        'emailaddress': TYPE.EMAILADDRESS,
         'file': TYPE.FILE,
         'host': TYPE.HOST,
         'url': TYPE.URL
@@ -3928,7 +3928,7 @@ var normalize = {
                 return this.groups;
             case TYPE.INDICATOR.type:
             case TYPE.ADDRESS.type:
-            case TYPE.EMAIL_ADDRESS.type:
+            case TYPE.EMAILADDRESS.type:
             case TYPE.FILE.type:
             case TYPE.HOST.type:
             case TYPE.URL.type:
