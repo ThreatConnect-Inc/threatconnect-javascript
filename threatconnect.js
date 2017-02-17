@@ -178,7 +178,7 @@ var indicatorHelper = function(type) {
         'host': TYPE.HOST,
         'url': TYPE.URL
     };
-    return iTypes[type];
+    return iTypes[type.toLowerCase()];
 };
 
 function getParameterByName(name) {
