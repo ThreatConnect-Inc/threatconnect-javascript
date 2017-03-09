@@ -1444,10 +1444,6 @@ function Indicators(authentication) {
             ].join('/'));
             this.requestMethod('POST');
             this.body(attribute);
-            // this.body({
-            //     type: attribute.type,
-            //     value: attribute.value
-            // });
 
             // attribute update
             if (attribute.id) {
@@ -3850,7 +3846,7 @@ var normalize = {
             }
 
             if (typeof indicatorTypeData != 'undefined'){
-                indicatorType = indicatorTypeData.type;                
+                indicatorType = indicatorTypeData.type;
                 indicatorsData = [];
                 // $.each(type.indicatorFields, function(ikey, ivalue) {
                 Array.prototype.forEach.call(type.indicatorFields, function(ivalue, index, array){
