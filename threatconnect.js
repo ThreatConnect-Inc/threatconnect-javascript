@@ -1320,7 +1320,7 @@ function Indicators(authentication) {
     };
 
     this.rating = function(data) {
-        if (intCheck('rating', data)) {
+        if (rangeCheck('rating', data, 0, 5)) {
             this.iData.optionalData.rating = data;
         }
         return this;
@@ -1957,10 +1957,10 @@ function IndicatorsBatch(authentication) {
     };
 
     this.rating = function(data) {
-        if (intCheck('rating', data)) {
+        if (rangeCheck('rating', data, 0, 5)) {
             this.iData.optionalData.rating = data;
         } else {
-            console.error('Rating must be a Float.', data);
+            console.error('Invalid rating value.', data);
         }
         return this;
     };
