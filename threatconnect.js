@@ -2443,7 +2443,7 @@ function Tasks(authentication) {
     };
 
     this.status = function(data) {
-        if (valueCheck('status', data, ['In Progress', 'Complete', 'Waiting on Someone', 'Deferred'])) {
+        if (valueCheck('status', data, ['Not Started', 'In Progress', 'Complete', 'Waiting on Someone', 'Deferred'])) {
             this.rData.optionalData.status = data;
         }
         return this;
