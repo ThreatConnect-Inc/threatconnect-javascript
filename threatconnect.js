@@ -175,6 +175,19 @@ var FILTER = {
     SW: '^'       /* %5E */
 };
 
+var groupHelper = function(type) {
+    var gTypes = {
+        'adversary': TYPE.ADVERSARY,
+        'campaign': TYPE.CAMPAIGN,
+        'document': TYPE.DOCUMENT,
+        'email': TYPE.EMAIL,
+        'incident': TYPE.INCIDENT,
+        'signature': TYPE.SIGNATURE,
+        'threat': TYPE.THREAT
+    };
+    return gTypes[type.toLowerCase()];
+};
+
 var indicatorHelper = function(type) {
     var iTypes = {
         'address': TYPE.ADDRESS,
