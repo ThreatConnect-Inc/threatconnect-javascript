@@ -154,6 +154,11 @@ var TYPE = {
         'dataField': 'victimWebSite',
         'type': 'WebSite',
         'uri': 'victimAssets/webSites',
+    },
+    WHOAMI: {
+        'dataField': '',
+        'type': 'whoami',
+        'uri': 'whoami',
     }
 };
 
@@ -736,6 +741,10 @@ function ThreatConnect(params) {
     this.victims = function() {
         return new Victims(this.authentication);
     };
+
+    this.whoami = function() {
+        return new WhoAmI(this.authentication);
+    }
 }
 
 function Groups(authentication) {
@@ -3469,6 +3478,39 @@ function Victims(authentication) {
     return this;
 }
 Victims.prototype = Object.create(RequestObject.prototype);
+
+function WhoAmI(authentication) {
+    RequestObject.call(this);
+
+    this.authentication = authentication;
+    this.ajax.requestUri = 'v2',
+    this.resultLimit(500);
+    this.settings.helper = true,
+    this.settings.type = TYPE.WHOAMI;
+
+    /* API ACTIONS */
+
+    // Retrieve
+    this.retrieve = function(callback) {
+        /* GET - /v2/whoami */
+
+        this.requestUri([
+            this.ajax.requestUri,
+            this.settings.type.uri,
+        ].join('/'));
+        this.requestMethod('GET');
+        this.settings.requestCount = this.payload.resultLimit;
+
+        return this.apiRequest('next').done(function() {
+            if (callback) {
+                callback();
+            }
+        });
+    };
+
+    return this;
+}
+WhoAmI.prototype = Object.create(RequestObject.prototype);
 
 function SecureProxy(authentication) {
     RequestObject.call(this);
