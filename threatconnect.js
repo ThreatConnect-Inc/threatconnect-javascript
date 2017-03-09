@@ -1397,7 +1397,7 @@ function Indicators(authentication) {
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
-            this.iData.indicator,
+            this.settings.type.type == 'URL' || this.settings.type.type == 'EmailAddress' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
             association.type.uri,
             association.id,
         ].join('/'));
@@ -1417,7 +1417,7 @@ function Indicators(authentication) {
             this.requestUri([
                 this.ajax.baseUri,
                 this.settings.type.uri,
-                this.iData.indicator,
+                this.settings.type.type == 'URL' || this.settings.type.type == 'EmailAddress' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
                 'attributes'
             ].join('/'));
             this.requestMethod('POST');
@@ -1446,7 +1446,7 @@ function Indicators(authentication) {
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
-            this.iData.indicator,
+            this.settings.type.type == 'URL' || this.settings.type.type == 'EmailAddress' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
             'falsePositive'
         ].join('/'));
         this.requestMethod('POST');
@@ -1461,7 +1461,7 @@ function Indicators(authentication) {
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
-            this.iData.indicator,
+            this.settings.type.type == 'URL' || this.settings.type.type == 'EmailAddress' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
             'observations'
         ].join('/'));
         this.requestMethod('POST');
@@ -1481,7 +1481,7 @@ function Indicators(authentication) {
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
-            this.iData.indicator,
+            this.settings.type.type == 'URL' || this.settings.type.type == 'EmailAddress' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
             'securityLabels',
             label
         ].join('/'));
@@ -1498,7 +1498,7 @@ function Indicators(authentication) {
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
-            this.iData.indicator,
+            this.settings.type.type == 'URL' || this.settings.type.type == 'EmailAddress' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
             'tags',
             tag
         ].join('/'));
@@ -1513,7 +1513,7 @@ function Indicators(authentication) {
         this.requestUri([
             this.ajax.requestUri,
             this.settings.type.uri,
-            this.iData.indicator,
+            this.settings.type.type == 'URL' || this.settings.type.type == 'EmailAddress' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
         ].join('/'));
 
         this.requestMethod('DELETE');
@@ -1527,7 +1527,7 @@ function Indicators(authentication) {
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
-            this.iData.indicator,
+            this.settings.type.type == 'URL' || this.settings.type.type == 'EmailAddress' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
             association.type.uri,
             association.id,
         ].join('/'));
@@ -1543,7 +1543,7 @@ function Indicators(authentication) {
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
-            this.iData.indicator,
+            this.settings.type.type == 'URL' || this.settings.type.type == 'EmailAddress' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
             'attributes',
             attributeId
         ].join('/'));
@@ -1559,7 +1559,7 @@ function Indicators(authentication) {
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
-            this.iData.indicator,
+            this.settings.type.type == 'URL' || this.settings.type.type == 'EmailAddress' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
             'securityLabels',
             label
         ].join('/'));
@@ -1575,7 +1575,7 @@ function Indicators(authentication) {
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
-            this.iData.indicator,
+            this.settings.type.type == 'URL' || this.settings.type.type == 'EmailAddress' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
             'tags',
             tag
         ].join('/'));
@@ -1598,7 +1598,7 @@ function Indicators(authentication) {
         if (this.iData.indicator) {
             this.requestUri([
                 this.ajax.requestUri,
-                this.settings.type.type == 'URL' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
+                this.settings.type.type == 'URL' || this.settings.type.type == 'EmailAddress' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
             ].join('/'));
         }
         this.settings.requestCount = this.payload.resultLimit;
@@ -1629,7 +1629,7 @@ function Indicators(authentication) {
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
-            this.settings.type.type == 'URL' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
+            this.settings.type.type == 'URL' || this.settings.type.type == 'EmailAddress' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
             association.type.uri,
         ].join('/'));
         if (association.id) {
@@ -1652,7 +1652,7 @@ function Indicators(authentication) {
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
-            this.settings.type.type == 'URL' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
+            this.settings.type.type == 'URL' || this.settings.type.type == 'EmailAddress' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
             'attributes',
         ].join('/'));
         if (intCheck('attributeId', attributeId)) {
@@ -1674,7 +1674,7 @@ function Indicators(authentication) {
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
-            this.settings.type.type == 'URL' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
+            this.settings.type.type == 'URL' || this.settings.type.type == 'EmailAddress' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
             'observations',
         ].join('/'));
 
@@ -1690,7 +1690,7 @@ function Indicators(authentication) {
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
-            this.settings.type.type == 'URL' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
+            this.settings.type.type == 'URL' || this.settings.type.type == 'EmailAddress' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
             'observationCount',
         ].join('/'));
 
@@ -1706,7 +1706,7 @@ function Indicators(authentication) {
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
-            this.settings.type.type == 'URL' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
+            this.settings.type.type == 'URL' || this.settings.type.type == 'EmailAddress' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
             'owners'
         ].join('/'));
         if (label) {
@@ -1729,7 +1729,7 @@ function Indicators(authentication) {
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
-            this.settings.type.type == 'URL' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
+            this.settings.type.type == 'URL' || this.settings.type.type == 'EmailAddress' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
             'securityLabels'
         ].join('/'));
         if (label) {
@@ -1752,7 +1752,7 @@ function Indicators(authentication) {
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
-            this.settings.type.type == 'URL' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
+            this.settings.type.type == 'URL' || this.settings.type.type == 'EmailAddress' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
             'tags'
         ].join('/'));
         if (tagName) {
@@ -1774,7 +1774,7 @@ function Indicators(authentication) {
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
-            this.settings.type.type == 'URL' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
+            this.settings.type.type == 'URL' || this.settings.type.type == 'EmailAddress' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
             'tasks'
         ].join('/'));
 
@@ -1833,7 +1833,7 @@ function Indicators(authentication) {
             if (this.iData.indicator) {
                 this.requestUri([
                     this.ajax.baseUri,
-                    this.iData.indicator
+                    this.settings.type.type == 'URL' || this.settings.type.type == 'EmailAddress' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
                 ].join('/'));
                 this.requestMethod('PUT');
             }
