@@ -1,7 +1,7 @@
 <html>
 
 <head>
-    <title>ThreatConnect Javascript SDK - DataStore Retrieve</title>
+    <title>ThreatConnect Javascript SDK - WhoAmI Retrieve</title>
 
     <!-- JQuery -->
     <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
@@ -32,18 +32,17 @@
 
         var tc = new ThreatConnect(apiSettings);
 
-        tc.owners()
+        tc.whoami()
             .done(function(response) {
                 console.log('response', response);
                 $('#response-content').append(JSON.stringify(response, null, 4));
             })
             .error(function(response) {
-                console.log('error response', response);
+                console.error('error response', response);
                 $('#response-content').append(JSON.stringify(response, null, 4));
             })
             .retrieve();
     </script>
-
 </head>
 
 <body>
