@@ -1455,6 +1455,7 @@ function Indicators(authentication) {
     this.commit = function(callback) {
         /* POST - /v2/indicators/{type} */
         /* PUT - /v2/indicators/{type}/{indicator} */
+        var _this = this;
 
         // validate required fields
         if (this.iData.indicator) {
@@ -1473,6 +1474,9 @@ function Indicators(authentication) {
 
             this.apiRequest({action: 'commit'})
                 .done(function(response) {
+                    if (_this.settings.type.type == 'Address') {
+                        _this.iData.indicator = response.data[_this.settings.type.dataField].ip;
+                    }
                     if (callback) callback();
                 });
 
@@ -3225,7 +3229,6 @@ function Victims(authentication) {
 
         this.apiRequest({action: 'commit'})
             .done(function(response) {
-                // console.log('bcs', _this.settings);
                 _this.rData.id = response.data[_this.settings.type.dataField].id;
                 if (callback) callback();
         });
