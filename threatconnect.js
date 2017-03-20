@@ -3899,6 +3899,7 @@ var normalize = {
 
         if (type.dataField in response) {
             response = response[type.dataField];
+            indicatorTypeData = type;
         } else if ('indicator' in response) {
             response = response.indicator;
             type = TYPE.INDICATOR;
