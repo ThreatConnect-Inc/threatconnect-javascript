@@ -1049,15 +1049,7 @@ function Groups(authentication) {
                 'attributes'
             ].join('/'));
             this.requestMethod('POST');
-            this.requestMethod('POST');
-            var _body = {
-                type: attribute.type,
-                value: attribute.value
-            };
-            if (attribute.displayed) {
-                _body['displayed'] = attribute.displayed;
-            }
-            this.body(_body);
+            this.body(attribute);
 
             // attribute update
             if (attribute.id) {
@@ -2632,10 +2624,7 @@ function Tasks(authentication) {
                 'attributes'
             ].join('/'));
             this.requestMethod('POST');
-            this.body({
-                type: attribute.type,
-                value: attribute.value
-            });
+            this.body(attribute);
 
             // attribute update
             if (attribute.id) {
@@ -3282,10 +3271,7 @@ function Victims(authentication) {
                 'attributes'
             ].join('/'));
             this.requestMethod('POST');
-            this.body({
-                type: attribute.type,
-                value: attribute.value
-            });
+            this.body(attribute);
 
             // attribute update
             if (attribute.id) {
