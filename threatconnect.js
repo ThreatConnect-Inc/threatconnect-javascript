@@ -28,6 +28,11 @@ var TYPE = {
         'type': 'Adversary',
         'uri': 'groups/adversaries',
     },
+    CAMPAIGN: {
+        'dataField': 'campaign',
+        'type': 'Campaign',
+        'uri': 'groups/campaigns',
+    },
     DOCUMENT: {
         'dataField': 'document',
         'type': 'Document',
@@ -850,6 +855,7 @@ function Groups(authentication) {
         requiredData: {},
         specificData: {
             adversary: {},
+            campaign: {},
             document: {},
             email: {},
             incident: {},
@@ -913,6 +919,12 @@ function Groups(authentication) {
     };
 
     /* TYPE SPECIFIC PARAMETERS */
+
+    // campaign
+    this.firstSeen = function(data) {
+        this.rData.specificData.campaign.firstSeen = data;
+        return this;
+    };
 
     // document / signature
     this.fileName = function(data) {
@@ -4035,6 +4047,7 @@ var normalize = {
 
         switch (type) {
             case TYPE.ADVERSARY.type:
+            case TYPE.CAMPAIGN.type:
             case TYPE.DOCUMENT.type:
             case TYPE.EMAIL.type:
             case TYPE.GROUP.type:
