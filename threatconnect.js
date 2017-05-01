@@ -908,7 +908,7 @@ function Groups(authentication) {
     };
 
     this.tags = function(data) {
-        if (this.rData.optionalData.tag) {this.rData.optionalData.tag = []}
+        if (this.rData.optionalData.tag) { this.rData.optionalData.tag = []; }
         var tag;
         if (objectCheck('tag', data) && data.length != 0) {
             for (tag in data) {
@@ -1580,7 +1580,7 @@ function Indicators(authentication) {
         return this.apiRequest('falsePositive');
     };
 
-    // Commit Occurrence
+    // Commit Observation
     this.commitObservation = function(params) {
         /* POST - /v2/indicators/{type}/{indicator}/observation */
 
@@ -2130,7 +2130,7 @@ function IndicatorsBatch(authentication) {
         var tag;
         // if (typeof data === 'object' && data.length != 0) {
         if (Object.prototype.toString.call( data ) === '[object Array]' && data.length != 0) {
-            if (!this.iData.optionalData.tag) {this.iData.optionalData.tag = []}
+            if (!this.iData.optionalData.tag) { this.iData.optionalData.tag = []; }
             for (tag in data) {
                 this.iData.optionalData.tag.push({name: data[tag]});
             }
@@ -2143,7 +2143,7 @@ function IndicatorsBatch(authentication) {
     this.associatedGroup = function(data) {
         var associatedGroup;
         if (Object.prototype.toString.call( data ) === '[object Array]' && data.length != 0) {
-            if (!this.iData.optionalData.associatedGroup) {this.iData.optionalData.associatedGroup = []}
+            if (!this.iData.optionalData.associatedGroup) { this.iData.optionalData.associatedGroup = []; }
             for (associatedGroup in data) {
                 this.iData.optionalData.associatedGroup.push(data[associatedGroup]);
             }
@@ -3988,11 +3988,11 @@ var normalize = {
                 // $.each(type.indicatorFields, function(ikey, ivalue) {
                 Array.prototype.forEach.call(type.indicatorFields, function(ivalue, index, array){
                     if ('summary' in rvalue) {
-                        indicatorsData.push(rvalue['summary']);
+                        indicatorsData.push(rvalue.summary);
                         return false;
                     } else {
-                        if (rvalue[ivalue]) {
-                            indicatorsData.push(rvalue[ivalue]);
+                        if (rvalue.ivalue) {
+                            indicatorsData.push(rvalue.ivalue);
                         }
                     }
                 });
@@ -4028,7 +4028,7 @@ var normalize = {
                 return;
             }
 
-            rvalue.indicator = rvalue['summary'];
+            rvalue.indicator = rvalue.summary;
             delete rvalue.summary;
 
             indicators.push(rvalue);
