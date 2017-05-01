@@ -33,6 +33,7 @@
         var tc = new ThreatConnect(apiSettings);
         var indicators = tc.indicators();
 
+        // create an Address Indicator
         indicators.owner('Example Community')
             .indicator('10.20.30.40')
             .type(TYPE.ADDRESS)
@@ -43,7 +44,28 @@
                 $('#response-content').append(JSON.stringify(response, null, 4));
             })
             .error(function(response) {
-                console.log('error response', response);
+                console.error('error response', response);
+            })
+            .commit();
+
+        indicators = tc.indicators();
+
+        // create a File Indicator
+        indicators.owner('Example Community')
+            .indicator({
+                md5: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                sha1: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                sha256: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            })
+            .type(TYPE.ADDRESS)
+            .rating(3)
+            .confidence(55)
+            .done(function(response) {
+                console.log('response', response);
+                $('#response-content').append(JSON.stringify(response, null, 4));
+            })
+            .error(function(response) {
+                console.error('error response', response);
             })
             .commit();
     </script>

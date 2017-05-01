@@ -214,9 +214,9 @@ function getParameterByName(name) {
 }
 
 function getParameterArrayByName(name) {
-	name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
 
-	var results = {};
+    var results = {};
     var regex = new RegExp("[\\?&]" + name + "=([^&#]*)");
     var result;
     var i = 0;
@@ -224,8 +224,8 @@ function getParameterArrayByName(name) {
     var qs = location.search;
 
     while(result = regex.exec(qs)) {
-    	results[i++] = (result === null ? "" : decodeURIComponent(result[1].replace(/\+/g, " ")));
-    	qs = qs.substring(result.index + result[0].length);
+        results[i++] = (result === null ? "" : decodeURIComponent(result[1].replace(/\+/g, " ")));
+        qs = qs.substring(result.index + result[0].length);
     }
 
     return results;
@@ -908,7 +908,7 @@ function Groups(authentication) {
     };
 
     this.tags = function(data) {
-        if (this.rData.optionalData.tag) {this.rData.optionalData.tag = []}
+        if (this.rData.optionalData.tag) { this.rData.optionalData.tag = []; }
         var tag;
         if (objectCheck('tag', data) && data.length != 0) {
             for (tag in data) {
@@ -1427,10 +1427,17 @@ function Indicators(authentication) {
     /* INDICATOR DATA SPECIFIC */
 
     // file
-    // this.description = function(data) {
-    //     this.iData.specificData.File.description = data;
-    //     return this;
-    // };
+    this._getFileHash = function() {
+        /* Return a file hash from an Object with file hashes. */
+        var fileHash;
+
+        for(var hash in this.iData.indicator) {
+            fileHash = this.iData.indicator[hash];
+            break;
+        }
+
+        return fileHash;
+    };
 
     // host
     this.dnsActive = function(data) {
@@ -1463,8 +1470,14 @@ function Indicators(authentication) {
 
         // validate required fields
         if (this.iData.indicator) {
-
-            this.iData.requiredData[this.settings.type.postField] = this.iData.indicator;
+            if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+                for(var hash in this.iData.indicator) {
+                    this.iData.requiredData[hash] = this.iData.indicator[hash];
+                }
+            }
+            else {
+                this.iData.requiredData[this.settings.type.postField] = this.iData.indicator;
+            }
 
             // prepare body
             var specificBody = this.iData.specificData[this.settings.type.type];
@@ -1496,6 +1509,11 @@ function Indicators(authentication) {
         /* POST - /v2/indicators/{type}/{indicator}/groups/{type}/{id} */
         this.normalization(normalize.find(association.type.type));
 
+        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+            // set the indicator to one of the file hashes in the Object
+            this.iData.indicator = this._getFileHash();
+        }
+
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
@@ -1512,9 +1530,13 @@ function Indicators(authentication) {
     this.commitAttribute = function(attribute) {
         /* POST - /v2/indicators/{type}/{indicator}/attributes */
         /* PUT - /v2/indicators/{type}/{indicator}/attributes/{id} */
-
         if (attribute) {
             this.normalization(normalize.attributes);
+
+            if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+                // set the indicator to one of the file hashes in the Object
+                this.iData.indicator = this._getFileHash();
+            }
 
             this.requestUri([
                 this.ajax.baseUri,
@@ -1542,6 +1564,11 @@ function Indicators(authentication) {
         /* POST - /v2/indicators/{type}/{indicator}/falsePositive */
         this.normalization(normalize.default);
 
+        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+            // set the indicator to one of the file hashes in the Object
+            this.iData.indicator = this._getFileHash();
+        }
+
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
@@ -1553,9 +1580,14 @@ function Indicators(authentication) {
         return this.apiRequest('falsePositive');
     };
 
-    // Commit Occurrence
+    // Commit Observation
     this.commitObservation = function(params) {
         /* POST - /v2/indicators/{type}/{indicator}/observation */
+
+        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+            // set the indicator to one of the file hashes in the Object
+            this.iData.indicator = this._getFileHash();
+        }
 
         this.requestUri([
             this.ajax.baseUri,
@@ -1577,6 +1609,11 @@ function Indicators(authentication) {
         /* POST - /v2/indicators/{type}/{indicator}/securityLabels/{name} */
         this.normalization(normalize.securityLabels);
 
+        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+            // set the indicator to one of the file hashes in the Object
+            this.iData.indicator = this._getFileHash();
+        }
+
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
@@ -1594,6 +1631,11 @@ function Indicators(authentication) {
         /* POST - /v2/indicators/{type}/{indicator}/tags/{name} */
         this.normalization(normalize.tags);
 
+        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+            // set the indicator to one of the file hashes in the Object
+            this.iData.indicator = this._getFileHash();
+        }
+
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
@@ -1609,6 +1651,11 @@ function Indicators(authentication) {
     // Delete
     this.delete = function() {
         /* DELETE - /v2/indicators/{type}/{indicator} */
+        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+            // set the indicator to one of the file hashes in the Object
+            this.iData.indicator = this._getFileHash();
+        }
+
         this.requestUri([
             this.ajax.requestUri,
             this.settings.type.uri,
@@ -1622,6 +1669,10 @@ function Indicators(authentication) {
     // Delete Associations
     this.deleteAssociation = function(association) {
         /* DELETE - /v2/indicators/{type}/{indicator}/groups/{type}/{id} */
+        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+            // set the indicator to one of the file hashes in the Object
+            this.iData.indicator = this._getFileHash();
+        }
 
         this.requestUri([
             this.ajax.baseUri,
@@ -1638,6 +1689,10 @@ function Indicators(authentication) {
     // Delete Attributes
     this.deleteAttribute = function(attributeId) {
         /* DELETE - /v2/indicators/{type}/{indicator}/attributes/{id} */
+        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+            // set the indicator to one of the file hashes in the Object
+            this.iData.indicator = this._getFileHash();
+        }
 
         this.requestUri([
             this.ajax.baseUri,
@@ -1654,6 +1709,10 @@ function Indicators(authentication) {
     // Delete Security Label
     this.deleteSecurityLabel = function(label) {
         /* DELETE - /v2/indicators/{type}/{indicator}/securityLabels/{name} */
+        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+            // set the indicator to one of the file hashes in the Object
+            this.iData.indicator = this._getFileHash();
+        }
 
         this.requestUri([
             this.ajax.baseUri,
@@ -1670,6 +1729,10 @@ function Indicators(authentication) {
     // Delete Tag
     this.deleteTag = function(tag) {
         /* DELETE - /v2/indicators/{type}/{indicator}/tags/{name} */
+        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+            // set the indicator to one of the file hashes in the Object
+            this.iData.indicator = this._getFileHash();
+        }
 
         this.requestUri([
             this.ajax.baseUri,
@@ -2067,7 +2130,7 @@ function IndicatorsBatch(authentication) {
         var tag;
         // if (typeof data === 'object' && data.length != 0) {
         if (Object.prototype.toString.call( data ) === '[object Array]' && data.length != 0) {
-            if (!this.iData.optionalData.tag) {this.iData.optionalData.tag = []}
+            if (!this.iData.optionalData.tag) { this.iData.optionalData.tag = []; }
             for (tag in data) {
                 this.iData.optionalData.tag.push({name: data[tag]});
             }
@@ -2080,7 +2143,7 @@ function IndicatorsBatch(authentication) {
     this.associatedGroup = function(data) {
         var associatedGroup;
         if (Object.prototype.toString.call( data ) === '[object Array]' && data.length != 0) {
-            if (!this.iData.optionalData.associatedGroup) {this.iData.optionalData.associatedGroup = []}
+            if (!this.iData.optionalData.associatedGroup) { this.iData.optionalData.associatedGroup = []; }
             for (associatedGroup in data) {
                 this.iData.optionalData.associatedGroup.push(data[associatedGroup]);
             }
@@ -2229,9 +2292,9 @@ function IndicatorsBatch(authentication) {
                                                         .done(function(errorResponse) {
 
                                                             if(typeof errorResponse === "string") {
-                                                            	statusResponse.data.batchStatus.errors = JSON.parse(errorResponse);
+                                                                statusResponse.data.batchStatus.errors = JSON.parse(errorResponse);
                                                             } else {
-                                                            	statusResponse.data.batchStatus.errors = errorResponse;
+                                                                statusResponse.data.batchStatus.errors = errorResponse;
                                                             }
                                                             _this.done(statusResponse.data.batchStatus);
                                                         });
@@ -3925,11 +3988,11 @@ var normalize = {
                 // $.each(type.indicatorFields, function(ikey, ivalue) {
                 Array.prototype.forEach.call(type.indicatorFields, function(ivalue, index, array){
                     if ('summary' in rvalue) {
-                        indicatorsData.push(rvalue['summary']);
+                        indicatorsData.push(rvalue.summary);
                         return false;
                     } else {
-                        if (rvalue[ivalue]) {
-                            indicatorsData.push(rvalue[ivalue]);
+                        if (rvalue.ivalue) {
+                            indicatorsData.push(rvalue.ivalue);
                         }
                     }
                 });
@@ -3965,7 +4028,7 @@ var normalize = {
                 return;
             }
 
-            rvalue.indicator = rvalue['summary'];
+            rvalue.indicator = rvalue.summary;
             delete rvalue.summary;
 
             indicators.push(rvalue);
