@@ -30,26 +30,68 @@
             };
         }
 
-    var tc = new ThreatConnect(apiSettings);
-    var indicators = tc.indicators();
-    
-    indicators.owner('Example Community')
-        .indicator('10.20.30.40')
-        .type(TYPE.ADDRESS)
-        .rating(3)
-        .confidence(55)
-        .done(function(response) {
-            console.log('response', response);
-            $('#response-content').append(JSON.stringify(response, null, 4));
-        })
-        .error(function(response) {
-            console.log('error response', response);
-        })
-        .commitAttribute({
-            type: 'Description',
-            value: 'This is a description.'
-        });
+        var tc = new ThreatConnect(apiSettings);
+        var indicators = tc.indicators();
+        
+        indicators.owner('Example Community')
+            .indicator('10.20.30.40')
+            .type(TYPE.ADDRESS)
+            .rating(3)
+            .confidence(55)
+            .done(function(response) {
+                console.log('response', response);
+                $('#response-content').append(JSON.stringify(response, null, 4));
+            })
+            .error(function(response) {
+                console.log('error response', response);
+            })
+            .commitAttribute({
+                type: 'Description',
+                value: 'This is a description.'
+            });
 
+
+        indicators = tc.indicators();
+
+        // add a Description attribute to a file indicator ~ Method 1
+        indicators.owner('Example Community')
+            .indicator({
+                md5: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                sha1: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                sha256: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            })
+            .type(TYPE.FILE)
+            .rating(3)
+            .confidence(55)
+            .done(function(response) {
+                console.log('response', response);
+                $('#response-content').append(JSON.stringify(response, null, 4));
+            })
+            .error(function(response) {
+                console.error('error response', response);
+            })
+            .commitAttribute({
+                type: 'Description',
+                value: 'This is a description.'
+            });
+
+        // add a Description attribute to a file indicator ~ Method 2
+        indicators.owner('Example Community')
+            .indicator("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+            .type(TYPE.FILE)
+            .rating(3)
+            .confidence(55)
+            .done(function(response) {
+                console.log('response', response);
+                $('#response-content').append(JSON.stringify(response, null, 4));
+            })
+            .error(function(response) {
+                console.error('error response', response);
+            })
+            .commitAttribute({
+                type: 'Description',
+                value: 'This is a description.'
+            });
 </script>
 </head>
 
