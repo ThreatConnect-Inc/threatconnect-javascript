@@ -1427,10 +1427,17 @@ function Indicators(authentication) {
     /* INDICATOR DATA SPECIFIC */
 
     // file
-    // this.description = function(data) {
-    //     this.iData.specificData.File.description = data;
-    //     return this;
-    // };
+    this._getFileHash = function() {
+        /* Return a file hash from an Object with file hashes. */
+        var fileHash;
+
+        for(var hash in this.iData.indicator) {
+            fileHash = this.iData.indicator[hash];
+            break;
+        }
+
+        return fileHash;
+    };
 
     // host
     this.dnsActive = function(data) {
@@ -1463,8 +1470,14 @@ function Indicators(authentication) {
 
         // validate required fields
         if (this.iData.indicator) {
-
-            this.iData.requiredData[this.settings.type.postField] = this.iData.indicator;
+            if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+                for(var hash in this.iData.indicator) {
+                    this.iData.requiredData[hash] = this.iData.indicator[hash];
+                }
+            }
+            else {
+                this.iData.requiredData[this.settings.type.postField] = this.iData.indicator;
+            }
 
             // prepare body
             var specificBody = this.iData.specificData[this.settings.type.type];
@@ -1496,6 +1509,11 @@ function Indicators(authentication) {
         /* POST - /v2/indicators/{type}/{indicator}/groups/{type}/{id} */
         this.normalization(normalize.find(association.type.type));
 
+        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+            // set the indicator to one of the file hashes in the Object
+            this.iData.indicator = this._getFileHash();
+        }
+
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
@@ -1512,9 +1530,13 @@ function Indicators(authentication) {
     this.commitAttribute = function(attribute) {
         /* POST - /v2/indicators/{type}/{indicator}/attributes */
         /* PUT - /v2/indicators/{type}/{indicator}/attributes/{id} */
-
         if (attribute) {
             this.normalization(normalize.attributes);
+
+            if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+                // set the indicator to one of the file hashes in the Object
+                this.iData.indicator = this._getFileHash();
+            }
 
             this.requestUri([
                 this.ajax.baseUri,
@@ -1542,6 +1564,11 @@ function Indicators(authentication) {
         /* POST - /v2/indicators/{type}/{indicator}/falsePositive */
         this.normalization(normalize.default);
 
+        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+            // set the indicator to one of the file hashes in the Object
+            this.iData.indicator = this._getFileHash();
+        }
+
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
@@ -1556,6 +1583,11 @@ function Indicators(authentication) {
     // Commit Occurrence
     this.commitObservation = function(params) {
         /* POST - /v2/indicators/{type}/{indicator}/observation */
+
+        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+            // set the indicator to one of the file hashes in the Object
+            this.iData.indicator = this._getFileHash();
+        }
 
         this.requestUri([
             this.ajax.baseUri,
@@ -1577,6 +1609,11 @@ function Indicators(authentication) {
         /* POST - /v2/indicators/{type}/{indicator}/securityLabels/{name} */
         this.normalization(normalize.securityLabels);
 
+        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+            // set the indicator to one of the file hashes in the Object
+            this.iData.indicator = this._getFileHash();
+        }
+
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
@@ -1594,6 +1631,11 @@ function Indicators(authentication) {
         /* POST - /v2/indicators/{type}/{indicator}/tags/{name} */
         this.normalization(normalize.tags);
 
+        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+            // set the indicator to one of the file hashes in the Object
+            this.iData.indicator = this._getFileHash();
+        }
+
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
@@ -1609,6 +1651,11 @@ function Indicators(authentication) {
     // Delete
     this.delete = function() {
         /* DELETE - /v2/indicators/{type}/{indicator} */
+        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+            // set the indicator to one of the file hashes in the Object
+            this.iData.indicator = this._getFileHash();
+        }
+
         this.requestUri([
             this.ajax.requestUri,
             this.settings.type.uri,
@@ -1622,6 +1669,10 @@ function Indicators(authentication) {
     // Delete Associations
     this.deleteAssociation = function(association) {
         /* DELETE - /v2/indicators/{type}/{indicator}/groups/{type}/{id} */
+        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+            // set the indicator to one of the file hashes in the Object
+            this.iData.indicator = this._getFileHash();
+        }
 
         this.requestUri([
             this.ajax.baseUri,
@@ -1638,6 +1689,10 @@ function Indicators(authentication) {
     // Delete Attributes
     this.deleteAttribute = function(attributeId) {
         /* DELETE - /v2/indicators/{type}/{indicator}/attributes/{id} */
+        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+            // set the indicator to one of the file hashes in the Object
+            this.iData.indicator = this._getFileHash();
+        }
 
         this.requestUri([
             this.ajax.baseUri,
@@ -1654,6 +1709,10 @@ function Indicators(authentication) {
     // Delete Security Label
     this.deleteSecurityLabel = function(label) {
         /* DELETE - /v2/indicators/{type}/{indicator}/securityLabels/{name} */
+        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+            // set the indicator to one of the file hashes in the Object
+            this.iData.indicator = this._getFileHash();
+        }
 
         this.requestUri([
             this.ajax.baseUri,
@@ -1670,6 +1729,10 @@ function Indicators(authentication) {
     // Delete Tag
     this.deleteTag = function(tag) {
         /* DELETE - /v2/indicators/{type}/{indicator}/tags/{name} */
+        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+            // set the indicator to one of the file hashes in the Object
+            this.iData.indicator = this._getFileHash();
+        }
 
         this.requestUri([
             this.ajax.baseUri,
