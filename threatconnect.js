@@ -214,9 +214,9 @@ function getParameterByName(name) {
 }
 
 function getParameterArrayByName(name) {
-	name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
 
-	var results = {};
+    var results = {};
     var regex = new RegExp("[\\?&]" + name + "=([^&#]*)");
     var result;
     var i = 0;
@@ -224,8 +224,8 @@ function getParameterArrayByName(name) {
     var qs = location.search;
 
     while(result = regex.exec(qs)) {
-    	results[i++] = (result === null ? "" : decodeURIComponent(result[1].replace(/\+/g, " ")));
-    	qs = qs.substring(result.index + result[0].length);
+        results[i++] = (result === null ? "" : decodeURIComponent(result[1].replace(/\+/g, " ")));
+        qs = qs.substring(result.index + result[0].length);
     }
 
     return results;
@@ -2229,9 +2229,9 @@ function IndicatorsBatch(authentication) {
                                                         .done(function(errorResponse) {
 
                                                             if(typeof errorResponse === "string") {
-                                                            	statusResponse.data.batchStatus.errors = JSON.parse(errorResponse);
+                                                                statusResponse.data.batchStatus.errors = JSON.parse(errorResponse);
                                                             } else {
-                                                            	statusResponse.data.batchStatus.errors = errorResponse;
+                                                                statusResponse.data.batchStatus.errors = errorResponse;
                                                             }
                                                             _this.done(statusResponse.data.batchStatus);
                                                         });
