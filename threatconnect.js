@@ -1987,6 +1987,14 @@ function Indicators(authentication) {
 
         // validate required fields
         if (this.iData.indicator) {
+            if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+                for(var hash in this.iData.indicator) {
+                    this.iData.requiredData[hash] = this.iData.indicator[hash];
+                }
+            }
+            else {
+                this.iData.requiredData[this.settings.type.postField] = this.iData.indicator;
+            }
 
             // prepare body
             var specificBody = this.iData.specificData[this.settings.type.type];
