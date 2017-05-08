@@ -1758,6 +1758,12 @@ function Indicators(authentication) {
             this.settings.type.uri
         ].join('/'));
         if (this.iData.indicator) {
+            // get a specific hash if given a file indicator as an Object
+            if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+                // set the indicator to one of the file hashes in the Object
+                this.iData.indicator = this._getFileHash();
+            }
+
             this.requestUri([
                 this.ajax.requestUri,
                 this.settings.type.type == 'URL' || this.settings.type.type == 'EmailAddress' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
