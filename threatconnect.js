@@ -1794,6 +1794,12 @@ function Indicators(authentication) {
         this.normalization(normalize.find(association.type.type));
         this.normalizationType(association.type);
 
+        // get a specific hash if given a file indicator as an Object
+        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+            // set the indicator to one of the file hashes in the Object
+            this.iData.indicator = this._getFileHash();
+        }
+
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
@@ -1817,6 +1823,12 @@ function Indicators(authentication) {
 
         this.settings.normalizer = normalize.attributes;
 
+        // get a specific hash if given a file indicator as an Object
+        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+            // set the indicator to one of the file hashes in the Object
+            this.iData.indicator = this._getFileHash();
+        }
+
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
@@ -1839,6 +1851,12 @@ function Indicators(authentication) {
 
         this.settings.normalizer = normalize.observations;
 
+        // get a specific hash if given a file indicator as an Object
+        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+            // set the indicator to one of the file hashes in the Object
+            this.iData.indicator = this._getFileHash();
+        }
+
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
@@ -1855,6 +1873,12 @@ function Indicators(authentication) {
 
         this.settings.normalizer = normalize.observationCount;
 
+        // get a specific hash if given a file indicator as an Object
+        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+            // set the indicator to one of the file hashes in the Object
+            this.iData.indicator = this._getFileHash();
+        }
+
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
@@ -1870,6 +1894,12 @@ function Indicators(authentication) {
         /* GET - /v2/indicators/{type}/{indicator}/owners */
 
         this.settings.normalizer = normalize.owners;
+
+        // get a specific hash if given a file indicator as an Object
+        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+            // set the indicator to one of the file hashes in the Object
+            this.iData.indicator = this._getFileHash();
+        }
 
         this.requestUri([
             this.ajax.baseUri,
@@ -1894,6 +1924,12 @@ function Indicators(authentication) {
 
         this.settings.normalizer = normalize.securityLabels;
 
+        // get a specific hash if given a file indicator as an Object
+        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+            // set the indicator to one of the file hashes in the Object
+            this.iData.indicator = this._getFileHash();
+        }
+
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
@@ -1917,6 +1953,12 @@ function Indicators(authentication) {
 
         this.settings.normalizer = normalize.tags;
 
+        // get a specific hash if given a file indicator as an Object
+        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+            // set the indicator to one of the file hashes in the Object
+            this.iData.indicator = this._getFileHash();
+        }
+
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
@@ -1938,6 +1980,12 @@ function Indicators(authentication) {
         /* GET - /v2/indicators/{type}/{indicator}/tasks */
 
         this.settings.normalizer = normalize.tasks;
+
+        // get a specific hash if given a file indicator as an Object
+        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+            // set the indicator to one of the file hashes in the Object
+            this.iData.indicator = this._getFileHash();
+        }
 
         this.requestUri([
             this.ajax.baseUri,
@@ -1973,6 +2021,12 @@ function Indicators(authentication) {
         /* GET - /v2/indicators/files/{indicator}/fileOccurrences */
         if (this.settings.type == TYPE.FILE) {
             this.settings.normalizer = normalize.fileOccurrences;
+
+            // get a specific hash if given a file indicator as an Object
+            if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+                // set the indicator to one of the file hashes in the Object
+                this.iData.indicator = this._getFileHash();
+            }
 
             this.requestUri([
                 this.ajax.baseUri,
