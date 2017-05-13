@@ -1033,13 +1033,16 @@ function Groups(authentication) {
         /* POST - /v2/groups/{type}/{id}/groups/{type}/{id} */
         /* POST - /v2/groups/{type}/{id}/indicators/{type}/{indicators} */
         this.normalization(normalize.find(association.type.type));
-
+        var resourceId = association.id;
+        if (association.type.type == 'URL' || association.type.type == 'EmailAddress') {
+            resourceId = encodeURIComponent(association.id);
+        }
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
             this.rData.id,
             association.type.uri,
-            association.id,
+            resourceId
         ].join('/'));
         this.requestMethod('POST');
 
@@ -1509,7 +1512,7 @@ function Indicators(authentication) {
         /* POST - /v2/indicators/{type}/{indicator}/groups/{type}/{id} */
         this.normalization(normalize.find(association.type.type));
 
-        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
+        if (this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
             // set the indicator to one of the file hashes in the Object
             this.iData.indicator = this._getFileHash();
         }
@@ -2671,13 +2674,16 @@ function Tasks(authentication) {
         /* POST - /v2/tasks/{id}/groups/{type}/{id} */
         /* POST - /v2/tasks/{id}/indicators/{type}/{indicator} */
         this.normalization(normalize.find(association.type.type));
-
+        var resourceId = association.id;
+        if (association.type.type == 'URL' || association.type.type == 'EmailAddress') {
+            resourceId = encodeURIComponent(association.id);
+        }
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
             this.rData.id,
             association.type.uri,
-            association.id,
+            resourceId
         ].join('/'));
         this.requestMethod('POST');
 
@@ -3321,12 +3327,16 @@ function Victims(authentication) {
         /* POST - /v2/victims/{id}/groups/{type}/{id} */
         /* POST - /v2/victims/{id}/indicators/{type}/{indicators} */
         this.normalization(normalize.find(association.type.type));
+        var resourceId = association.id;
+        if (association.type.type == 'URL' || association.type.type == 'EmailAddress') {
+            resourceId = encodeURIComponent(association.id);
+        }
 
         this.requestUri([
             this.ajax.requestUri,
             this.rData.id,
             association.type.uri,
-            association.id,
+            resourceId
         ].join('/'));
         this.requestMethod('POST');
 
