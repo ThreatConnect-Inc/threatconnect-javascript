@@ -5,3 +5,4 @@ indicator.html
 tc_conf.js
 /nbproject/private/
 /nbproject/
+*.conf
