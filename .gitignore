@@ -5,4 +5,9 @@ indicator.html
 tc_conf.js
 /nbproject/private/
 /nbproject/
-*.conf
+
+# Config file
+*.conf.js
+
+# node modules
+tests/node_modules/
