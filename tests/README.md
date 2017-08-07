@@ -22,3 +22,9 @@ var apiSettings = {
 cd /tests/
 make test
 ```
+
+## Results
+
+When properly run, the testing suite will open in the browser and output something like:
+
+![demo_tests](_screenshots_/example_test_output.png)
