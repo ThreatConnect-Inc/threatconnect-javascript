@@ -34,11 +34,9 @@ help:
 
 clean: ## remove all testing artifacts
 	rm -rf node_modules
-	rm -rf threatconnect-javascript
 
 test: clean ## run the tests (which will open in the default browser)
 	# install package dependencies
 	npm install mocha chai --save-dev
-	# TODO: get user input for the owner and write it into the testrunner.html
 	# open the test runner in a browser
 	$(BROWSER) testrunner.html
