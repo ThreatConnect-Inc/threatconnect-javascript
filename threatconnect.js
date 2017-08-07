@@ -1660,7 +1660,7 @@ function Indicators(authentication) {
         }
 
         this.requestUri([
-            this.ajax.requestUri,
+            this.ajax.baseUri,
             this.settings.type.uri,
             this.settings.type.type == 'URL' || this.settings.type.type == 'EmailAddress' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
         ].join('/'));
