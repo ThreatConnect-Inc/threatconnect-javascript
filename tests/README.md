@@ -27,4 +27,4 @@ make test
 
 When properly run, the testing suite will open in the browser and output something like:
 
-![demo_tests](_screenshots_/example_test_output.png?raw=true)
+![demo_tests](tests/_screenshots_/example_test_output.png?raw=true)
