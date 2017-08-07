@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ThreatConnect Javascript SDK Tests</title>
+    <link rel="stylesheet" href="./node_modules/mocha/mocha.css">
+
+    <!-- ThreatConnect Javascript SDK -->
+    <script type="text/javascript" src="../threatconnect.js"></script>
+    <!-- Uncomment the line below to use the master version of the SDK -->
+    <!-- <script type="text/javascript" src="https://cdn.rawgit.com/ThreatConnect-Inc/threatconnect-javascript/master/threatconnect.js"></script> -->
+
+
+    <!-- ThreatConnect configuration file -->
+    <script type="text/javascript" src="./tc.conf.js"></script>
+
+    <!-- Libraries for ThreatConnect Javascript SDK -->
+    <script type="text/javascript" src="../libs/core.js"></script>
+    <script type="text/javascript" src="../libs/sha256.js"></script>
+    <script type="text/javascript" src="../libs/hmac.js"></script>
+    <script type="text/javascript" src="../libs/enc-base64.js"></script>
+    <script type="text/javascript" src="../libs/jquery-1.11.3.js"></script>
+  </head>
+  <body>
+    <!-- The test results will end up in the div below -->
+    <div id="mocha"></div>
+
+    <!-- Import mocha and chai -->
+    <script src="./node_modules/mocha/mocha.js"></script>
+    <script src="./node_modules/chai/chai.js"></script>
+
+    <!-- Initialize mocha -->
+    <script>mocha.setup('bdd')</script>
+
+    <!-- Define testing configurations here -->
+    <script type="text/javascript">
+      var testOwner = prompt("Enter the owner in which you would like to create the content");
+    </script>
+
+    <!-- Load testing files here -->
+    <script src="test/groupTest.js"></script>
+    <script src="test/indicatorTest.js"></script>
+
+    <!-- Run the tests -->
+    <script>
+      mocha.run();
+    </script>
+  </body>
+</html>
