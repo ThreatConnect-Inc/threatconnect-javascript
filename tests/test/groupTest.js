@@ -30,6 +30,21 @@ describe('ThreatConnect Groups', function() {
               assert.equal(response.error, undefined);
             });
 
+          /* Group specific values. */
+          // Emails
+          if (groupType.type == "Email") {
+            groups.emailSubject("Test subject");
+            groups.emailBody("Test body");
+            groups.emailHeader("Test header");
+          }
+
+          // Signatures
+          if (groupType.type == "Signature") {
+            groups.fileName("Test signature");
+            groups.fileText("Test signature");
+            groups.fileType("Regex");
+          }
+
           groups.commit(done);
         });
       });
