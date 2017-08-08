@@ -57,13 +57,36 @@ describe('ThreatConnect Indicators', function() {
         });
       });
       /* Test retrieve indicators. */
-      describe('#retrieve()', function() {
+      describe('#retrieve multiple()', function() {
         it('should retrieve at least one result', function(done) {
           // re-initialize instance of indicators class
           var indicators = tc.indicators();
 
           indicators.owner(testOwner)
             .type(indicatorType)
+            .done(function(response) {
+              // make sure there is at least one indicator of the current type (we just created one so there should be)
+              assert.isAbove(response.data.length, 0);
+              // make sure there are no errors
+              assert.equal(response.error, undefined);
+            })
+            .error(function(response) {
+              // make sure there are no errors
+              assert.equal(response.error, undefined);
+            });
+
+          indicators.retrieve(done);
+        });
+      });
+      /* Test retrieving a specific indicator. */
+      describe('#retrieve single()', function() {
+        it('should retrieve at least one result', function(done) {
+          // re-initialize instance of indicators class
+          var indicators = tc.indicators();
+
+          indicators.owner(testOwner)
+            .type(indicatorType)
+            .indicator(indicator)
             .done(function(response) {
               // make sure there is at least one indicator of the current type (we just created one so there should be)
               assert.isAbove(response.data.length, 0);

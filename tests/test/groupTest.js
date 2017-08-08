@@ -48,14 +48,37 @@ describe('ThreatConnect Groups', function() {
           groups.commit(done);
         });
       });
-      /* Test retrieve groups. */
-      describe('#retrieve()', function() {
+      /* Test retrieving multiple groups. */
+      describe('#retrieve multiple()', function() {
         it('should retrieve at least one result', function(done) {
           // re-initialize instance of groups class
           var groups = tc.groups();
 
           groups.owner(testOwner)
             .type(groupType)
+            .done(function(response) {
+              // make sure there is at least one group of the current type (we just created one so there should be)
+              assert.isAbove(response.data.length, 0);
+              // make sure there are no errors
+              assert.equal(response.error, undefined);
+            })
+            .error(function(response) {
+              // make sure there are no errors
+              assert.equal(response.error, undefined);
+            });
+
+          groups.retrieve(done);
+        });
+      });
+      /* Test retrieving a specific group. */
+      describe('#retrieve single()', function() {
+        it('should retrieve at least one result', function(done) {
+          // re-initialize instance of groups class
+          var groups = tc.groups();
+
+          groups.owner(testOwner)
+            .type(groupType)
+            .id(groupId)
             .done(function(response) {
               // make sure there is at least one group of the current type (we just created one so there should be)
               assert.isAbove(response.data.length, 0);
