@@ -1463,6 +1463,33 @@ function Indicators(authentication) {
         return this;
     };
 
+    /* INDICATOR UTILTIY FUNCTIONS */
+
+    this._getSingleIndicatorValue = function(indicator) {
+        /* Get a single (non-null) value from the indicator Object. */
+        var indicatorValue;
+
+        // iterate through the values of the indicator Object
+        for(var indicatorField in indicator) {
+            // get the value from the indicator Object
+            indicatorValue = indicator[indicatorField];
+
+            // if the indicator value is not undefined, stop iterating through the indicator Object
+            if (indicatorValue != undefined) {
+                break;
+            }
+        }
+
+        // raise an error if the user passed in an empty Object
+        if (indicatorValue === undefined) {
+            // TODO: raise error here
+            var errorMessage = 'Request Failure: indicator is required (an empty Object was received).';
+            console.error(errorMessage);
+        } else {
+            return indicatorValue;
+        }
+    };
+
     /* API ACTIONS */
 
     // Commit
@@ -1473,9 +1500,10 @@ function Indicators(authentication) {
 
         // validate required fields
         if (this.iData.indicator) {
-            if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
-                for(var hash in this.iData.indicator) {
-                    this.iData.requiredData[hash] = this.iData.indicator[hash];
+            // validate the fields for the indicator
+            if(this.iData.indicator.constructor == Object) {
+                for(var indicatorField in this.iData.indicator) {
+                    this.iData.requiredData[indicatorField] = this.iData.indicator[indicatorField];
                 }
             }
             else {
@@ -1512,9 +1540,11 @@ function Indicators(authentication) {
         /* POST - /v2/indicators/{type}/{indicator}/groups/{type}/{id} */
         this.normalization(normalize.find(association.type.type));
 
-        if (this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
-            // set the indicator to one of the file hashes in the Object
-            this.iData.indicator = this._getFileHash();
+        // TODO: add an error here if no indicator is given (2)
+
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
         }
 
         this.requestUri([
@@ -1536,9 +1566,9 @@ function Indicators(authentication) {
         if (attribute) {
             this.normalization(normalize.attributes);
 
-            if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
-                // set the indicator to one of the file hashes in the Object
-                this.iData.indicator = this._getFileHash();
+            // if the indicator is an Object, set the indicator to be one of the values in the Object
+            if(this.iData.indicator.constructor == Object) {
+                this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
             }
 
             this.requestUri([
@@ -1567,9 +1597,9 @@ function Indicators(authentication) {
         /* POST - /v2/indicators/{type}/{indicator}/falsePositive */
         this.normalization(normalize.default);
 
-        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
-            // set the indicator to one of the file hashes in the Object
-            this.iData.indicator = this._getFileHash();
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
         }
 
         this.requestUri([
@@ -1587,9 +1617,9 @@ function Indicators(authentication) {
     this.commitObservation = function(params) {
         /* POST - /v2/indicators/{type}/{indicator}/observation */
 
-        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
-            // set the indicator to one of the file hashes in the Object
-            this.iData.indicator = this._getFileHash();
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
         }
 
         this.requestUri([
@@ -1612,9 +1642,9 @@ function Indicators(authentication) {
         /* POST - /v2/indicators/{type}/{indicator}/securityLabels/{name} */
         this.normalization(normalize.securityLabels);
 
-        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
-            // set the indicator to one of the file hashes in the Object
-            this.iData.indicator = this._getFileHash();
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
         }
 
         this.requestUri([
@@ -1634,9 +1664,9 @@ function Indicators(authentication) {
         /* POST - /v2/indicators/{type}/{indicator}/tags/{name} */
         this.normalization(normalize.tags);
 
-        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
-            // set the indicator to one of the file hashes in the Object
-            this.iData.indicator = this._getFileHash();
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
         }
 
         this.requestUri([
@@ -1654,9 +1684,9 @@ function Indicators(authentication) {
     // Delete
     this.delete = function() {
         /* DELETE - /v2/indicators/{type}/{indicator} */
-        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
-            // set the indicator to one of the file hashes in the Object
-            this.iData.indicator = this._getFileHash();
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
         }
 
         this.requestUri([
@@ -1672,9 +1702,9 @@ function Indicators(authentication) {
     // Delete Associations
     this.deleteAssociation = function(association) {
         /* DELETE - /v2/indicators/{type}/{indicator}/groups/{type}/{id} */
-        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
-            // set the indicator to one of the file hashes in the Object
-            this.iData.indicator = this._getFileHash();
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
         }
 
         this.requestUri([
@@ -1692,9 +1722,9 @@ function Indicators(authentication) {
     // Delete Attributes
     this.deleteAttribute = function(attributeId) {
         /* DELETE - /v2/indicators/{type}/{indicator}/attributes/{id} */
-        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
-            // set the indicator to one of the file hashes in the Object
-            this.iData.indicator = this._getFileHash();
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
         }
 
         this.requestUri([
@@ -1712,9 +1742,9 @@ function Indicators(authentication) {
     // Delete Security Label
     this.deleteSecurityLabel = function(label) {
         /* DELETE - /v2/indicators/{type}/{indicator}/securityLabels/{name} */
-        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
-            // set the indicator to one of the file hashes in the Object
-            this.iData.indicator = this._getFileHash();
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
         }
 
         this.requestUri([
@@ -1732,9 +1762,9 @@ function Indicators(authentication) {
     // Delete Tag
     this.deleteTag = function(tag) {
         /* DELETE - /v2/indicators/{type}/{indicator}/tags/{name} */
-        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
-            // set the indicator to one of the file hashes in the Object
-            this.iData.indicator = this._getFileHash();
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
         }
 
         this.requestUri([
@@ -1754,6 +1784,11 @@ function Indicators(authentication) {
         /* GET - /v2/indicators/ */
         /* GET - /v2/indicators/{type} */
         /* GET - /v2/indicators/{type}/{indicator} */
+
+        // if there is an indicator and if said indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator && this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
+        }
 
         // this.ajax.requestUri += '/' + this.settings.type.uri;
         this.requestUri([
@@ -1791,6 +1826,11 @@ function Indicators(authentication) {
         this.normalization(normalize.find(association.type.type));
         this.normalizationType(association.type);
 
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
+        }
+
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
@@ -1814,6 +1854,11 @@ function Indicators(authentication) {
 
         this.settings.normalizer = normalize.attributes;
 
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
+        }
+
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
@@ -1836,6 +1881,11 @@ function Indicators(authentication) {
 
         this.settings.normalizer = normalize.observations;
 
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
+        }
+
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
@@ -1852,6 +1902,11 @@ function Indicators(authentication) {
 
         this.settings.normalizer = normalize.observationCount;
 
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
+        }
+
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
@@ -1867,6 +1922,11 @@ function Indicators(authentication) {
         /* GET - /v2/indicators/{type}/{indicator}/owners */
 
         this.settings.normalizer = normalize.owners;
+
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
+        }
 
         this.requestUri([
             this.ajax.baseUri,
@@ -1891,6 +1951,11 @@ function Indicators(authentication) {
 
         this.settings.normalizer = normalize.securityLabels;
 
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
+        }
+
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
@@ -1914,6 +1979,11 @@ function Indicators(authentication) {
 
         this.settings.normalizer = normalize.tags;
 
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
+        }
+
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
@@ -1935,6 +2005,11 @@ function Indicators(authentication) {
         /* GET - /v2/indicators/{type}/{indicator}/tasks */
 
         this.settings.normalizer = normalize.tasks;
+
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
+        }
 
         this.requestUri([
             this.ajax.baseUri,
@@ -1971,6 +2046,11 @@ function Indicators(authentication) {
         if (this.settings.type == TYPE.FILE) {
             this.settings.normalizer = normalize.fileOccurrences;
 
+            // if the indicator is an Object, set the indicator to be one of the values in the Object
+            if(this.iData.indicator.constructor == Object) {
+                this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
+            }
+
             this.requestUri([
                 this.ajax.baseUri,
                 this.settings.type.uri,
@@ -1990,6 +2070,10 @@ function Indicators(authentication) {
 
         // validate required fields
         if (this.iData.indicator) {
+            // if the indicator is an Object, set the indicator to be one of the values in the Object
+            if(this.iData.indicator.constructor == Object) {
+                this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
+            }
 
             // prepare body
             var specificBody = this.iData.specificData[this.settings.type.type];
