@@ -101,6 +101,30 @@ describe('ThreatConnect Indicators', function() {
           indicators.retrieve(done);
         });
       });
+      /* Test update indicators. */
+      describe('#update()', function() {
+        it('should update without error', function(done) {
+          // re-initialize instance of indicators class
+          var indicators = tc.indicators();
+
+          // test updating the indicator with a threat and confidence rating
+          indicators.owner(testOwner)
+            .indicator(indicator)
+            .type(indicatorType)
+            .rating(3)
+            .confidence(50)
+            .done(function(response) {
+              // make sure there are no errors
+              assert.equal(response.error, undefined);
+            })
+            .error(function(response) {
+              // make sure there are no errors
+              assert.equal(response.error, undefined);
+            });
+
+          indicators.update(done);
+        });
+      });
       /* Test delete indicators. */
       describe('#delete()', function() {
         it('should delete without error', function(done) {
