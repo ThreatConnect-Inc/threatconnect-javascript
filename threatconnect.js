@@ -2082,6 +2082,7 @@ function Indicators(authentication) {
             if (this.iData.indicator) {
                 this.requestUri([
                     this.ajax.baseUri,
+                    this.settings.type.uri,
                     this.settings.type.type == 'URL' || this.settings.type.type == 'EmailAddress' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
                 ].join('/'));
                 this.requestMethod('PUT');
