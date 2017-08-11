@@ -4095,7 +4095,7 @@ var normalize = {
 
                 indicators.push({
                     id: rvalue.id,
-                    indicators: indicatorsData.join(' : '),
+                    indicator: indicatorsData.join(' : '),
                     dateAdded: rvalue.dateAdded,
                     lastModified: rvalue.lastModified,
                     ownerName: rvalue.ownerName || rvalue.owner.name,
