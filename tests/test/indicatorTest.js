@@ -90,6 +90,8 @@ describe('ThreatConnect Indicators', function() {
             .done(function(response) {
               // make sure there is at least one indicator of the current type (we just created one so there should be)
               assert.isAbove(response.data.length, 0);
+              // make sure that the indicator is actually returned
+              assert.notEqual(response.data[0].indicators, "");
               // make sure there are no errors
               assert.equal(response.error, undefined);
             })
