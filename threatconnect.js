@@ -4087,8 +4087,8 @@ var normalize = {
                         indicatorsData.push(rvalue.summary);
                         return false;
                     } else {
-                        if (rvalue.ivalue) {
-                            indicatorsData.push(rvalue.ivalue);
+                        if (rvalue[ivalue]) {
+                            indicatorsData.push(rvalue[ivalue]);
                         }
                     }
                 });
