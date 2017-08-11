@@ -4049,7 +4049,7 @@ var normalize = {
     },
     indicators: function(type, response) {
         var indicators,
-            indicatorsData,
+            indicatorData,
             indicatorTypeData,
             indicatorType = type.type;
 
@@ -4080,27 +4080,27 @@ var normalize = {
 
             if (typeof indicatorTypeData != 'undefined'){
                 indicatorType = indicatorTypeData.type;
-                indicatorsData = {};
+                indicatorData = {};
                 // $.each(type.indicatorFields, function(ikey, ivalue) {
                 Array.prototype.forEach.call(type.indicatorFields, function(ivalue, index, array){
                     if ('summary' in rvalue) {
-                        indicatorsData.summary = rvalue.summary;
+                        indicatorData.summary = rvalue.summary;
                         return false;
                     } else {
                         if (rvalue[ivalue]) {
-                            indicatorsData[ivalue] = rvalue[ivalue];
+                            indicatorData[ivalue] = rvalue[ivalue];
                         }
                     }
                 });
 
                 // If indicator has only one element, return as str
                 if (type.indicatorFields.length == 1) {
-                    indicatorsData = indicatorsData[type.indicatorFields[0]];
+                    indicatorData = indicatorData[type.indicatorFields[0]];
                 }
 
                 indicators.push({
                     id: rvalue.id,
-                    indicator: indicatorsData,
+                    indicator: indicatorData,
                     dateAdded: rvalue.dateAdded,
                     lastModified: rvalue.lastModified,
                     ownerName: rvalue.ownerName || rvalue.owner.name,
