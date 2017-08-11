@@ -4080,18 +4080,23 @@ var normalize = {
 
             if (typeof indicatorTypeData != 'undefined'){
                 indicatorType = indicatorTypeData.type;
-                indicatorsData = [];
+                indicatorsData = {};
                 // $.each(type.indicatorFields, function(ikey, ivalue) {
                 Array.prototype.forEach.call(type.indicatorFields, function(ivalue, index, array){
                     if ('summary' in rvalue) {
-                        indicatorsData.push(rvalue.summary);
+                        indicatorsData.summary = rvalue.summary;
                         return false;
                     } else {
                         if (rvalue[ivalue]) {
-                            indicatorsData.push(rvalue[ivalue]);
+                            indicatorsData[ivalue] = rvalue[ivalue];
                         }
                     }
                 });
+
+                // If indicator has only one element, return as str
+                if (type.indicatorFields.length == 1) {
+                    indicatorsData = indicatorsData[type.indicatorFields[0]];
+                }
 
                 indicators.push({
                     id: rvalue.id,
