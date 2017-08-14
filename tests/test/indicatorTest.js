@@ -91,7 +91,16 @@ describe('ThreatConnect Indicators', function() {
               // make sure there is at least one indicator of the current type (we just created one so there should be)
               assert.isAbove(response.data.length, 0);
               // make sure that the indicator is actually returned
-              assert.notEqual(response.data[0].indicators, "");
+              assert.notEqual(response.data[0].indicator, undefined);
+              assert.notEqual(response.data[0].indicator, "");
+
+              // if the current indicator type is a file, make sure the indicator is an Object
+              if (indicatorType.type === "File") {
+                assert.isObject(response.data[0].indicator);
+              } else {  // if the indicator type is not a file, make sure the response is a string
+                assert.isString(response.data[0].indicator);
+              }
+
               // make sure there are no errors
               assert.equal(response.error, undefined);
             })
