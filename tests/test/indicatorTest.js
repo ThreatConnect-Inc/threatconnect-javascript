@@ -57,7 +57,7 @@ describe('ThreatConnect Indicators', function() {
         });
       });
       /* Test retrieve indicators. */
-      describe('#retrieve()', function() {
+      describe('#retrieve multiple()', function() {
         it('should retrieve at least one result', function(done) {
           // re-initialize instance of indicators class
           var indicators = tc.indicators();
@@ -76,6 +76,64 @@ describe('ThreatConnect Indicators', function() {
             });
 
           indicators.retrieve(done);
+        });
+      });
+      /* Test retrieving a specific indicator. */
+      describe('#retrieve single()', function() {
+        it('should retrieve at least one result', function(done) {
+          // re-initialize instance of indicators class
+          var indicators = tc.indicators();
+
+          indicators.owner(testOwner)
+            .type(indicatorType)
+            .indicator(indicator)
+            .done(function(response) {
+              // make sure there is at least one indicator of the current type (we just created one so there should be)
+              assert.isAbove(response.data.length, 0);
+              // make sure that the indicator is actually returned
+              assert.notEqual(response.data[0].indicator, undefined);
+              assert.notEqual(response.data[0].indicator, "");
+
+              // if the current indicator type is a file, make sure the indicator is an Object
+              if (indicatorType.type === "File") {
+                assert.isObject(response.data[0].indicator);
+              } else {  // if the indicator type is not a file, make sure the response is a string
+                assert.isString(response.data[0].indicator);
+              }
+
+              // make sure there are no errors
+              assert.equal(response.error, undefined);
+            })
+            .error(function(response) {
+              // make sure there are no errors
+              assert.equal(response.error, undefined);
+            });
+
+          indicators.retrieve(done);
+        });
+      });
+      /* Test update indicators. */
+      describe('#update()', function() {
+        it('should update without error', function(done) {
+          // re-initialize instance of indicators class
+          var indicators = tc.indicators();
+
+          // test updating the indicator with a threat and confidence rating
+          indicators.owner(testOwner)
+            .indicator(indicator)
+            .type(indicatorType)
+            .rating(3)
+            .confidence(50)
+            .done(function(response) {
+              // make sure there are no errors
+              assert.equal(response.error, undefined);
+            })
+            .error(function(response) {
+              // make sure there are no errors
+              assert.equal(response.error, undefined);
+            });
+
+          indicators.update(done);
         });
       });
       /* Test delete indicators. */

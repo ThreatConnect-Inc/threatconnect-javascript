@@ -223,6 +223,7 @@ function getParameterArrayByName(name) {
 
     var qs = location.search;
 
+    // TODO: should the line below be an assignment or conditional expression (e.g. === )? (3)
     while(result = regex.exec(qs)) {
         results[i++] = (result === null ? "" : decodeURIComponent(result[1].replace(/\+/g, " ")));
         qs = qs.substring(result.index + result[0].length);
@@ -479,7 +480,7 @@ function RequestObject() {
     };
 
     this.hasPrevious = function() {
-        if (this.settings.requestCount == 0) {
+        if (this.settings.requestCount === 0) {
             return false;
         }
         return true;
@@ -540,7 +541,7 @@ function RequestObject() {
         console.log('authorization', authorization);
         */
 
-        this.addHeader('Timestamp', timestamp),
+        this.addHeader('Timestamp', timestamp);
         this.addHeader('Authorization', authorization);
     };
 
@@ -610,7 +611,7 @@ function RequestObject() {
                 // console.log('request.getAllResponseHeaders()', request.getAllResponseHeaders());
                 var currentCount = _this.settings.remaining,
                     // upload_pattern = /upload/,
-                    remaining = undefined,
+                    remaining,
                     responseContentType = request.getResponseHeader('Content-Type');
 
                 _this.response.apiCalls++;
@@ -775,9 +776,9 @@ function Db(authentication) {
 
     this.authentication = authentication;
     this.addHeader('DB-Method', 'GET');
-    this.ajax.requestUri = this.ajax.baseUri + '/exchange/db',
-    this.settings.helper = true,
-    this.settings.normalizer = normalize.default,
+    this.ajax.requestUri = this.ajax.baseUri + '/exchange/db';
+    this.settings.helper = true;
+    this.settings.normalizer = normalize.default;
     this.settings.type = undefined;
     this.command = undefined;
     this.domain = undefined;
@@ -841,12 +842,12 @@ function Groups(authentication) {
     RequestObject.call(this);
 
     this.authentication = authentication;
-    this.ajax.requestUri = 'v2',
+    this.ajax.requestUri = 'v2';
     this.resultLimit(500);
-    this.settings.helper = true,
-    this.settings.normalizer = normalize.groups,
-    this.settings.normalizerType = TYPE.GROUP,
-    this.settings.type = TYPE.GROUP,
+    this.settings.helper = true;
+    this.settings.normalizer = normalize.groups;
+    this.settings.normalizerType = TYPE.GROUP;
+    this.settings.type = TYPE.GROUP;
     this.rData = {
         id: undefined,
         associationType: undefined,
@@ -901,7 +902,7 @@ function Groups(authentication) {
 
     /* GROUP DATA OPTIONAL */
     this.attributes = function(data) {
-        if (objectCheck('attributes', data) && data.length != 0) {
+        if (objectCheck('attributes', data) && data.length !== 0) {
             this.rData.optionalData.attribute.push(this.rData.optionalData.attribute, data);
         }
         return this;
@@ -910,7 +911,7 @@ function Groups(authentication) {
     this.tags = function(data) {
         if (this.rData.optionalData.tag) { this.rData.optionalData.tag = []; }
         var tag;
-        if (objectCheck('tag', data) && data.length != 0) {
+        if (objectCheck('tag', data) && data.length !== 0) {
             for (tag in data) {
                 this.rData.optionalData.tag.push({name: data[tag]});
             }
@@ -1369,10 +1370,10 @@ function Indicators(authentication) {
     RequestObject.call(this);
 
     this.authentication = authentication;
-    this.settings.helper = true,
-    this.settings.normalizer = normalize.indicators,
-    this.settings.type = TYPE.INDICATOR,
-    this.settings.normalizerType = TYPE.INDICATOR,
+    this.settings.helper = true;
+    this.settings.normalizer = normalize.indicators;
+    this.settings.type = TYPE.INDICATOR;
+    this.settings.normalizerType = TYPE.INDICATOR;
     this.iData = {
         indicator: undefined,
         optionalData: {},
@@ -1464,6 +1465,33 @@ function Indicators(authentication) {
         return this;
     };
 
+    /* INDICATOR UTILTIY FUNCTIONS */
+
+    this._getSingleIndicatorValue = function(indicator) {
+        /* Get a single (non-null) value from the indicator Object. */
+        var indicatorValue;
+
+        // iterate through the values of the indicator Object
+        for(var indicatorField in indicator) {
+            // get the value from the indicator Object
+            indicatorValue = indicator[indicatorField];
+
+            // if the indicator value is not undefined, stop iterating through the indicator Object
+            if (indicatorValue != undefined) {
+                break;
+            }
+        }
+
+        // raise an error if the user passed in an empty Object
+        if (indicatorValue === undefined) {
+            var errorMessage = 'Request Failure: indicator is required (an empty Object was received).';
+            console.error(errorMessage);
+            this.callbacks.error({error: errorMessage});
+        } else {
+            return indicatorValue;
+        }
+    };
+
     /* API ACTIONS */
 
     // Commit
@@ -1474,9 +1502,10 @@ function Indicators(authentication) {
 
         // validate required fields
         if (this.iData.indicator) {
-            if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
-                for(var hash in this.iData.indicator) {
-                    this.iData.requiredData[hash] = this.iData.indicator[hash];
+            // validate the fields for the indicator
+            if(this.iData.indicator.constructor == Object) {
+                for(var indicatorField in this.iData.indicator) {
+                    this.iData.requiredData[indicatorField] = this.iData.indicator[indicatorField];
                 }
             }
             else {
@@ -1513,9 +1542,9 @@ function Indicators(authentication) {
         /* POST - /v2/indicators/{type}/{indicator}/groups/{type}/{id} */
         this.normalization(normalize.find(association.type.type));
 
-        if (this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
-            // set the indicator to one of the file hashes in the Object
-            this.iData.indicator = this._getFileHash();
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
         }
 
         this.requestUri([
@@ -1537,9 +1566,9 @@ function Indicators(authentication) {
         if (attribute) {
             this.normalization(normalize.attributes);
 
-            if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
-                // set the indicator to one of the file hashes in the Object
-                this.iData.indicator = this._getFileHash();
+            // if the indicator is an Object, set the indicator to be one of the values in the Object
+            if(this.iData.indicator.constructor == Object) {
+                this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
             }
 
             this.requestUri([
@@ -1568,9 +1597,9 @@ function Indicators(authentication) {
         /* POST - /v2/indicators/{type}/{indicator}/falsePositive */
         this.normalization(normalize.default);
 
-        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
-            // set the indicator to one of the file hashes in the Object
-            this.iData.indicator = this._getFileHash();
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
         }
 
         this.requestUri([
@@ -1588,9 +1617,9 @@ function Indicators(authentication) {
     this.commitObservation = function(params) {
         /* POST - /v2/indicators/{type}/{indicator}/observation */
 
-        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
-            // set the indicator to one of the file hashes in the Object
-            this.iData.indicator = this._getFileHash();
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
         }
 
         this.requestUri([
@@ -1613,9 +1642,9 @@ function Indicators(authentication) {
         /* POST - /v2/indicators/{type}/{indicator}/securityLabels/{name} */
         this.normalization(normalize.securityLabels);
 
-        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
-            // set the indicator to one of the file hashes in the Object
-            this.iData.indicator = this._getFileHash();
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
         }
 
         this.requestUri([
@@ -1635,9 +1664,9 @@ function Indicators(authentication) {
         /* POST - /v2/indicators/{type}/{indicator}/tags/{name} */
         this.normalization(normalize.tags);
 
-        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
-            // set the indicator to one of the file hashes in the Object
-            this.iData.indicator = this._getFileHash();
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
         }
 
         this.requestUri([
@@ -1655,13 +1684,13 @@ function Indicators(authentication) {
     // Delete
     this.delete = function() {
         /* DELETE - /v2/indicators/{type}/{indicator} */
-        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
-            // set the indicator to one of the file hashes in the Object
-            this.iData.indicator = this._getFileHash();
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
         }
 
         this.requestUri([
-            this.ajax.requestUri,
+            this.ajax.baseUri,
             this.settings.type.uri,
             this.settings.type.type == 'URL' || this.settings.type.type == 'EmailAddress' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
         ].join('/'));
@@ -1673,9 +1702,9 @@ function Indicators(authentication) {
     // Delete Associations
     this.deleteAssociation = function(association) {
         /* DELETE - /v2/indicators/{type}/{indicator}/groups/{type}/{id} */
-        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
-            // set the indicator to one of the file hashes in the Object
-            this.iData.indicator = this._getFileHash();
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
         }
 
         this.requestUri([
@@ -1693,9 +1722,9 @@ function Indicators(authentication) {
     // Delete Attributes
     this.deleteAttribute = function(attributeId) {
         /* DELETE - /v2/indicators/{type}/{indicator}/attributes/{id} */
-        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
-            // set the indicator to one of the file hashes in the Object
-            this.iData.indicator = this._getFileHash();
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
         }
 
         this.requestUri([
@@ -1713,9 +1742,9 @@ function Indicators(authentication) {
     // Delete Security Label
     this.deleteSecurityLabel = function(label) {
         /* DELETE - /v2/indicators/{type}/{indicator}/securityLabels/{name} */
-        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
-            // set the indicator to one of the file hashes in the Object
-            this.iData.indicator = this._getFileHash();
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
         }
 
         this.requestUri([
@@ -1733,9 +1762,9 @@ function Indicators(authentication) {
     // Delete Tag
     this.deleteTag = function(tag) {
         /* DELETE - /v2/indicators/{type}/{indicator}/tags/{name} */
-        if(this.settings.type.type=='File' && this.iData.indicator.constructor == Object) {
-            // set the indicator to one of the file hashes in the Object
-            this.iData.indicator = this._getFileHash();
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
         }
 
         this.requestUri([
@@ -1755,6 +1784,11 @@ function Indicators(authentication) {
         /* GET - /v2/indicators/ */
         /* GET - /v2/indicators/{type} */
         /* GET - /v2/indicators/{type}/{indicator} */
+
+        // if there is an indicator and if said indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator && this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
+        }
 
         // this.ajax.requestUri += '/' + this.settings.type.uri;
         this.requestUri([
@@ -1792,6 +1826,11 @@ function Indicators(authentication) {
         this.normalization(normalize.find(association.type.type));
         this.normalizationType(association.type);
 
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
+        }
+
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
@@ -1814,6 +1853,11 @@ function Indicators(authentication) {
         /* GET - /v2/indicators/{type}/{indicator}/attributes/{id} */
 
         this.settings.normalizer = normalize.attributes;
+
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
+        }
 
         this.requestUri([
             this.ajax.baseUri,
@@ -1838,6 +1882,11 @@ function Indicators(authentication) {
 
         this.settings.normalizer = normalize.observations;
 
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
+        }
+
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
@@ -1854,6 +1903,11 @@ function Indicators(authentication) {
 
         this.settings.normalizer = normalize.observationCount;
 
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
+        }
+
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
@@ -1869,6 +1923,11 @@ function Indicators(authentication) {
         /* GET - /v2/indicators/{type}/{indicator}/owners */
 
         this.settings.normalizer = normalize.owners;
+
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
+        }
 
         this.requestUri([
             this.ajax.baseUri,
@@ -1893,6 +1952,11 @@ function Indicators(authentication) {
 
         this.settings.normalizer = normalize.securityLabels;
 
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
+        }
+
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
@@ -1916,6 +1980,11 @@ function Indicators(authentication) {
 
         this.settings.normalizer = normalize.tags;
 
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
+        }
+
         this.requestUri([
             this.ajax.baseUri,
             this.settings.type.uri,
@@ -1937,6 +2006,11 @@ function Indicators(authentication) {
         /* GET - /v2/indicators/{type}/{indicator}/tasks */
 
         this.settings.normalizer = normalize.tasks;
+
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
+        }
 
         this.requestUri([
             this.ajax.baseUri,
@@ -1973,6 +2047,11 @@ function Indicators(authentication) {
         if (this.settings.type == TYPE.FILE) {
             this.settings.normalizer = normalize.fileOccurrences;
 
+            // if the indicator is an Object, set the indicator to be one of the values in the Object
+            if(this.iData.indicator.constructor == Object) {
+                this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
+            }
+
             this.requestUri([
                 this.ajax.baseUri,
                 this.settings.type.uri,
@@ -1992,14 +2071,20 @@ function Indicators(authentication) {
 
         // validate required fields
         if (this.iData.indicator) {
+            // if the indicator is an Object, set the indicator to be one of the values in the Object
+            if(this.iData.indicator.constructor == Object) {
+                this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
+            }
 
             // prepare body
             var specificBody = this.iData.specificData[this.settings.type.type];
             this.body($.extend(this.iData.requiredData, $.extend(this.iData.optionalData, specificBody)));
 
+            // TODO: Is the check below necessary? (3)
             if (this.iData.indicator) {
                 this.requestUri([
                     this.ajax.baseUri,
+                    this.settings.type.uri,
                     this.settings.type.type == 'URL' || this.settings.type.type == 'EmailAddress' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
                 ].join('/'));
                 this.requestMethod('PUT');
@@ -2026,24 +2111,24 @@ function IndicatorsBatch(authentication) {
     RequestObject.call(this);
 
     this.authentication = authentication;
-    this.batchBody = [],
-    this.ajax.requestUri = 'v2',
-    this.settings.helper = true,
-    this.settings.normalizer = normalize.indicators,
-    this.settings.type = TYPE.INDICATOR,
-    this.settings.normalizerType = TYPE.INDICATOR,
+    this.batchBody = [];
+    this.ajax.requestUri = 'v2';
+    this.settings.helper = true;
+    this.settings.normalizer = normalize.indicators;
+    this.settings.type = TYPE.INDICATOR;
+    this.settings.normalizerType = TYPE.INDICATOR;
     this.batch = {
         action: 'Create',               // Create|Delete
         attributeWriteType: 'Append',   // Append|Replace
         haltOnError: false,             // false|true
         owner: undefined,
-    },
+    };
     this.status = {
         frequency: 1000,                // default: 1 second start
         timeout: 300000,                // default: 5 minutes
         multiplier: 2,                  // default: 2
         maxFrequency: 30000,            // deafult: 30 seconds
-    },
+    };
     this.iData = {
         optionalData: {},
         requiredData: {},
@@ -2097,7 +2182,7 @@ function IndicatorsBatch(authentication) {
     this.attributes = function(data) {
         // if (!this.iData.optionalData.attribute) {this.iData.optionalData.attribute = []}
         // if (typeof data === 'object' && data.length != 0) {
-        if (Object.prototype.toString.call( data ) === '[object Array]' && data.length != 0) {
+        if (Object.prototype.toString.call( data ) === '[object Array]' && data.length !== 0) {
             // this.iData.optionalData.attribute = $.merge(this.iData.optionalData.attribute, data);
             this.iData.optionalData.attribute = data;
         } else {
@@ -2134,7 +2219,7 @@ function IndicatorsBatch(authentication) {
     this.tags = function(data) {
         var tag;
         // if (typeof data === 'object' && data.length != 0) {
-        if (Object.prototype.toString.call( data ) === '[object Array]' && data.length != 0) {
+        if (Object.prototype.toString.call( data ) === '[object Array]' && data.length !== 0) {
             if (!this.iData.optionalData.tag) { this.iData.optionalData.tag = []; }
             for (tag in data) {
                 this.iData.optionalData.tag.push({name: data[tag]});
@@ -2147,7 +2232,7 @@ function IndicatorsBatch(authentication) {
 
     this.associatedGroup = function(data) {
         var associatedGroup;
-        if (Object.prototype.toString.call( data ) === '[object Array]' && data.length != 0) {
+        if (Object.prototype.toString.call( data ) === '[object Array]' && data.length !== 0) {
             if (!this.iData.optionalData.associatedGroup) { this.iData.optionalData.associatedGroup = []; }
             for (associatedGroup in data) {
                 this.iData.optionalData.associatedGroup.push(data[associatedGroup]);
@@ -2197,6 +2282,7 @@ function IndicatorsBatch(authentication) {
         if (this.iData.requiredData.summary && this.iData.requiredData.type) {
             body = $.extend(this.iData.requiredData, this.iData.optionalData);
 
+            // TODO: Not sure what is going on on the lines below (1)
             specificBody = this.iData.specificData[this.iData.requiredData.type],
                 body = $.extend(body, specificBody);
 
@@ -2247,7 +2333,7 @@ function IndicatorsBatch(authentication) {
             message;
 
         // validate required fields
-        if (this.payload.owner && this.batchBody.length != 0) {
+        if (this.payload.owner && this.batchBody.length !== 0) {
 
             this.body($.extend({owner: this.payload.owner}, this.batch));
             this.normalization(normalize.default);  // bcs rename
@@ -2359,10 +2445,10 @@ function Owners(authentication) {
     RequestObject.call(this);
 
     this.authentication = authentication;
-    this.ajax.requestUri = this.ajax.baseUri + '/owners',
-    this.settings.helper = true,
-    this.settings.normalizer = normalize.owners,
-    this.settings.type = TYPE.OWNER,
+    this.ajax.requestUri = this.ajax.baseUri + '/owners';
+    this.settings.helper = true;
+    this.settings.normalizer = normalize.owners;
+    this.settings.type = TYPE.OWNER;
     this.rData = {
         id: undefined,
         optionalData: {},
@@ -2451,10 +2537,10 @@ function SecurityLabels(authentication) {
     RequestObject.call(this);
 
     this.authentication = authentication;
-    this.ajax.requestUri = this.ajax.baseUri + '/securityLabels',
-    this.settings.helper = true,
-    this.settings.normalizer = normalize.securityLabels,
-    this.settings.type = TYPE.SECURITY_LABELS,
+    this.ajax.requestUri = this.ajax.baseUri + '/securityLabels';
+    this.settings.helper = true;
+    this.settings.normalizer = normalize.securityLabels;
+    this.settings.type = TYPE.SECURITY_LABELS;
     this.rData = {
         name: undefined,
     };
@@ -2530,10 +2616,10 @@ function Tasks(authentication) {
     RequestObject.call(this);
 
     this.authentication = authentication;
-    this.ajax.requestUri = this.ajax.baseUri + '/tasks',
-    this.settings.helper = true,
-    this.settings.normalizer = normalize.tasks,
-    this.settings.type = TYPE.TASK,
+    this.ajax.requestUri = this.ajax.baseUri + '/tasks';
+    this.settings.helper = true;
+    this.settings.normalizer = normalize.tasks;
+    this.settings.type = TYPE.TASK;
     this.rData = {
         id: undefined,
         optionalData: {},
@@ -2554,7 +2640,7 @@ function Tasks(authentication) {
 
     /* TASK COMMIT OPTIONAL */
     this.assignee = function(data) {
-        if (objectCheck('assignee', data) && data.length != 0) {
+        if (objectCheck('assignee', data) && data.length !== 0) {
             this.rData.optionalData.assignee = data;
         }
         return this;
@@ -2572,7 +2658,7 @@ function Tasks(authentication) {
     };
 
     this.escalatee = function(data) {
-        if (objectCheck('escalatee', data) && data.length != 0) {
+        if (objectCheck('escalatee', data) && data.length !== 0) {
             this.rData.optionalData.escalatee = data;
         }
         return this;
@@ -3047,10 +3133,10 @@ function Tags(authentication) {
     RequestObject.call(this);
 
     this.authentication = authentication;
-    this.ajax.requestUri = this.ajax.baseUri + '/tags',
-    this.settings.helper = true,
-    this.settings.normalizer = normalize.tags,
-    this.settings.type = TYPE.TAG,
+    this.ajax.requestUri = this.ajax.baseUri + '/tags';
+    this.settings.helper = true;
+    this.settings.normalizer = normalize.tags;
+    this.settings.type = TYPE.TAG;
     this.rData = {
         name: undefined,
     };
@@ -3185,10 +3271,10 @@ function Victims(authentication) {
     RequestObject.call(this);
 
     this.authentication = authentication;
-    this.ajax.requestUri = this.ajax.baseUri + '/victims',
-    this.settings.helper = true,
-    this.settings.normalizer = normalize.victims,
-    this.settings.type = TYPE.VICTIM,
+    this.ajax.requestUri = this.ajax.baseUri + '/victims';
+    this.settings.helper = true;
+    this.settings.normalizer = normalize.victims;
+    this.settings.type = TYPE.VICTIM;
     this.rData = {
         id: undefined,
         optionalData: {},
@@ -3645,9 +3731,9 @@ function WhoAmI(authentication) {
     RequestObject.call(this);
 
     this.authentication = authentication;
-    this.ajax.requestUri = 'v2',
+    this.ajax.requestUri = 'v2';
     this.resultLimit(500);
-    this.settings.helper = true,
+    this.settings.helper = true;
     this.settings.type = TYPE.WHOAMI;
 
     /* API ACTIONS */
@@ -3764,10 +3850,10 @@ function Spaces(authentication) {
     RequestObject.call(this);
 
     this.authentication = authentication;
-    this.ajax.requestUri = this.ajax.baseUri + '/owners',
-    this.settings.helper = true,
-    this.settings.normalizer = normalize.owners,
-    this.settings.type = TYPE.OWNER,
+    this.ajax.requestUri = this.ajax.baseUri + '/owners';
+    this.settings.helper = true;
+    this.settings.normalizer = normalize.owners;
+    this.settings.type = TYPE.OWNER;
     this.sData = {
         stateParams: {},
         stateText: {},
@@ -3967,7 +4053,7 @@ var normalize = {
     },
     indicators: function(type, response) {
         var indicators,
-            indicatorsData,
+            indicatorData,
             indicatorTypeData,
             indicatorType = type.type;
 
@@ -3988,7 +4074,7 @@ var normalize = {
 
         // $.each(response, function(rkey, rvalue) {
         Array.prototype.forEach.call(response, function(rvalue, index, array){
-            if (rvalue && rvalue.length == 0) {
+            if (rvalue && rvalue.length === 0) {
                 return;
             }
 
@@ -3998,22 +4084,27 @@ var normalize = {
 
             if (typeof indicatorTypeData != 'undefined'){
                 indicatorType = indicatorTypeData.type;
-                indicatorsData = [];
+                indicatorData = {};
                 // $.each(type.indicatorFields, function(ikey, ivalue) {
                 Array.prototype.forEach.call(type.indicatorFields, function(ivalue, index, array){
                     if ('summary' in rvalue) {
-                        indicatorsData.push(rvalue.summary);
+                        indicatorData.summary = rvalue.summary;
                         return false;
                     } else {
-                        if (rvalue.ivalue) {
-                            indicatorsData.push(rvalue.ivalue);
+                        if (rvalue[ivalue]) {
+                            indicatorData[ivalue] = rvalue[ivalue];
                         }
                     }
                 });
 
+                // If indicator has only one element, return as str
+                if (type.indicatorFields.length == 1) {
+                    indicatorData = indicatorData[type.indicatorFields[0]];
+                }
+
                 indicators.push({
                     id: rvalue.id,
-                    indicators: indicatorsData.join(' : '),
+                    indicator: indicatorData,
                     dateAdded: rvalue.dateAdded,
                     lastModified: rvalue.lastModified,
                     ownerName: rvalue.ownerName || rvalue.owner.name,
@@ -4038,7 +4129,7 @@ var normalize = {
         var indicators = [];
         // $.each(response, function(rkey, rvalue) {
         Array.prototype.forEach.call(response, function(rvalue, index, array){
-            if (rvalue && rvalue.length == 0) {
+            if (rvalue && rvalue.length === 0) {
                 return;
             }
 
@@ -4063,7 +4154,7 @@ var normalize = {
         return observations;
     },
     observationCount: function(ro, response) {
-        var observationCount = undefined;
+        var observationCount;
 
         if (response) {
             observationCount = response.observationCount;
