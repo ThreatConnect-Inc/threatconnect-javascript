@@ -1621,6 +1621,42 @@ function Indicators(authentication) {
         return this.apiRequest('falsePositive');
     };
 
+    // Commit File Occurrence - File Indicators only
+    this.commitFileOccurrence = function(fileOccurrence, callback) {
+        /* POST - /v2/indicators/files/{fileHash}/fileOccurrences */
+        /* PUT - /v2/indicators/files/{fileHash}/fileOccurrences/{id} */
+        // check to make sure the current indicator type is a file
+        if (this.settings.type.type == 'File') {
+            if (fileOccurrence) {
+                this.normalization(normalize.fileOccurrences);
+
+                // if the indicator is an Object, set the indicator to be one of the values in the Object
+                if(this.iData.indicator.constructor == Object) {
+                    this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
+                }
+
+                this.requestUri([
+                    this.ajax.baseUri,
+                    this.settings.type.uri,
+                    this.settings.type.type == 'URL' || this.settings.type.type == 'EmailAddress' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
+                    'fileOccurrences'
+                ].join('/'));
+                this.requestMethod('POST');
+                this.body(fileOccurrence);
+
+                // update an existing fileOccurrence
+                if (fileOccurrence.id) {
+                    this.requestUri([
+                        this.ajax.requestUri,
+                        attribute.id,
+                    ].join('/'));
+                    this.requestMethod('PUT');
+                }
+                return this.apiRequest('fileOccurrence');
+            }
+        }
+    };
+
     // Commit Observation
     this.commitObservation = function(params) {
         /* POST - /v2/indicators/{type}/{indicator}/observation */

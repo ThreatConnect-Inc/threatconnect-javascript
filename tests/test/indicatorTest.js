@@ -187,8 +187,6 @@ describe('File Indicator Specific Properties', function() {
         .done(function(response) {
           // make sure there are no errors
           assert.equal(response.error, undefined);
-          // delete the file indicator we just created
-          deleteIndicator(testFile, indicatorType);
         })
         .error(function(response) {
           // make sure there are no errors
@@ -196,6 +194,59 @@ describe('File Indicator Specific Properties', function() {
         });
 
       indicators.commit(done);
+    });
+  });
+  /* Test adding a file with a file occurrence. */
+  describe('File Occurrence', function() {
+    var indicatorType = indicatorHelper('file');
+
+    /* Test file occurrence commit. */
+    describe('#commit()', function() {
+      it('should commit without error', function(done) {
+        // re-initialize instance of indicator class
+        var indicators = tc.indicators();
+
+        indicators.owner(testOwner)
+          .indicator(testFile)
+          .type(indicatorType)
+          .done(function(response) {
+            // make sure there are no errors
+            assert.equal(response.error, undefined);
+          })
+          .error(function(response) {
+            // make sure there are no errors
+            assert.equal(response.error, undefined);
+          });
+
+        indicators.commitFileOccurrence({
+            "fileName": "filename.dll",
+            "path": "C:\\\\test\\System",
+            "date": "2017-11-13T05:00:00Z"
+          });
+      });
+    });
+    /* Test file occurrence retrieval. */
+    describe('#retrieve()', function() {
+      it('should commit without error', function(done) {
+        // re-initialize instance of indicator class
+        var indicators = tc.indicators();
+
+        indicators.owner(testOwner)
+          .indicator(testFile)
+          .type(indicatorType)
+          .done(function(response) {
+            console.log("response", response);
+            // make sure there are no errors
+            assert.equal(response.data.resultCount, 1);
+            // delete the file indicator we just created
+            deleteIndicator(testFile, indicatorType);
+          })
+          .error(function(response) {
+            // make sure there are no errors
+            assert.equal(response.error, undefined);
+          })
+          .fileOccurrences();
+      });
     });
   });
 });
