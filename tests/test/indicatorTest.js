@@ -182,7 +182,7 @@ describe('File Indicator Specific Properties', function() {
 
       indicators.owner(testOwner)
         .indicator(testFile)
-        .size('afds')
+        .size(12345)
         .type(indicatorType)
         .done(function(response) {
           // make sure there are no errors
@@ -235,7 +235,6 @@ describe('File Indicator Specific Properties', function() {
           .indicator(testFile)
           .type(indicatorType)
           .done(function(response) {
-            console.log("response", response);
             // make sure there are no errors
             assert.equal(response.data.resultCount, 1);
             // delete the file indicator we just created
