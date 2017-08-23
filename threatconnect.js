@@ -1254,13 +1254,14 @@ function Groups(authentication) {
             this.rData.id,
             'attributes',
         ].join('/'));
-        if (attributeId != undefined)
+        if (attributeId !== undefined) {
             if (intCheck('attributeId', attributeId)) {
                 this.requestUri([
                     this.ajax.requestUri,
                     attributeId
                 ].join('/'));
             }
+        }
 
         return this.apiRequest('attribute');
     };
@@ -1909,13 +1910,14 @@ function Indicators(authentication) {
             this.settings.type.type == 'URL' || this.settings.type.type == 'EmailAddress' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
             'attributes',
         ].join('/'));
-        if (attributeId != undefined)
+        if (attributeId !== undefined) {
             if (intCheck('attributeId', attributeId)) {
                 this.requestUri([
                     this.ajax.requestUri,
                     attributeId
                 ].join('/'));
             }
+        }
 
         return this.apiRequest('attribute');
     };
@@ -3090,13 +3092,14 @@ function Tasks(authentication) {
                 this.rData.id,
                 'attributes'
             ].join('/'));
-            if (attributeId != undefined)
+            if (attributeId !== undefined) {
                 if (intCheck('attributeId', attributeId)) {
                     this.requestUri([
                         this.ajax.requestUri,
                         attributeId
                     ].join('/'));
                 }
+            }
 
             this.requestMethod('GET');
 
@@ -3696,13 +3699,14 @@ function Victims(authentication) {
             this.rData.id,
             'attributes',
         ].join('/'));
-        if (attributeId != undefined)
+        if (attributeId !== undefined) {
             if (intCheck('attributeId', attributeId)) {
                 this.requestUri([
                     this.ajax.requestUri,
                     attributeId
                 ].join('/'));
             }
+        }
 
         return this.apiRequest('attribute');
     };
