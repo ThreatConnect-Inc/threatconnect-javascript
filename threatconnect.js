@@ -1444,6 +1444,14 @@ function Indicators(authentication) {
         return fileHash;
     };
 
+    this.size = function(data) {
+        /* Set the size of a file indicator. */
+        if (intCheck('file size', data)) {
+            this.iData.specificData.File.size = data;
+        }
+        return this;
+    };
+
     // host
     this.dnsActive = function(data) {
         if (boolCheck('dnsActive', data)) {

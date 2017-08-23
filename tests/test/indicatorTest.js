@@ -1,4 +1,5 @@
 var assert = chai.assert;
+var tc = new ThreatConnect(apiSettings);
 
 var indicatorTypes = [
   {
@@ -27,9 +28,31 @@ var indicatorTypes = [
   }
 ];
 
-describe('ThreatConnect Indicators', function() {
-  var tc = new ThreatConnect(apiSettings);
+function deleteIndicator(indicator, indicatorType) {
+  /* Test indicator deletion. */
+  describe('#delete()', function() {
+    it('should delete without error', function(done) {
+      // re-initialize instance of indicators class
+      var indicators = tc.indicators();
 
+      indicators.owner(testOwner)
+        .indicator(indicator)
+        .type(indicatorType)
+        .done(function(response) {
+          // make sure there are no errors
+          assert.equal(response.error, undefined);
+        })
+        .error(function(response) {
+          // make sure there are no errors
+          assert.equal(response.error, undefined);
+        });
+
+      indicators.delete(done);
+    });
+  });
+}
+
+describe('ThreatConnect Indicators', function() {
   for (var i = 0; i <= indicatorTypes.length - 1; i++) {
     describe(indicatorTypes[i].indicatorType, function() {
       var indicatorType = indicatorHelper(indicatorTypes[i].indicatorType);
@@ -136,27 +159,43 @@ describe('ThreatConnect Indicators', function() {
           indicators.update(done);
         });
       });
-      /* Test delete indicators. */
-      describe('#delete()', function() {
-        it('should delete without error', function(done) {
-          // re-initialize instance of indicators class
-          var indicators = tc.indicators();
-
-          indicators.owner(testOwner)
-            .indicator(indicator)
-            .type(indicatorType)
-            .done(function(response) {
-              // make sure there are no errors
-              assert.equal(response.error, undefined);
-            })
-            .error(function(response) {
-              // make sure there are no errors
-              assert.equal(response.error, undefined);
-            });
-
-          indicators.delete(done);
-        });
-      });
+      /* Test indicator deletion. */
+      deleteIndicator(indicator, indicatorType);
     });
   }
+});
+
+describe('File Indicator Specific Properties', function() {
+  var testFile = {
+    md5: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    sha1: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    sha256: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  };
+
+  /* Test adding a file with a file size. */
+  describe('File Size', function() {
+    var indicatorType = indicatorHelper('file');
+
+    it('should commit without error', function(done) {
+      // re-initialize instance of indicator class
+      var indicators = tc.indicators();
+
+      indicators.owner(testOwner)
+        .indicator(testFile)
+        .size('afds')
+        .type(indicatorType)
+        .done(function(response) {
+          // make sure there are no errors
+          assert.equal(response.error, undefined);
+          // delete the file indicator we just created
+          deleteIndicator(testFile, indicatorType);
+        })
+        .error(function(response) {
+          // make sure there are no errors
+          assert.equal(response.error, undefined);
+        });
+
+      indicators.commit(done);
+    });
+  });
 });
