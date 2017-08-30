@@ -1623,7 +1623,7 @@ function Indicators(authentication) {
     };
 
     // Commit File Occurrence - File Indicators only
-    this.commitFileOccurrence = function(fileOccurrence, callback) {
+    this.commitFileOccurrence = function(fileOccurrence) {
         /* POST - /v2/indicators/files/{fileHash}/fileOccurrences */
         /* PUT - /v2/indicators/files/{fileHash}/fileOccurrences/{id} */
         // check to make sure the current indicator type is a file
@@ -1639,7 +1639,7 @@ function Indicators(authentication) {
                 this.requestUri([
                     this.ajax.baseUri,
                     this.settings.type.uri,
-                    this.settings.type.type == 'URL' || this.settings.type.type == 'EmailAddress' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
+                    this.iData.indicator,
                     'fileOccurrences'
                 ].join('/'));
                 this.requestMethod('POST');
