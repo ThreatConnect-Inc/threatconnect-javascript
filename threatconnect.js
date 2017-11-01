@@ -1639,7 +1639,7 @@ function Indicators(authentication) {
             'actions',
             fileAction,
             association.type.uri,
-            association.id,
+            association.type.type == 'URL' || association.type.type == 'EmailAddress' ? encodeURIComponent(association.id) : association.id,
         ].join('/'));
         this.requestMethod('POST');
 
