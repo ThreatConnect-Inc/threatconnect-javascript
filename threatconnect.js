@@ -1622,6 +1622,30 @@ function Indicators(authentication) {
         return this.apiRequest('falsePositive');
     };
 
+    // Commit File Action - Files Only
+    this.commitFileAction = function(fileAction, association) {
+        /* POST -  /v2/indicators/files/{fileHash}/actions/{fileAction}/indicators/{indicatorType}/{indicator} */
+        this.normalization(normalize.find(association.type.type));
+
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
+        }
+
+        this.requestUri([
+            this.ajax.baseUri,
+            this.settings.type.uri,
+            this.iData.indicator,
+            'actions',
+            fileAction,
+            association.type.uri,
+            association.id,
+        ].join('/'));
+        this.requestMethod('POST');
+
+        return this.apiRequest('actions');
+    };
+
     // Commit File Occurrence - File Indicators only
     this.commitFileOccurrence = function(fileOccurrence) {
         /* POST - /v2/indicators/files/{fileHash}/fileOccurrences */
