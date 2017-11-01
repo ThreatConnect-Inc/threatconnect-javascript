@@ -293,7 +293,7 @@ describe('File Indicator Specific Properties', function() {
     });
   });
   /* Test adding a file action to a file. */
-  describe('File Traffic Action', function() {
+  describe('File Traffic Action (to IP Address)', function() {
     var indicatorType = indicatorHelper('file');
 
     // create an indicator with which we will associate the file
@@ -301,6 +301,100 @@ describe('File Indicator Specific Properties', function() {
     var new_indicator = {
       indicator: '1.2.3.4',
       type: TYPE.ADDRESS
+    };
+
+    indicators.owner(testOwner)
+      .indicator(new_indicator.indicator)
+      .type(new_indicator.type)
+      .done(function(response) {
+        // make sure there are no errors
+        assert.equal(response.error, undefined);
+      })
+      .error(function(response) {
+        // make sure there are no errors
+        assert.equal(response.error, undefined);
+      });
+
+    indicators.commit();
+
+    it('should commit without error', function(done) {
+      // re-initialize instance of indicator class
+      var indicators = tc.indicators();
+
+      indicators.owner(testOwner)
+        .indicator(testFile)
+        .type(indicatorType)
+        .done(function(response) {
+          // make sure there are no errors
+          assert.equal(response.error, undefined);
+        })
+        .error(function(response) {
+          // make sure there are no errors
+          assert.equal(response.error, undefined);
+        });
+
+      indicators.commitFileAction('traffic', {
+          type: new_indicator.type,
+          id: new_indicator.indicator
+      });
+    });
+  });
+  /* Test adding a file action to a file. */
+  describe('File Traffic Action (to Host)', function() {
+    var indicatorType = indicatorHelper('file');
+
+    // create an indicator with which we will associate the file
+    var indicators = tc.indicators();
+    var new_indicator = {
+      indicator: 'example.com',
+      type: TYPE.HOST
+    };
+
+    indicators.owner(testOwner)
+      .indicator(new_indicator.indicator)
+      .type(new_indicator.type)
+      .done(function(response) {
+        // make sure there are no errors
+        assert.equal(response.error, undefined);
+      })
+      .error(function(response) {
+        // make sure there are no errors
+        assert.equal(response.error, undefined);
+      });
+
+    indicators.commit();
+
+    it('should commit without error', function(done) {
+      // re-initialize instance of indicator class
+      var indicators = tc.indicators();
+
+      indicators.owner(testOwner)
+        .indicator(testFile)
+        .type(indicatorType)
+        .done(function(response) {
+          // make sure there are no errors
+          assert.equal(response.error, undefined);
+        })
+        .error(function(response) {
+          // make sure there are no errors
+          assert.equal(response.error, undefined);
+        });
+
+      indicators.commitFileAction('traffic', {
+          type: new_indicator.type,
+          id: new_indicator.indicator
+      });
+    });
+  });
+  /* Test adding a file action to a file. */
+  describe('File Traffic Action (to URL)', function() {
+    var indicatorType = indicatorHelper('file');
+
+    // create an indicator with which we will associate the file
+    var indicators = tc.indicators();
+    var new_indicator = {
+      indicator: 'http://example.com',
+      type: TYPE.URL
     };
 
     indicators.owner(testOwner)
