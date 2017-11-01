@@ -1254,13 +1254,14 @@ function Groups(authentication) {
             this.rData.id,
             'attributes',
         ].join('/'));
-        if (attributeId != undefined)
+        if (attributeId !== undefined) {
             if (intCheck('attributeId', attributeId)) {
                 this.requestUri([
                     this.ajax.requestUri,
                     attributeId
                 ].join('/'));
             }
+        }
 
         return this.apiRequest('attribute');
     };
@@ -1444,6 +1445,14 @@ function Indicators(authentication) {
         return fileHash;
     };
 
+    this.size = function(data) {
+        /* Set the size of a file indicator. */
+        if (intCheck('file size', data)) {
+            this.iData.specificData.File.size = data;
+        }
+        return this;
+    };
+
     // host
     this.dnsActive = function(data) {
         if (boolCheck('dnsActive', data)) {
@@ -1611,6 +1620,66 @@ function Indicators(authentication) {
         this.requestMethod('POST');
 
         return this.apiRequest('falsePositive');
+    };
+
+    // Commit File Action - Files Only
+    this.commitFileAction = function(fileAction, association) {
+        /* POST -  /v2/indicators/files/{fileHash}/actions/{fileAction}/indicators/{indicatorType}/{indicator} */
+        this.normalization(normalize.find(association.type.type));
+
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
+        }
+
+        this.requestUri([
+            this.ajax.baseUri,
+            this.settings.type.uri,
+            this.iData.indicator,
+            'actions',
+            fileAction,
+            association.type.uri,
+            association.id,
+        ].join('/'));
+        this.requestMethod('POST');
+
+        return this.apiRequest('actions');
+    };
+
+    // Commit File Occurrence - File Indicators only
+    this.commitFileOccurrence = function(fileOccurrence) {
+        /* POST - /v2/indicators/files/{fileHash}/fileOccurrences */
+        /* PUT - /v2/indicators/files/{fileHash}/fileOccurrences/{id} */
+        // check to make sure the current indicator type is a file
+        if (this.settings.type.type == 'File') {
+            if (fileOccurrence) {
+                this.normalization(normalize.fileOccurrences);
+
+                // if the indicator is an Object, set the indicator to be one of the values in the Object
+                if(this.iData.indicator.constructor == Object) {
+                    this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
+                }
+
+                this.requestUri([
+                    this.ajax.baseUri,
+                    this.settings.type.uri,
+                    this.iData.indicator,
+                    'fileOccurrences'
+                ].join('/'));
+                this.requestMethod('POST');
+                this.body(fileOccurrence);
+
+                // update an existing fileOccurrence
+                if (fileOccurrence.id) {
+                    this.requestUri([
+                        this.ajax.requestUri,
+                        attribute.id,
+                    ].join('/'));
+                    this.requestMethod('PUT');
+                }
+                return this.apiRequest('fileOccurrence');
+            }
+        }
     };
 
     // Commit Observation
@@ -1865,13 +1934,14 @@ function Indicators(authentication) {
             this.settings.type.type == 'URL' || this.settings.type.type == 'EmailAddress' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
             'attributes',
         ].join('/'));
-        if (attributeId != undefined)
+        if (attributeId !== undefined) {
             if (intCheck('attributeId', attributeId)) {
                 this.requestUri([
                     this.ajax.requestUri,
                     attributeId
                 ].join('/'));
             }
+        }
 
         return this.apiRequest('attribute');
     };
@@ -3046,13 +3116,14 @@ function Tasks(authentication) {
                 this.rData.id,
                 'attributes'
             ].join('/'));
-            if (attributeId != undefined)
+            if (attributeId !== undefined) {
                 if (intCheck('attributeId', attributeId)) {
                     this.requestUri([
                         this.ajax.requestUri,
                         attributeId
                     ].join('/'));
                 }
+            }
 
             this.requestMethod('GET');
 
@@ -3652,13 +3723,14 @@ function Victims(authentication) {
             this.rData.id,
             'attributes',
         ].join('/'));
-        if (attributeId != undefined)
+        if (attributeId !== undefined) {
             if (intCheck('attributeId', attributeId)) {
                 this.requestUri([
                     this.ajax.requestUri,
                     attributeId
                 ].join('/'));
             }
+        }
 
         return this.apiRequest('attribute');
     };
