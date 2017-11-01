@@ -196,6 +196,341 @@ describe('File Indicator Specific Properties', function() {
       indicators.commit(done);
     });
   });
+  /* Test adding a file action to a file. */
+  describe('File Archive Action', function() {
+    var indicatorType = indicatorHelper('file');
+
+    // create an indicator with which we will associate the file
+    var indicators = tc.indicators();
+    var new_indicator = {
+      indicator: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+      type: TYPE.FILE
+    };
+
+    indicators.owner(testOwner)
+      .indicator({
+        md5: new_indicator.indicator
+      })
+      .type(new_indicator.type)
+      .done(function(response) {
+        // make sure there are no errors
+        assert.equal(response.error, undefined);
+      })
+      .error(function(response) {
+        console.error("Error: ", response);
+      });
+
+    indicators.commit();
+
+    it('should commit without error', function(done) {
+      // re-initialize instance of indicator class
+      var indicators = tc.indicators();
+
+      indicators.owner(testOwner)
+        .indicator(testFile)
+        .type(indicatorType)
+        .done(function(response) {
+          // make sure there are no errors
+          assert.equal(response.error, undefined);
+        })
+        .error(function(response) {
+          // make sure there are no errors
+          assert.equal(response.error, undefined);
+        });
+
+      indicators.commitFileAction('archive', {
+          type: new_indicator.type,
+          id: new_indicator.indicator
+      });
+    });
+  });
+  /* Test adding a file action to a file. */
+  describe('File Drop Action', function() {
+    var indicatorType = indicatorHelper('file');
+
+    // create an indicator with which we will associate the file
+    var indicators = tc.indicators();
+    var new_indicator = {
+      indicator: 'cccccccccccccccccccccccccccccccc',
+      type: TYPE.FILE
+    };
+
+    indicators.owner(testOwner)
+      .indicator({
+        md5: new_indicator.indicator
+      })
+      .type(new_indicator.type)
+      .done(function(response) {
+        // make sure there are no errors
+        assert.equal(response.error, undefined);
+      })
+      .error(function(response) {
+        console.error("Error: ", response);
+      });
+
+    indicators.commit();
+
+    it('should commit without error', function(done) {
+      // re-initialize instance of indicator class
+      var indicators = tc.indicators();
+
+      indicators.owner(testOwner)
+        .indicator(testFile)
+        .type(indicatorType)
+        .done(function(response) {
+          // make sure there are no errors
+          assert.equal(response.error, undefined);
+        })
+        .error(function(response) {
+          // make sure there are no errors
+          assert.equal(response.error, undefined);
+        });
+
+      indicators.commitFileAction('drop', {
+          type: new_indicator.type,
+          id: new_indicator.indicator
+      });
+    });
+  });
+  /* Test adding a file action to a file. */
+  describe('File Traffic Action', function() {
+    var indicatorType = indicatorHelper('file');
+
+    // create an indicator with which we will associate the file
+    var indicators = tc.indicators();
+    var new_indicator = {
+      indicator: '1.2.3.4',
+      type: TYPE.ADDRESS
+    };
+
+    indicators.owner(testOwner)
+      .indicator(new_indicator.indicator)
+      .type(new_indicator.type)
+      .done(function(response) {
+        // make sure there are no errors
+        assert.equal(response.error, undefined);
+      })
+      .error(function(response) {
+        // make sure there are no errors
+        assert.equal(response.error, undefined);
+      });
+
+    indicators.commit();
+
+    it('should commit without error', function(done) {
+      // re-initialize instance of indicator class
+      var indicators = tc.indicators();
+
+      indicators.owner(testOwner)
+        .indicator(testFile)
+        .type(indicatorType)
+        .done(function(response) {
+          // make sure there are no errors
+          assert.equal(response.error, undefined);
+        })
+        .error(function(response) {
+          // make sure there are no errors
+          assert.equal(response.error, undefined);
+        });
+
+      indicators.commitFileAction('traffic', {
+          type: new_indicator.type,
+          id: new_indicator.indicator
+      });
+    });
+  });
+  // /* Test adding a file action to a file. */
+  // describe('File Mutex Action', function() {
+  //   var indicatorType = indicatorHelper('file');
+
+  //   // create an indicator with which we will associate the file
+  //   var indicators = tc.indicators();
+  //   var new_indicator = {
+  //     indicator: 'test',
+  //     type: TYPE.MUTEX
+  //   };
+
+  //   indicators.owner(testOwner)
+  //     .indicator(new_indicator.indicator)
+  //     .type(new_indicator.type)
+  //     .done(function(response) {
+  //       // make sure there are no errors
+  //       assert.equal(response.error, undefined);
+  //     })
+  //     .error(function(response) {
+  //       // make sure there are no errors
+  //       assert.equal(response.error, undefined);
+  //     });
+
+  //   indicators.commit();
+
+  //   it('should commit without error', function(done) {
+  //     // re-initialize instance of indicator class
+  //     var indicators = tc.indicators();
+
+  //     indicators.owner(testOwner)
+  //       .indicator(testFile)
+  //       .type(indicatorType)
+  //       .done(function(response) {
+  //         // make sure there are no errors
+  //         assert.equal(response.error, undefined);
+  //       })
+  //       .error(function(response) {
+  //         // make sure there are no errors
+  //         assert.equal(response.error, undefined);
+  //       });
+
+  //     indicators.commitFileAction('mutex', {
+  //         type: new_indicator.type,
+  //         id: new_indicator.indicator
+  //     });
+  //   });
+  // });
+  // /* Test adding a file action to a file. */
+  // describe('File registryKey Action', function() {
+  //   var indicatorType = indicatorHelper('file');
+
+  //   // create an indicator with which we will associate the file
+  //   var indicators = tc.indicators();
+  //   var new_indicator = {
+  //     indicator: {
+  //         "Key Name": "HKEY_LOCAL_MACHINE\System\CurrentControlSet\Hardware Profiles\Current",
+  //         "Value Name": "Autopopulate",
+  //         "Value Type": "REG_DWORD"
+  //     },
+  //     type: TYPE.REGISTRYKEY
+  //   };
+
+  //   indicators.owner(testOwner)
+  //     .indicator(new_indicator.indicator)
+  //     .type(new_indicator.type)
+  //     .done(function(response) {
+  //       // make sure there are no errors
+  //       assert.equal(response.error, undefined);
+  //     })
+  //     .error(function(response) {
+  //       // make sure there are no errors
+  //       assert.equal(response.error, undefined);
+  //     });
+
+  //   indicators.commit();
+
+  //   it('should commit without error', function(done) {
+  //     // re-initialize instance of indicator class
+  //     var indicators = tc.indicators();
+
+  //     indicators.owner(testOwner)
+  //       .indicator(testFile)
+  //       .type(indicatorType)
+  //       .done(function(response) {
+  //         // make sure there are no errors
+  //         assert.equal(response.error, undefined);
+  //       })
+  //       .error(function(response) {
+  //         // make sure there are no errors
+  //         assert.equal(response.error, undefined);
+  //       });
+
+  //     indicators.commitFileAction('registryKey', {
+  //         type: new_indicator.type,
+  //         id: new_indicator.indicator
+  //     });
+  //   });
+  // });
+  // /* Test adding a file action to a file. */
+  // describe('File userAgent Action', function() {
+  //   var indicatorType = indicatorHelper('file');
+
+  //   // create an indicator with which we will associate the file
+  //   var indicators = tc.indicators();
+  //   var new_indicator = {
+  //     indicator: 'PeachWebKit/100.00 (KHTML, like Nothing Else)',
+  //     type: TYPE.USERAGENT
+  //   };
+
+  //   indicators.owner(testOwner)
+  //     .indicator(new_indicator.indicator)
+  //     .type(new_indicator.type)
+  //     .done(function(response) {
+  //       // make sure there are no errors
+  //       assert.equal(response.error, undefined);
+  //     })
+  //     .error(function(response) {
+  //       // make sure there are no errors
+  //       assert.equal(response.error, undefined);
+  //     });
+
+  //   indicators.commit();
+
+  //   it('should commit without error', function(done) {
+  //     // re-initialize instance of indicator class
+  //     var indicators = tc.indicators();
+
+  //     indicators.owner(testOwner)
+  //       .indicator(testFile)
+  //       .type(indicatorType)
+  //       .done(function(response) {
+  //         // make sure there are no errors
+  //         assert.equal(response.error, undefined);
+  //       })
+  //       .error(function(response) {
+  //         // make sure there are no errors
+  //         assert.equal(response.error, undefined);
+  //       });
+
+  //     indicators.commitFileAction('userAgent', {
+  //         type: new_indicator.type,
+  //         id: new_indicator.indicator
+  //     });
+  //   });
+  // });
+  /* Test adding a file action to a file. */
+  describe('File dnsQuery Action', function() {
+    var indicatorType = indicatorHelper('file');
+
+    // create an indicator with which we will associate the file
+    var indicators = tc.indicators();
+    var new_indicator = {
+      indicator: 'example.com',
+      type: TYPE.HOST
+    };
+
+    indicators.owner(testOwner)
+      .indicator(new_indicator.indicator)
+      .type(new_indicator.type)
+      .done(function(response) {
+        // make sure there are no errors
+        assert.equal(response.error, undefined);
+      })
+      .error(function(response) {
+        // make sure there are no errors
+        assert.equal(response.error, undefined);
+      });
+
+    indicators.commit();
+
+    it('should commit without error', function(done) {
+      // re-initialize instance of indicator class
+      var indicators = tc.indicators();
+
+      indicators.owner(testOwner)
+        .indicator(testFile)
+        .type(indicatorType)
+        .done(function(response) {
+          // make sure there are no errors
+          assert.equal(response.error, undefined);
+        })
+        .error(function(response) {
+          // make sure there are no errors
+          assert.equal(response.error, undefined);
+        });
+
+      indicators.commitFileAction('dnsQuery', {
+          type: new_indicator.type,
+          id: new_indicator.indicator
+      });
+    });
+  });
   /* Test adding a file with a file occurrence. */
   describe('File Occurrence', function() {
     var indicatorType = indicatorHelper('file');
