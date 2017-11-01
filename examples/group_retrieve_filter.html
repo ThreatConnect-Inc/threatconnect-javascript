@@ -33,7 +33,7 @@
         var tc = new ThreatConnect(apiSettings);
         var filter = new Filter(FILTER.AND);
         filter.on('name', FILTER.SW, 'threat');
-        filter.on('dateAdded', FILTER.GT, '2015-12-02');
+        filter.on('dateAdded', FILTER.GT, '20170830');
 
         var groups = tc.groups();
 
