@@ -2804,7 +2804,7 @@ function Tasks(authentication) {
     };
 
     this.status = function(data) {
-        if (valueCheck('status', data, ['Not Started', 'In Progress', 'Complete', 'Waiting on Someone', 'Deferred'])) {
+        if (valueCheck('status', data, ['Not Started', 'In Progress', 'Completed', 'Waiting on Someone', 'Deferred'])) {
             this.rData.optionalData.status = data;
         }
         return this;
@@ -4416,6 +4416,6 @@ var valueCheck = function(name, value, array) {
     if ($.inArray(value, array) != -1) {
         return true;
     }
-    console.warn(name + ' must be of value (.' + array.join(',') + ').');
+    console.warn(name + ' must be of value (' + array.join(',') + ').');
     return false;
 };
