@@ -615,6 +615,15 @@ function RequestObject() {
                     responseContentType = request.getResponseHeader('Content-Type');
 
                 _this.response.apiCalls++;
+             
+                // handle responses from custom metrics
+                if (params === 'customMetric') {
+                    // make sure the request went through successfully
+                    if (response.date) {
+                        response.status = "Success";
+                    }
+                }
+
                 _this.response.status = response.status;
 
                 if (response.status == 'Success' && response.data) {
