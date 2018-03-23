@@ -13,6 +13,7 @@
 */
 
 /* global $, CryptoJS, TYPE */
+var REQUESTLIMIT = 10000
 
 // const TYPE = {  // ECMASCRIPT6 support only
 var TYPE = {
@@ -288,7 +289,7 @@ function RequestObject() {
     this.headers = {},
     this.payload = {
         // createActivityLog: 'false',
-        resultLimit: 500,
+        resultLimit: REQUESTLIMIT,
         // resultStart: 0
     },
     this.response = {
@@ -369,9 +370,9 @@ function RequestObject() {
     };
 
     this.resultLimit = function(data) {
-        if (rangeCheck('resultLimit', data, 1, 500)) {
+        if (rangeCheck('resultLimit', data, 1, REQUESTLIMIT)) {
             this.addPayload('resultLimit', data);
-            this.settings.requestCount = 500;  // bcs
+            this.settings.requestCount = REQUESTLIMIT;  // bcs
         }
         return this;
     };
@@ -843,7 +844,7 @@ function Groups(authentication) {
 
     this.authentication = authentication;
     this.ajax.requestUri = 'v2';
-    this.resultLimit(500);
+    this.resultLimit(REQUESTLIMIT);
     this.settings.helper = true;
     this.settings.normalizer = normalize.groups;
     this.settings.normalizerType = TYPE.GROUP;
@@ -3732,7 +3733,7 @@ function WhoAmI(authentication) {
 
     this.authentication = authentication;
     this.ajax.requestUri = 'v2';
-    this.resultLimit(500);
+    this.resultLimit(REQUESTLIMIT);
     this.settings.helper = true;
     this.settings.type = TYPE.WHOAMI;
 
