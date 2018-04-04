@@ -865,6 +865,28 @@ function Groups(authentication) {
         },
     };
 
+    /* GROUP QUERY STRING PARAMETERS */
+    this.includeAdditional = function(data) {
+        if (boolCheck('includeAdditional', data)) {
+            this.addPayload('includeAdditional', data);
+        }
+        return this;
+    };
+
+    this.includeAttributes = function(data) {
+        if (boolCheck('includeAttributes', data)) {
+            this.addPayload('includeAttributes', data);
+        }
+        return this;
+    };
+
+    this.includeTags = function(data) {
+        if (boolCheck('includeTags', data)) {
+            this.addPayload('includeTags', data);
+        }
+        return this;
+    };
+
     /* SETTINGS API */
     this.id = function(data) {
         this.rData.id = data;
@@ -1388,10 +1410,24 @@ function Indicators(authentication) {
         },
     };
 
-    /* INDICATOR SPECIFIC QUERY STRING PARAMETER */
+    /* INDICATOR QUERY STRING PARAMETERS */
     this.includeAdditional = function(data) {
         if (boolCheck('includeAdditional', data)) {
             this.addPayload('includeAdditional', data);
+        }
+        return this;
+    };
+
+    this.includeAttributes = function(data) {
+        if (boolCheck('includeAttributes', data)) {
+            this.addPayload('includeAttributes', data);
+        }
+        return this;
+    };
+
+    this.includeTags = function(data) {
+        if (boolCheck('includeTags', data)) {
+            this.addPayload('includeTags', data);
         }
         return this;
     };
@@ -1639,7 +1675,7 @@ function Indicators(authentication) {
             'actions',
             fileAction,
             association.type.uri,
-            association.id,
+            association.type.type == 'URL' || association.type.type == 'EmailAddress' ? encodeURIComponent(association.id) : association.id,
         ].join('/'));
         this.requestMethod('POST');
 
@@ -2768,7 +2804,7 @@ function Tasks(authentication) {
     };
 
     this.status = function(data) {
-        if (valueCheck('status', data, ['Not Started', 'In Progress', 'Complete', 'Waiting on Someone', 'Deferred'])) {
+        if (valueCheck('status', data, ['Not Started', 'In Progress', 'Completed', 'Waiting on Someone', 'Deferred'])) {
             this.rData.optionalData.status = data;
         }
         return this;
@@ -4184,6 +4220,8 @@ var normalize = {
                     confidence: rvalue.confidence,
                     observationCount: rvalue.observationCount,
                     falsePositiveCount: rvalue.falsePositiveCount,
+                    attribute: rvalue.attribute,
+                    tag: rvalue.tag,
                     type: indicatorType,
                     threatAssessRating: rvalue.threatAssessRating,
                     threatAssessConfidence: rvalue.threatAssessConfidence,
@@ -4378,6 +4416,6 @@ var valueCheck = function(name, value, array) {
     if ($.inArray(value, array) != -1) {
         return true;
     }
-    console.warn(name + ' must be of value (.' + array.join(',') + ').');
+    console.warn(name + ' must be of value (' + array.join(',') + ').');
     return false;
 };
