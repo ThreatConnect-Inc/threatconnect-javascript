@@ -2035,7 +2035,8 @@ function Indicators(authentication) {
     // dnsResolutions
     this.dnsResolutions = function() {
         /* GET - /v2/indicators/hosts/{indicator}/dnsResolutions */
-        if (this.settings.type == TYPE.HOST) {
+        /* GET - /v2/indicators/addresses/{indicator}/dnsResolutions */
+        if (this.settings.type == TYPE.HOST || this.settings.type == TYPE.ADDRESS) {
             this.settings.normalizer = normalize.dnsResolutions;
 
             this.requestUri([
