@@ -1509,7 +1509,17 @@ function Indicators(authentication) {
                 }
             }
             else {
-                this.iData.requiredData[this.settings.type.postField] = this.iData.indicator;
+                if (this.settings.type.type === 'File') {
+                    if (this.iData.indicator.length === 32) {
+                        this.iData.requiredData['md5'] = this.iData.indicator;
+                    } else if (this.iData.indicator.length === 40) {
+                        this.iData.requiredData['sha1'] = this.iData.indicator;
+                    } else if (this.iData.indicator.length === 64) {
+                        this.iData.requiredData['sha256'] = this.iData.indicator;
+                    }
+                } else {
+                    this.iData.requiredData[this.settings.type.postField] = this.iData.indicator;
+                }
             }
 
             // prepare body
