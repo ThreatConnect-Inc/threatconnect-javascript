@@ -1,6 +1,8 @@
 # ThreatConnect JavaScript SDK
 Javascript SDK for the V2 of the ThreatConnect API
 
+**NOTE:** This SDK is no longer supported. There are Angular2+ SDKs [here](https://docs.threatconnect.com/en/latest/angular.html).
+
 ## Documentation
 
 https://docs.threatconnect.com/en/latest/javascript/javascript_sdk.html
