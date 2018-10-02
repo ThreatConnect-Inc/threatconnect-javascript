@@ -1,6 +1,8 @@
 # ThreatConnect JavaScript SDK
 Javascript SDK for the V2 of the ThreatConnect API
 
+**Note:** This SDK is in maintenance mode. ThreatConnect will be not be adding any more features to this SDK, but we will fix any bugs. Contributions from the community will still be accepted.
+
 ## Documentation
 
 https://docs.threatconnect.com/en/latest/javascript/javascript_sdk.html
