@@ -11,3 +11,6 @@ tc_conf.js
 
 # node modules
 tests/node_modules/
+
+# other stuff
+.pytest_cache
