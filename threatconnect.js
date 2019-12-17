@@ -13,7 +13,6 @@
 */
 
 /* global $, CryptoJS, TYPE */
-var REQUESTLIMIT = 10000
 
 // const TYPE = {  // ECMASCRIPT6 support only
 var TYPE = {
@@ -51,6 +50,11 @@ var TYPE = {
         'type': 'EmailAddress',
         'uri': 'indicators/emailAddresses',
     },
+    EVENT: {
+        'dataField': 'event',
+        'type': 'Event',
+        'uri': 'groups/events',
+    },
     FILE: {
         'dataField': 'file',
         'postField': '',
@@ -81,6 +85,11 @@ var TYPE = {
         'indicatorFields': ['summary'],
         'uri': 'indicators',
     },
+    INTRUSION_SET: {
+        'dataField': 'intrusionSet',
+        'type': 'IntrusionSet',
+        'uri': 'groups/intrusionSets',
+    },
     MD5: {
         'dataField': 'file',
         'postField': 'md5',
@@ -91,6 +100,11 @@ var TYPE = {
         'dataField': undefined,
         'type': 'Owner',
         'uri': 'owners',
+    },
+    REPORT: {
+        'dataField': 'report',
+        'type': 'Report',
+        'uri': 'groups/reports',
     },
     SHA1: {
         'dataField': 'file',
@@ -187,7 +201,10 @@ var groupHelper = function(type) {
         'campaign': TYPE.CAMPAIGN,
         'document': TYPE.DOCUMENT,
         'email': TYPE.EMAIL,
+        'event': TYPE.EVENT,
         'incident': TYPE.INCIDENT,
+        'intrusion set': TYPE.INTRUSION_SET,
+        'report': TYPE.REPORT,
         'signature': TYPE.SIGNATURE,
         'threat': TYPE.THREAT
     };
@@ -289,7 +306,7 @@ function RequestObject() {
     this.headers = {},
     this.payload = {
         // createActivityLog: 'false',
-        resultLimit: REQUESTLIMIT,
+        resultLimit: 500,
         // resultStart: 0
     },
     this.response = {
@@ -370,9 +387,9 @@ function RequestObject() {
     };
 
     this.resultLimit = function(data) {
-        if (rangeCheck('resultLimit', data, 1, REQUESTLIMIT)) {
+        if (rangeCheck('resultLimit', data, 1, 500)) {
             this.addPayload('resultLimit', data);
-            this.settings.requestCount = REQUESTLIMIT;  // bcs
+            this.settings.requestCount = 500;  // bcs
         }
         return this;
     };
@@ -616,15 +633,13 @@ function RequestObject() {
                     responseContentType = request.getResponseHeader('Content-Type');
 
                 _this.response.apiCalls++;
-
-                // handle responses from custom metrics which return a response of undefined
+                // handle responses from custom metrics
                 if (params === 'customMetric') {
                     if (response == undefined) {
                         response = {};
                         response.status = "Success";
                     }
                 }
-
                 _this.response.status = response.status;
 
                 if (response.status == 'Success' && response.data) {
@@ -853,7 +868,7 @@ function Groups(authentication) {
 
     this.authentication = authentication;
     this.ajax.requestUri = 'v2';
-    this.resultLimit(REQUESTLIMIT);
+    this.resultLimit(500);
     this.settings.helper = true;
     this.settings.normalizer = normalize.groups;
     this.settings.normalizerType = TYPE.GROUP;
@@ -869,7 +884,10 @@ function Groups(authentication) {
             campaign: {},
             document: {},
             email: {},
+            event: {},
             incident: {},
+            intrusionSet: {},
+            report: {},
             signature: {},
             threat: {}
         },
@@ -1264,13 +1282,14 @@ function Groups(authentication) {
             this.rData.id,
             'attributes',
         ].join('/'));
-        if (attributeId != undefined)
+        if (attributeId !== undefined) {
             if (intCheck('attributeId', attributeId)) {
                 this.requestUri([
                     this.ajax.requestUri,
                     attributeId
                 ].join('/'));
             }
+        }
 
         return this.apiRequest('attribute');
     };
@@ -1454,6 +1473,14 @@ function Indicators(authentication) {
         return fileHash;
     };
 
+    this.size = function(data) {
+        /* Set the size of a file indicator. */
+        if (intCheck('file size', data)) {
+            this.iData.specificData.File.size = data;
+        }
+        return this;
+    };
+
     // host
     this.dnsActive = function(data) {
         if (boolCheck('dnsActive', data)) {
@@ -1519,17 +1546,7 @@ function Indicators(authentication) {
                 }
             }
             else {
-                if (this.settings.type.type === 'File') {
-                    if (this.iData.indicator.length === 32) {
-                        this.iData.requiredData['md5'] = this.iData.indicator;
-                    } else if (this.iData.indicator.length === 40) {
-                        this.iData.requiredData['sha1'] = this.iData.indicator;
-                    } else if (this.iData.indicator.length === 64) {
-                        this.iData.requiredData['sha256'] = this.iData.indicator;
-                    }
-                } else {
-                    this.iData.requiredData[this.settings.type.postField] = this.iData.indicator;
-                }
+                this.iData.requiredData[this.settings.type.postField] = this.iData.indicator;
             }
 
             // prepare body
@@ -1631,6 +1648,66 @@ function Indicators(authentication) {
         this.requestMethod('POST');
 
         return this.apiRequest('falsePositive');
+    };
+
+    // Commit File Action - Files Only
+    this.commitFileAction = function(fileAction, association) {
+        /* POST -  /v2/indicators/files/{fileHash}/actions/{fileAction}/indicators/{indicatorType}/{indicator} */
+        this.normalization(normalize.find(association.type.type));
+
+        // if the indicator is an Object, set the indicator to be one of the values in the Object
+        if(this.iData.indicator.constructor == Object) {
+            this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
+        }
+
+        this.requestUri([
+            this.ajax.baseUri,
+            this.settings.type.uri,
+            this.iData.indicator,
+            'actions',
+            fileAction,
+            association.type.uri,
+            association.type.type == 'URL' || association.type.type == 'EmailAddress' ? encodeURIComponent(association.id) : association.id,
+        ].join('/'));
+        this.requestMethod('POST');
+
+        return this.apiRequest('actions');
+    };
+
+    // Commit File Occurrence - File Indicators only
+    this.commitFileOccurrence = function(fileOccurrence) {
+        /* POST - /v2/indicators/files/{fileHash}/fileOccurrences */
+        /* PUT - /v2/indicators/files/{fileHash}/fileOccurrences/{id} */
+        // check to make sure the current indicator type is a file
+        if (this.settings.type.type == 'File') {
+            if (fileOccurrence) {
+                this.normalization(normalize.fileOccurrences);
+
+                // if the indicator is an Object, set the indicator to be one of the values in the Object
+                if(this.iData.indicator.constructor == Object) {
+                    this.iData.indicator = this._getSingleIndicatorValue(this.iData.indicator);
+                }
+
+                this.requestUri([
+                    this.ajax.baseUri,
+                    this.settings.type.uri,
+                    this.iData.indicator,
+                    'fileOccurrences'
+                ].join('/'));
+                this.requestMethod('POST');
+                this.body(fileOccurrence);
+
+                // update an existing fileOccurrence
+                if (fileOccurrence.id) {
+                    this.requestUri([
+                        this.ajax.requestUri,
+                        attribute.id,
+                    ].join('/'));
+                    this.requestMethod('PUT');
+                }
+                return this.apiRequest('fileOccurrence');
+            }
+        }
     };
 
     // Commit Observation
@@ -1885,13 +1962,14 @@ function Indicators(authentication) {
             this.settings.type.type == 'URL' || this.settings.type.type == 'EmailAddress' ? encodeURIComponent(this.iData.indicator) : this.iData.indicator,
             'attributes',
         ].join('/'));
-        if (attributeId != undefined)
+        if (attributeId !== undefined) {
             if (intCheck('attributeId', attributeId)) {
                 this.requestUri([
                     this.ajax.requestUri,
                     attributeId
                 ].join('/'));
             }
+        }
 
         return this.apiRequest('attribute');
     };
@@ -3067,13 +3145,14 @@ function Tasks(authentication) {
                 this.rData.id,
                 'attributes'
             ].join('/'));
-            if (attributeId != undefined)
+            if (attributeId !== undefined) {
                 if (intCheck('attributeId', attributeId)) {
                     this.requestUri([
                         this.ajax.requestUri,
                         attributeId
                     ].join('/'));
                 }
+            }
 
             this.requestMethod('GET');
 
@@ -3673,13 +3752,14 @@ function Victims(authentication) {
             this.rData.id,
             'attributes',
         ].join('/'));
-        if (attributeId != undefined)
+        if (attributeId !== undefined) {
             if (intCheck('attributeId', attributeId)) {
                 this.requestUri([
                     this.ajax.requestUri,
                     attributeId
                 ].join('/'));
             }
+        }
 
         return this.apiRequest('attribute');
     };
@@ -3753,7 +3833,7 @@ function WhoAmI(authentication) {
 
     this.authentication = authentication;
     this.ajax.requestUri = 'v2';
-    this.resultLimit(REQUESTLIMIT);
+    this.resultLimit(500);
     this.settings.helper = true;
     this.settings.type = TYPE.WHOAMI;
 
@@ -4239,8 +4319,11 @@ var normalize = {
             case TYPE.CAMPAIGN.type:
             case TYPE.DOCUMENT.type:
             case TYPE.EMAIL.type:
+            case TYPE.EVENT.type:
             case TYPE.GROUP.type:
             case TYPE.INCIDENT.type:
+            case TYPE.INTRUSION_SET.type:
+            case TYPE.REPORT.type:
             case TYPE.SIGNATURE.type:
             case TYPE.THREAT.type:
                 return this.groups;
